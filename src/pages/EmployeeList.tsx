@@ -786,8 +786,6 @@ export default function EmployeeList() {
             </div>
           )}
         </AnimatePresence>
-
-      </div>
     </AdminLayout>
   );
 }

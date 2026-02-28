@@ -18,11 +18,14 @@ import {
   Percent,
   Calculator,
   PlusCircle,
-  MoreVertical
+  MoreVertical,
+  GripVertical,
+  X
 } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
 import { motion, AnimatePresence } from 'motion/react';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 interface Project {
   id: string;
@@ -137,6 +140,54 @@ export default function ProjectManagement() {
       }
       return s;
     }));
+  };
+
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    
+    const { source, destination, draggableId } = result;
+    
+    if (source.droppableId !== destination.droppableId) {
+      const newStatus = destination.droppableId as Task['status'];
+      setTasks(tasks.map(t => t.id === draggableId ? { ...t, status: newStatus } : t));
+    }
+  };
+
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setIsTaskModalOpen(true);
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    setTasks(tasks.filter(t => t.id !== taskId));
+  };
+
+  const handleSaveTask = () => {
+    if (editingTask) {
+      if (tasks.find(t => t.id === editingTask.id)) {
+        setTasks(tasks.map(t => t.id === editingTask.id ? editingTask : t));
+      } else {
+        setTasks([...tasks, editingTask]);
+      }
+      setIsTaskModalOpen(false);
+      setEditingTask(null);
+    }
+  };
+
+  const handleCreateTask = () => {
+    setEditingTask({
+      id: Math.random().toString(36).substr(2, 9),
+      projectId: projects[0]?.id || '',
+      title: 'New Task',
+      description: '',
+      assignee: 'Unassigned',
+      priority: 'Medium',
+      status: 'To Do'
+    });
+    setIsTaskModalOpen(true);
   };
 
   return (
@@ -279,18 +330,20 @@ export default function ProjectManagement() {
             >
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-bold text-slate-800 dark:text-white">Daily Task Report & Board</h3>
-                <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-indigo-700">
+                <button onClick={handleCreateTask} className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-indigo-700">
                   <PlusCircle className="w-4 h-4" />
                   Add Task
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 h-[calc(100vh-300px)] min-h-[500px]">
-                <TaskColumn title="To Do" status="To Do" tasks={tasks.filter(t => t.status === 'To Do')} onStatusChange={updateTaskStatus} isDark={isDark} />
-                <TaskColumn title="In Progress" status="In Progress" tasks={tasks.filter(t => t.status === 'In Progress')} onStatusChange={updateStatus => updateTaskStatus} isDark={isDark} />
-                <TaskColumn title="Review" status="Review" tasks={tasks.filter(t => t.status === 'Review')} onStatusChange={updateTaskStatus} isDark={isDark} />
-                <TaskColumn title="Done" status="Done" tasks={tasks.filter(t => t.status === 'Done')} onStatusChange={updateTaskStatus} isDark={isDark} />
-              </div>
+              <DragDropContext onDragEnd={onDragEnd}>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 h-[calc(100vh-300px)] min-h-[500px]">
+                  <TaskColumn title="To Do" status="To Do" tasks={tasks.filter(t => t.status === 'To Do')} onStatusChange={updateTaskStatus} isDark={isDark} onEdit={handleEditTask} onDelete={handleDeleteTask} />
+                  <TaskColumn title="In Progress" status="In Progress" tasks={tasks.filter(t => t.status === 'In Progress')} onStatusChange={updateTaskStatus} isDark={isDark} onEdit={handleEditTask} onDelete={handleDeleteTask} />
+                  <TaskColumn title="Review" status="Review" tasks={tasks.filter(t => t.status === 'Review')} onStatusChange={updateTaskStatus} isDark={isDark} onEdit={handleEditTask} onDelete={handleDeleteTask} />
+                  <TaskColumn title="Done" status="Done" tasks={tasks.filter(t => t.status === 'Done')} onStatusChange={updateTaskStatus} isDark={isDark} onEdit={handleEditTask} onDelete={handleDeleteTask} />
+                </div>
+              </DragDropContext>
             </motion.div>
           )}
 
@@ -402,6 +455,88 @@ export default function ProjectManagement() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Task Edit Modal */}
+        <AnimatePresence>
+          {isTaskModalOpen && editingTask && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className={`rounded-xl shadow-xl w-full max-w-md overflow-hidden ${isDark ? 'bg-slate-900' : 'bg-white'}`}
+              >
+                <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                  <h3 className="font-bold text-slate-800 dark:text-white">{editingTask.id ? 'Edit Task' : 'New Task'}</h3>
+                  <button onClick={() => setIsTaskModalOpen(false)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full">
+                    <X className="w-5 h-5 text-slate-500" />
+                  </button>
+                </div>
+                
+                <div className="p-6 space-y-4">
+                  <InputField label="Task Title" value={editingTask.title} onChange={(v) => setEditingTask({...editingTask, title: v})} isDark={isDark} />
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Description</label>
+                    <textarea 
+                      value={editingTask.description}
+                      onChange={(e) => setEditingTask({...editingTask, description: e.target.value})}
+                      className={`w-full border rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                      rows={3}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Assignee</label>
+                      <input 
+                        type="text" 
+                        value={editingTask.assignee}
+                        onChange={(e) => setEditingTask({...editingTask, assignee: e.target.value})}
+                        className={`w-full border rounded px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Priority</label>
+                      <select 
+                        value={editingTask.priority}
+                        onChange={(e) => setEditingTask({...editingTask, priority: e.target.value as any})}
+                        className={`w-full border rounded px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                      >
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Status</label>
+                    <select 
+                      value={editingTask.status}
+                      onChange={(e) => setEditingTask({...editingTask, status: e.target.value as any})}
+                      className={`w-full border rounded px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                    >
+                      <option value="To Do">To Do</option>
+                      <option value="In Progress">In Progress</option>
+                      <option value="Review">Review</option>
+                      <option value="Done">Done</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2 bg-slate-50 dark:bg-slate-800/50">
+                  <button 
+                    onClick={() => setIsTaskModalOpen(false)}
+                    className="px-4 py-2 text-slate-600 dark:text-slate-400 font-bold text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button onClick={handleSaveTask} className="bg-indigo-600 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700">
+                    Save Task
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     </AdminLayout>
   );
@@ -443,44 +578,76 @@ function InputField({ label, value, onChange, type = 'text', isDark }: any) {
   );
 }
 
-function TaskColumn({ title, tasks, isDark, onStatusChange }: any) {
+function TaskColumn({ title, status, tasks, isDark, onStatusChange, onEdit, onDelete }: any) {
   return (
     <div className={`flex flex-col h-full rounded-xl border ${isDark ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
       <div className="p-3 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
         <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest">{title}</h4>
         <span className="bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] px-2 py-0.5 rounded-full">{tasks.length}</span>
       </div>
-      <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
-        {tasks.map((task: any) => (
-          <div key={task.id} className={`p-3 rounded-lg border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} shadow-sm hover:shadow-md transition-shadow group`}>
-            <div className="flex justify-between items-start mb-2">
-              <span className={`text-[8px] font-bold uppercase px-1.5 py-0.5 rounded ${
-                task.priority === 'High' ? 'bg-red-100 text-red-700' :
-                task.priority === 'Medium' ? 'bg-amber-100 text-amber-700' :
-                'bg-blue-100 text-blue-700'
-              }`}>
-                {task.priority}
-              </span>
-              <button className="text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                <MoreVertical className="w-3 h-3" />
-              </button>
-            </div>
-            <h5 className="text-sm font-bold text-slate-800 dark:text-white mb-1">{task.title}</h5>
-            <p className="text-xs text-slate-500 line-clamp-2 mb-3">{task.description}</p>
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-1">
-                <div className="w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-600">
-                  {task.assignee.charAt(0)}
-                </div>
-                <span className="text-[10px] text-slate-400">{task.assignee}</span>
-              </div>
-              <div className="flex gap-1">
-                <button className="text-slate-300 hover:text-indigo-600"><CheckCircle2 className="w-3.5 h-3.5" /></button>
-              </div>
-            </div>
+      <Droppable droppableId={status}>
+        {(provided, snapshot) => (
+          <div 
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className={`flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar ${snapshot.isDraggingOver ? (isDark ? 'bg-slate-800/30' : 'bg-slate-100/50') : ''}`}
+          >
+            {tasks.map((task: any, index: number) => (
+              // @ts-ignore
+              <Draggable key={task.id} draggableId={task.id} index={index}>
+                {(provided, snapshot) => (
+                  <div 
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    className={`p-3 rounded-lg border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} shadow-sm hover:shadow-md transition-shadow group ${snapshot.isDragging ? 'shadow-lg ring-2 ring-indigo-500 ring-opacity-50' : ''}`}
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex items-center gap-2">
+                        <div {...provided.dragHandleProps} className="text-slate-400 hover:text-slate-600 cursor-grab active:cursor-grabbing">
+                          <GripVertical className="w-4 h-4" />
+                        </div>
+                        <span className={`text-[8px] font-bold uppercase px-1.5 py-0.5 rounded ${
+                          task.priority === 'High' ? 'bg-red-100 text-red-700' :
+                          task.priority === 'Medium' ? 'bg-amber-100 text-amber-700' :
+                          'bg-blue-100 text-blue-700'
+                        }`}>
+                          {task.priority}
+                        </span>
+                      </div>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => onEdit(task)} className="text-slate-400 hover:text-indigo-600 p-1">
+                          <Edit3 className="w-3 h-3" />
+                        </button>
+                        <button onClick={() => onDelete(task.id)} className="text-slate-400 hover:text-red-600 p-1">
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                    <h5 className="text-sm font-bold text-slate-800 dark:text-white mb-1">{task.title}</h5>
+                    <p className="text-xs text-slate-500 line-clamp-2 mb-3">{task.description}</p>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-1">
+                        <div className="w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center text-[10px] font-bold text-indigo-600">
+                          {task.assignee.charAt(0)}
+                        </div>
+                        <span className="text-[10px] text-slate-400">{task.assignee}</span>
+                      </div>
+                      {status !== 'Done' && (
+                        <div className="flex gap-1">
+                          <button onClick={() => onStatusChange(task.id, 'Done')} className="text-slate-300 hover:text-emerald-600" title="Mark as Done">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
           </div>
-        ))}
-      </div>
+        )}
+      </Droppable>
     </div>
   );
 }

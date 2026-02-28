@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { Search, Download, FileText, Printer, Filter } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 interface CompanyPayrollRecord {
   id: string;
@@ -32,7 +35,41 @@ export default function CompanyPayroll() {
   const isDark = theme === 'dark';
 
   const handleDownload = (format: string) => {
-    alert(`Downloading payroll reports from ${startDate} to ${endDate} for ${selectedDepartment} department as ${format}`);
+    if (format === 'Excel') {
+      const worksheet = XLSX.utils.json_to_sheet(payrolls.map(p => ({
+        Month: p.month,
+        Department: p.department,
+        'Total Amount': p.totalAmount,
+        Status: p.status,
+        'Generated Date': p.generatedDate
+      })));
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Payroll");
+      XLSX.writeFile(workbook, `Company_Payroll_${startDate}_to_${endDate}.xlsx`);
+    } else if (format === 'PDF') {
+      const doc = new jsPDF();
+      doc.text('Company Payroll Report', 14, 15);
+      doc.setFontSize(10);
+      doc.text(`Date Range: ${startDate} to ${endDate}`, 14, 22);
+      doc.text(`Department: ${selectedDepartment}`, 14, 28);
+      
+      const tableColumn = ["Month", "Department", "Total Amount", "Status", "Generated Date"];
+      const tableRows = payrolls.map(p => [
+        p.month,
+        p.department,
+        p.totalAmount.toLocaleString(),
+        p.status,
+        p.generatedDate
+      ]);
+
+      (doc as any).autoTable({
+        head: [tableColumn],
+        body: tableRows,
+        startY: 35,
+      });
+      
+      doc.save(`Company_Payroll_${startDate}_to_${endDate}.pdf`);
+    }
   };
 
   return (

@@ -9,11 +9,13 @@ import {
   PlusCircle,
   MinusCircle,
   FileText,
-  List
+  List,
+  Target
 } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
 import { Link } from 'react-router-dom';
+import { KPITemplate, KPIIndicator } from './KPIs';
 
 interface RatingItem {
   id: string;
@@ -21,6 +23,7 @@ interface RatingItem {
   rating: number;
   score: number;
   comments: string;
+  maxScore?: number;
 }
 
 interface DevelopmentPlan {
@@ -53,15 +56,54 @@ export default function PerformanceAppraisalReport() {
     reviewDate: '',
     nextReviewPeriod: '',
     employeeComments: '',
+    kpiTemplateId: '',
   });
 
+  const [kpiTemplates, setKpiTemplates] = useState<KPITemplate[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('kpi_templates');
+    if (saved) {
+      setKpiTemplates(JSON.parse(saved));
+    }
+  }, []);
+
   const [sectionA, setSectionA] = useState<RatingItem[]>([
-    { id: 'a1', criteria: 'Demonstrated Knowledge of duties & Quality of Work', rating: 0, score: 0, comments: '' },
-    { id: 'a2', criteria: 'Timeliness of Delivery', rating: 0, score: 0, comments: '' },
-    { id: 'a3', criteria: 'Impact of Achievement', rating: 0, score: 0, comments: '' },
-    { id: 'a4', criteria: 'Overall Achievement of Goals/Objectives', rating: 0, score: 0, comments: '' },
-    { id: 'a5', criteria: 'Going beyond the call of Duty', rating: 0, score: 0, comments: '' },
+    { id: 'a1', criteria: 'Demonstrated Knowledge of duties & Quality of Work', rating: 0, score: 0, comments: '', maxScore: 12 },
+    { id: 'a2', criteria: 'Timeliness of Delivery', rating: 0, score: 0, comments: '', maxScore: 12 },
+    { id: 'a3', criteria: 'Impact of Achievement', rating: 0, score: 0, comments: '', maxScore: 12 },
+    { id: 'a4', criteria: 'Overall Achievement of Goals/Objectives', rating: 0, score: 0, comments: '', maxScore: 12 },
+    { id: 'a5', criteria: 'Going beyond the call of Duty', rating: 0, score: 0, comments: '', maxScore: 12 },
   ]);
+
+  const handleKpiTemplateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const templateId = e.target.value;
+    setFormData(prev => ({ ...prev, kpiTemplateId: templateId }));
+
+    if (templateId) {
+      const template = kpiTemplates.find(t => t.id === templateId);
+      if (template) {
+        const newSectionA = template.indicators.map(ind => ({
+          id: ind.id,
+          criteria: ind.name,
+          rating: 0,
+          score: 0,
+          comments: '',
+          maxScore: ind.maxScore
+        }));
+        setSectionA(newSectionA);
+      }
+    } else {
+      // Reset to default
+      setSectionA([
+        { id: 'a1', criteria: 'Demonstrated Knowledge of duties & Quality of Work', rating: 0, score: 0, comments: '', maxScore: 12 },
+        { id: 'a2', criteria: 'Timeliness of Delivery', rating: 0, score: 0, comments: '', maxScore: 12 },
+        { id: 'a3', criteria: 'Impact of Achievement', rating: 0, score: 0, comments: '', maxScore: 12 },
+        { id: 'a4', criteria: 'Overall Achievement of Goals/Objectives', rating: 0, score: 0, comments: '', maxScore: 12 },
+        { id: 'a5', criteria: 'Going beyond the call of Duty', rating: 0, score: 0, comments: '', maxScore: 12 },
+      ]);
+    }
+  };
 
   const [sectionB, setSectionB] = useState<RatingItem[]>([
     { id: 'b1', criteria: 'Interpersonal skills & ability to work in a team environment', rating: 2, score: 2, comments: '' },
@@ -86,7 +128,7 @@ export default function PerformanceAppraisalReport() {
   const updateSectionA = (id: string, rating: number, comments?: string) => {
     setSectionA(prev => prev.map(item => {
       if (item.id === id) {
-        const score = rating; // In section A, rating is the score (0, 3, 6, 9, 12)
+        const score = rating; 
         return { ...item, rating, score, comments: comments !== undefined ? comments : item.comments };
       }
       return item;
@@ -201,6 +243,21 @@ export default function PerformanceAppraisalReport() {
                 className={`flex-1 border rounded px-3 py-1.5 text-sm ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
               />
             </div>
+            <div className="flex items-center gap-4 md:col-span-2 bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg border border-indigo-100 dark:border-indigo-800">
+              <Target className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              <label className="text-sm font-bold text-indigo-900 dark:text-indigo-300 whitespace-nowrap">Link KPI Template :</label>
+              <select 
+                name="kpiTemplateId"
+                value={formData.kpiTemplateId}
+                onChange={handleKpiTemplateChange}
+                className={`flex-1 border rounded px-3 py-2 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+              >
+                <option value="">-- Default Appraisal Criteria --</option>
+                {kpiTemplates.map(template => (
+                  <option key={template.id} value={template.id}>{template.title}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <p className="text-sm text-slate-600 dark:text-slate-400 italic">
@@ -239,12 +296,8 @@ export default function PerformanceAppraisalReport() {
                 <thead>
                   <tr className="bg-slate-50 dark:bg-slate-800/50 text-xs font-bold uppercase">
                     <th className="p-2 border border-slate-200 dark:border-slate-800">Criteria</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800 text-center">P (0)</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800 text-center">NI (3)</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800 text-center">G (6)</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800 text-center">VG (9)</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800 text-center">E (12)</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800 text-center">Score</th>
+                    <th className="p-2 border border-slate-200 dark:border-slate-800 text-center">Score Input</th>
+                    <th className="p-2 border border-slate-200 dark:border-slate-800 text-center">Max Score</th>
                     <th className="p-2 border border-slate-200 dark:border-slate-800">Comments and examples</th>
                   </tr>
                 </thead>
@@ -252,24 +305,21 @@ export default function PerformanceAppraisalReport() {
                   {sectionA.map((item) => (
                     <tr key={item.id} className="text-sm">
                       <td className="p-2 border border-slate-200 dark:border-slate-800 font-medium">{item.criteria}</td>
-                      {[0, 3, 6, 9, 12].map(val => (
-                        <td key={val} className="p-2 border border-slate-200 dark:border-slate-800 text-center">
-                          <input 
-                            type="radio" 
-                            name={`sectionA-${item.id}`} 
-                            checked={item.rating === val}
-                            onChange={() => updateSectionA(item.id, val)}
-                            className="w-4 h-4 text-indigo-600"
-                          />
-                        </td>
-                      ))}
-                      <td className="p-2 border border-slate-200 dark:border-slate-800">
+                      <td className="p-2 border border-slate-200 dark:border-slate-800 text-center">
                         <input 
                           type="number" 
                           value={item.score}
-                          readOnly
-                          className={`w-full text-center bg-slate-50 dark:bg-slate-800/50 border-none outline-none ${isDark ? 'text-white' : 'text-slate-800'}`}
+                          onChange={(e) => {
+                            let val = parseInt(e.target.value) || 0;
+                            if (item.maxScore && val > item.maxScore) val = item.maxScore;
+                            if (val < 0) val = 0;
+                            updateSectionA(item.id, val);
+                          }}
+                          className={`w-20 text-center border rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-300'}`}
                         />
+                      </td>
+                      <td className="p-2 border border-slate-200 dark:border-slate-800 text-center text-slate-500 font-bold">
+                        {item.maxScore || 12}
                       </td>
                       <td className="p-2 border border-slate-200 dark:border-slate-800">
                         <textarea 
@@ -281,8 +331,11 @@ export default function PerformanceAppraisalReport() {
                     </tr>
                   ))}
                   <tr className="bg-slate-50 dark:bg-slate-800/50 font-bold">
-                    <td colSpan={6} className="p-2 border border-slate-200 dark:border-slate-800 text-right">Total score (maximum = 60)</td>
-                    <td className="p-2 border border-slate-200 dark:border-slate-800 text-center bg-indigo-50 dark:bg-indigo-900/30">{totalA}</td>
+                    <td colSpan={1} className="p-2 border border-slate-200 dark:border-slate-800 text-right">Total score</td>
+                    <td className="p-2 border border-slate-200 dark:border-slate-800 text-center bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600">{totalA}</td>
+                    <td className="p-2 border border-slate-200 dark:border-slate-800 text-center text-slate-500">
+                      {sectionA.reduce((sum, item) => sum + (item.maxScore || 12), 0)}
+                    </td>
                     <td className="p-2 border border-slate-200 dark:border-slate-800"></td>
                   </tr>
                 </tbody>

@@ -564,7 +564,6 @@ export default function Attendance() {
             </div>
           )}
         </AnimatePresence>
-      </div>
     </AdminLayout>
   );
 }

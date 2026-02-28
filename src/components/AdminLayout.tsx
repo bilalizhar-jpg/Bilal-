@@ -94,7 +94,22 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       icon: ClipboardList,
       path: '/project-management'
     },
-    { name: 'Recruitment', icon: UserCheck, path: '/recruitment' },
+    { 
+      name: 'Recruitment', 
+      icon: UserCheck, 
+      hasSub: true,
+      subItems: [
+        { name: 'Career Page', path: '/careers' },
+        { name: 'Career Page Settings', path: '/recruitment/career-page-settings' },
+        { name: 'Job Posting', path: '/recruitment/job-posting' },
+        { name: 'Jobs List', path: '/recruitment/jobs-list' },
+        { name: 'Bulk CV Upload', path: '/recruitment/bulk-cv-upload' },
+        { name: 'Search Candidates', path: '/recruitment/search-candidates' },
+        { name: 'Offer Letters', path: '/recruitment/offer-letters' },
+        { name: 'Agreements', path: '/recruitment/agreements' },
+        { name: 'Custom Design', path: '/recruitment/custom-design' }
+      ]
+    },
     { name: 'Reports', icon: FileText, path: '/reports' },
     { name: 'Reward points', icon: Target, path: '/reward-points' },
     { name: 'Setup rules', icon: Settings, path: '/setup-rules' },

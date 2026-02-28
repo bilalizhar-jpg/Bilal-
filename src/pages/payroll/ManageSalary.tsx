@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Search, 
@@ -14,10 +14,14 @@ import {
   X,
   Filter,
   ArrowLeft,
-  Building2
+  Building2,
+  Save
 } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 interface EmployeeSalary {
   id: string;
@@ -31,6 +35,16 @@ interface EmployeeSalary {
   workingHours: number;
   workedHours: number;
   recruitmentDate: string;
+}
+
+interface PayslipRow {
+  id: string;
+  description: string;
+  amount: number;
+  rate: number;
+  value: number;
+  deduction: number;
+  type: 'earning' | 'deduction';
 }
 
 const initialSalaries: EmployeeSalary[] = [
@@ -49,6 +63,47 @@ export default function ManageSalary() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+
+  const [payslipRows, setPayslipRows] = useState<PayslipRow[]>([]);
+  const [editableEmployeeInfo, setEditableEmployeeInfo] = useState<EmployeeSalary | null>(null);
+
+  useEffect(() => {
+    if (selectedSalary) {
+      setEditableEmployeeInfo({ ...selectedSalary });
+      setPayslipRows([
+        { id: '1', description: 'Basic salary', amount: 6400, rate: 0, value: 6400, deduction: 0, type: 'earning' },
+        { id: '2', description: 'Transport allowance', amount: 470, rate: 0, value: 470, deduction: 0, type: 'earning' },
+        { id: '3', description: 'State income tax', amount: 0, rate: 0, value: 0, deduction: 0, type: 'deduction' },
+        { id: '4', description: 'Social security', amount: 0, rate: 0, value: 0, deduction: 0, type: 'deduction' },
+        { id: '5', description: 'Loan deduction', amount: 0, rate: 0, value: 0, deduction: 0, type: 'deduction' },
+        { id: '6', description: 'Salary advance', amount: 0, rate: 0, value: 0, deduction: 0, type: 'deduction' },
+      ]);
+    }
+  }, [selectedSalary]);
+
+  const handleRowChange = (id: string, field: keyof PayslipRow, value: string | number) => {
+    setPayslipRows(rows => rows.map(r => r.id === id ? { ...r, [field]: value } : r));
+  };
+
+  const addRow = (type: 'earning' | 'deduction') => {
+    setPayslipRows([...payslipRows, {
+      id: Date.now().toString(),
+      description: 'New Item',
+      amount: 0,
+      rate: 0,
+      value: 0,
+      deduction: 0,
+      type
+    }]);
+  };
+
+  const removeRow = (id: string) => {
+    setPayslipRows(rows => rows.filter(r => r.id !== id));
+  };
+
+  const totalEarnings = payslipRows.filter(r => r.type === 'earning').reduce((sum, r) => sum + Number(r.value || 0), 0);
+  const totalDeductions = payslipRows.filter(r => r.type === 'deduction').reduce((sum, r) => sum + Number(r.deduction || 0), 0);
+  const netSalary = totalEarnings - totalDeductions;
 
   const handleDownload = (format: string) => {
     alert(`Downloading salary list as ${format}`);
@@ -222,7 +277,7 @@ export default function ManageSalary() {
                 </div>
               </div>
 
-              <div className="p-8 space-y-8 print:p-0">
+              <div className="p-8 space-y-8 print:p-0" id="payslip-content">
                 {/* Payslip Header */}
                 <div className="text-center space-y-2">
                   <div className="flex justify-center mb-4">
@@ -234,56 +289,50 @@ export default function ManageSalary() {
                 </div>
 
                 {/* Employee Info Grid */}
-                <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-sm border-t border-b border-slate-100 dark:border-slate-800 py-6">
-                  <div className="space-y-3">
-                    <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1">
-                      <span className="font-bold text-slate-500">Employee name</span>
-                      <span className="text-slate-800 dark:text-white">{selectedSalary.employeeName}</span>
+                {editableEmployeeInfo && (
+                  <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-sm border-t border-b border-slate-100 dark:border-slate-800 py-6">
+                    <div className="space-y-3">
+                      <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1 items-center">
+                        <span className="font-bold text-slate-500">Employee name</span>
+                        <input type="text" value={editableEmployeeInfo.employeeName} onChange={(e) => setEditableEmployeeInfo({...editableEmployeeInfo, employeeName: e.target.value})} className="text-right bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-800 dark:text-white" />
+                      </div>
+                      <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1 items-center">
+                        <span className="font-bold text-slate-500">Position</span>
+                        <input type="text" value={editableEmployeeInfo.position} onChange={(e) => setEditableEmployeeInfo({...editableEmployeeInfo, position: e.target.value})} className="text-right bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-800 dark:text-white" />
+                      </div>
+                      <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1 items-center">
+                        <span className="font-bold text-slate-500">Contact</span>
+                        <input type="text" value={editableEmployeeInfo.contact} onChange={(e) => setEditableEmployeeInfo({...editableEmployeeInfo, contact: e.target.value})} className="text-right bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-800 dark:text-white" />
+                      </div>
+                      <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1 items-center">
+                        <span className="font-bold text-slate-500">Address</span>
+                        <input type="text" value={editableEmployeeInfo.address} onChange={(e) => setEditableEmployeeInfo({...editableEmployeeInfo, address: e.target.value})} className="text-right bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-800 dark:text-white" />
+                      </div>
+                      <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1 items-center">
+                        <span className="font-bold text-slate-500">Total working hours</span>
+                        <input type="number" value={editableEmployeeInfo.workingHours} onChange={(e) => setEditableEmployeeInfo({...editableEmployeeInfo, workingHours: Number(e.target.value)})} className="text-right bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-800 dark:text-white w-20" />
+                      </div>
+                      <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1 items-center">
+                        <span className="font-bold text-slate-500">Staff id</span>
+                        <input type="text" value={editableEmployeeInfo.staffId} onChange={(e) => setEditableEmployeeInfo({...editableEmployeeInfo, staffId: e.target.value})} className="text-right bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-800 dark:text-white" />
+                      </div>
                     </div>
-                    <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1">
-                      <span className="font-bold text-slate-500">Position</span>
-                      <span className="text-slate-800 dark:text-white">{selectedSalary.position}</span>
-                    </div>
-                    <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1">
-                      <span className="font-bold text-slate-500">Contact</span>
-                      <span className="text-slate-800 dark:text-white">{selectedSalary.contact}</span>
-                    </div>
-                    <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1">
-                      <span className="font-bold text-slate-500">Address</span>
-                      <span className="text-slate-800 dark:text-white">{selectedSalary.address}</span>
-                    </div>
-                    <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1">
-                      <span className="font-bold text-slate-500">Total working hours</span>
-                      <span className="text-slate-800 dark:text-white">{selectedSalary.workingHours}</span>
-                    </div>
-                    <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1">
-                      <span className="font-bold text-slate-500">Staff id</span>
-                      <span className="text-slate-800 dark:text-white">{selectedSalary.staffId}</span>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1">
-                      <span className="font-bold text-slate-500">Month</span>
-                      <span className="text-slate-800 dark:text-white">{selectedSalary.salaryMonth}</span>
-                    </div>
-                    <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1">
-                      <span className="font-bold text-slate-500">From</span>
-                      <span className="text-slate-800 dark:text-white">2024-05-01</span>
-                    </div>
-                    <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1">
-                      <span className="font-bold text-slate-500">To</span>
-                      <span className="text-slate-800 dark:text-white">2024-05-31</span>
-                    </div>
-                    <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1">
-                      <span className="font-bold text-slate-500">Recruitment date</span>
-                      <span className="text-slate-800 dark:text-white">{selectedSalary.recruitmentDate}</span>
-                    </div>
-                    <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1">
-                      <span className="font-bold text-slate-500">Worked hours</span>
-                      <span className="text-slate-800 dark:text-white">{selectedSalary.workedHours}</span>
+                    <div className="space-y-3">
+                      <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1 items-center">
+                        <span className="font-bold text-slate-500">Month</span>
+                        <input type="text" value={editableEmployeeInfo.salaryMonth} onChange={(e) => setEditableEmployeeInfo({...editableEmployeeInfo, salaryMonth: e.target.value})} className="text-right bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-800 dark:text-white" />
+                      </div>
+                      <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1 items-center">
+                        <span className="font-bold text-slate-500">Recruitment date</span>
+                        <input type="date" value={editableEmployeeInfo.recruitmentDate} onChange={(e) => setEditableEmployeeInfo({...editableEmployeeInfo, recruitmentDate: e.target.value})} className="text-right bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-800 dark:text-white" />
+                      </div>
+                      <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1 items-center">
+                        <span className="font-bold text-slate-500">Worked hours</span>
+                        <input type="number" value={editableEmployeeInfo.workedHours} onChange={(e) => setEditableEmployeeInfo({...editableEmployeeInfo, workedHours: Number(e.target.value)})} className="text-right bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-800 dark:text-white w-20" />
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Salary Table */}
                 <div className="overflow-hidden border border-slate-100 dark:border-slate-800 rounded-lg">
@@ -295,85 +344,92 @@ export default function ManageSalary() {
                         <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Rate (৳)</th>
                         <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">#Value (৳)</th>
                         <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Deduction (৳)</th>
+                        <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase w-10 no-print"></th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
-                      <tr>
-                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300">Basic salary</td>
-                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300">6,400.00</td>
-                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300"></td>
-                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300">6,400.00</td>
-                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300"></td>
-                      </tr>
-                      <tr>
-                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300">Transport allowance</td>
-                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300">470.00</td>
-                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300"></td>
-                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300">470.00</td>
-                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300"></td>
+                      {/* Earnings */}
+                      {payslipRows.filter(r => r.type === 'earning').map(row => (
+                        <tr key={row.id}>
+                          <td className="px-4 py-2">
+                            <input type="text" value={row.description} onChange={(e) => handleRowChange(row.id, 'description', e.target.value)} className="w-full bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-700 dark:text-slate-300" />
+                          </td>
+                          <td className="px-4 py-2">
+                            <input type="number" value={row.amount} onChange={(e) => handleRowChange(row.id, 'amount', Number(e.target.value))} className="w-24 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-700 dark:text-slate-300" />
+                          </td>
+                          <td className="px-4 py-2">
+                            <input type="number" value={row.rate} onChange={(e) => handleRowChange(row.id, 'rate', Number(e.target.value))} className="w-24 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-700 dark:text-slate-300" />
+                          </td>
+                          <td className="px-4 py-2">
+                            <input type="number" value={row.value} onChange={(e) => handleRowChange(row.id, 'value', Number(e.target.value))} className="w-24 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-700 dark:text-slate-300" />
+                          </td>
+                          <td className="px-4 py-2"></td>
+                          <td className="px-4 py-2 no-print">
+                            <button onClick={() => removeRow(row.id)} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="w-4 h-4" /></button>
+                          </td>
+                        </tr>
+                      ))}
+                      <tr className="no-print">
+                        <td colSpan={6} className="px-4 py-2">
+                          <button onClick={() => addRow('earning')} className="text-indigo-600 hover:text-indigo-800 text-xs font-bold flex items-center gap-1"><Plus className="w-3 h-3" /> Add Earning</button>
+                        </td>
                       </tr>
                       <tr className="bg-slate-50 dark:bg-slate-800/50 font-bold">
                         <td className="px-4 py-3 text-slate-800 dark:text-white">Total benefit</td>
                         <td className="px-4 py-3"></td>
                         <td className="px-4 py-3"></td>
-                        <td className="px-4 py-3 text-slate-800 dark:text-white">1,570.00</td>
+                        <td className="px-4 py-3 text-slate-800 dark:text-white">{totalEarnings.toFixed(2)}</td>
                         <td className="px-4 py-3"></td>
-                      </tr>
-                      <tr>
-                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300">Overtime</td>
-                        <td className="px-4 py-3"></td>
-                        <td className="px-4 py-3"></td>
-                        <td className="px-4 py-3"></td>
-                        <td className="px-4 py-3"></td>
+                        <td className="px-4 py-3 no-print"></td>
                       </tr>
                       <tr className="bg-slate-50 dark:bg-slate-800/50 font-bold">
                         <td className="px-4 py-3 text-slate-800 dark:text-white uppercase tracking-wider">Gross salary</td>
                         <td className="px-4 py-3"></td>
                         <td className="px-4 py-3"></td>
-                        <td className="px-4 py-3 text-slate-800 dark:text-white">8,440.00</td>
+                        <td className="px-4 py-3 text-slate-800 dark:text-white">{totalEarnings.toFixed(2)}</td>
                         <td className="px-4 py-3"></td>
+                        <td className="px-4 py-3 no-print"></td>
                       </tr>
-                      <tr>
-                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300">State income tax</td>
-                        <td className="px-4 py-3"></td>
-                        <td className="px-4 py-3"></td>
-                        <td className="px-4 py-3"></td>
-                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300">0.00</td>
-                      </tr>
-                      <tr>
-                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300">Social security</td>
-                        <td className="px-4 py-3"></td>
-                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300">0 %</td>
-                        <td className="px-4 py-3"></td>
-                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300">0.00</td>
-                      </tr>
-                      <tr>
-                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300">Loan deduction</td>
-                        <td className="px-4 py-3"></td>
-                        <td className="px-4 py-3"></td>
-                        <td className="px-4 py-3"></td>
-                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300">0.00</td>
-                      </tr>
-                      <tr>
-                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300">Salary advance</td>
-                        <td className="px-4 py-3"></td>
-                        <td className="px-4 py-3"></td>
-                        <td className="px-4 py-3"></td>
-                        <td className="px-4 py-3 text-slate-700 dark:text-slate-300">0.00</td>
+
+                      {/* Deductions */}
+                      {payslipRows.filter(r => r.type === 'deduction').map(row => (
+                        <tr key={row.id}>
+                          <td className="px-4 py-2">
+                            <input type="text" value={row.description} onChange={(e) => handleRowChange(row.id, 'description', e.target.value)} className="w-full bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-700 dark:text-slate-300" />
+                          </td>
+                          <td className="px-4 py-2"></td>
+                          <td className="px-4 py-2">
+                            <input type="number" value={row.rate} onChange={(e) => handleRowChange(row.id, 'rate', Number(e.target.value))} className="w-24 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-700 dark:text-slate-300" />
+                          </td>
+                          <td className="px-4 py-2"></td>
+                          <td className="px-4 py-2">
+                            <input type="number" value={row.deduction} onChange={(e) => handleRowChange(row.id, 'deduction', Number(e.target.value))} className="w-24 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-700 dark:text-slate-300" />
+                          </td>
+                          <td className="px-4 py-2 no-print">
+                            <button onClick={() => removeRow(row.id)} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="w-4 h-4" /></button>
+                          </td>
+                        </tr>
+                      ))}
+                      <tr className="no-print">
+                        <td colSpan={6} className="px-4 py-2">
+                          <button onClick={() => addRow('deduction')} className="text-indigo-600 hover:text-indigo-800 text-xs font-bold flex items-center gap-1"><Plus className="w-3 h-3" /> Add Deduction</button>
+                        </td>
                       </tr>
                       <tr className="bg-slate-50 dark:bg-slate-800/50 font-bold">
                         <td className="px-4 py-3 text-slate-800 dark:text-white uppercase tracking-wider">Total deductions</td>
                         <td className="px-4 py-3"></td>
                         <td className="px-4 py-3"></td>
                         <td className="px-4 py-3"></td>
-                        <td className="px-4 py-3 text-slate-800 dark:text-white">0.00</td>
+                        <td className="px-4 py-3 text-slate-800 dark:text-white">{totalDeductions.toFixed(2)}</td>
+                        <td className="px-4 py-3 no-print"></td>
                       </tr>
                       <tr className="bg-amber-50 dark:bg-amber-900/20 font-bold text-lg">
                         <td className="px-4 py-4 text-slate-800 dark:text-white uppercase tracking-wider">Net salary</td>
                         <td className="px-4 py-4"></td>
                         <td className="px-4 py-4"></td>
                         <td className="px-4 py-4"></td>
-                        <td className="px-4 py-4 text-slate-800 dark:text-white">8,440.00</td>
+                        <td className="px-4 py-4 text-slate-800 dark:text-white">{netSalary.toFixed(2)}</td>
+                        <td className="px-4 py-4 no-print"></td>
                       </tr>
                     </tbody>
                   </table>
@@ -393,13 +449,17 @@ export default function ManageSalary() {
                 </div>
 
                 <div className="flex justify-end gap-2 pt-8 no-print">
-                  <button className="bg-amber-400 text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-amber-500">
+                  <button onClick={() => window.print()} className="bg-amber-400 text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-amber-500">
                     <Printer className="w-4 h-4" />
                     Print
                   </button>
                   <button className="bg-[#28A745] text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-[#218838]">
                     <Download className="w-4 h-4" />
                     Download as pdf
+                  </button>
+                  <button onClick={() => setIsPayslipModalOpen(false)} className="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-indigo-700">
+                    <Save className="w-4 h-4" />
+                    Save Changes
                   </button>
                 </div>
               </div>

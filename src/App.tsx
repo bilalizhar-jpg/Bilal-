@@ -27,11 +27,22 @@ import PerformanceAppraisalReport from './pages/performance/PerformanceAppraisal
 import ProcurementRequest from './pages/procurement/ProcurementRequest';
 import AssetManagement from './pages/assets/AssetManagement';
 import ProjectManagement from './pages/project-management/ProjectManagement';
+import CareerPage from './pages/CareerPage';
+import CareerPageSettings from './pages/recruitment/CareerPageSettings';
+import JobPosting from './pages/recruitment/JobPosting';
+import JobsList from './pages/recruitment/JobsList';
+import JobCandidates from './pages/recruitment/JobCandidates';
+import SearchCandidate from './pages/recruitment/SearchCandidate';
+import BulkCVUpload from './pages/recruitment/BulkCVUpload';
+import OfferLetters from './pages/recruitment/OfferLetters';
+import Agreements from './pages/recruitment/Agreements';
+import CustomDesign from './pages/recruitment/CustomDesign';
+import Messages from './pages/messages/Messages';
 import { AnimatePresence } from 'motion/react';
 
 function AppContent() {
   const location = useLocation();
-  const isAuthPage = location.pathname !== '/';
+  const isAuthPage = location.pathname !== '/' && location.pathname !== '/careers';
 
   return (
     <>
@@ -40,6 +51,7 @@ function AppContent() {
         <div key={location.pathname}>
           <Routes location={location}>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/careers" element={<CareerPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/dashboard" element={<Dashboard />} />
@@ -61,6 +73,16 @@ function AppContent() {
             <Route path="/procurement/request" element={<ProcurementRequest />} />
             <Route path="/assets/management" element={<AssetManagement />} />
             <Route path="/project-management" element={<ProjectManagement />} />
+            <Route path="/recruitment/career-page-settings" element={<CareerPageSettings />} />
+            <Route path="/recruitment/job-posting" element={<JobPosting />} />
+            <Route path="/recruitment/jobs-list" element={<JobsList />} />
+            <Route path="/recruitment/jobs/:jobId/candidates" element={<JobCandidates />} />
+            <Route path="/recruitment/search-candidates" element={<SearchCandidate />} />
+            <Route path="/recruitment/bulk-cv-upload" element={<BulkCVUpload />} />
+            <Route path="/recruitment/offer-letters" element={<OfferLetters />} />
+            <Route path="/recruitment/agreements" element={<Agreements />} />
+            <Route path="/recruitment/custom-design" element={<CustomDesign />} />
+            <Route path="/message" element={<Messages />} />
             <Route path="*" element={<Dashboard />} />
           </Routes>
         </div>
