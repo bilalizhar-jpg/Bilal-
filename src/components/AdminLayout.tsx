@@ -21,7 +21,8 @@ import {
   Target,
   Settings,
   MessageSquare,
-  ChevronDown
+  ChevronDown,
+  Laptop
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
@@ -57,20 +58,48 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       icon: DollarSign, 
       hasSub: true,
       subItems: [
+        { name: 'Company Payroll', path: '/payroll/company-payroll' },
         { name: 'Salary advance', path: '/payroll/salary-advance' },
         { name: 'Salary generate', path: '/payroll/salary-generate' },
         { name: 'Manage employee salary', path: '/payroll/manage-salary' },
         { name: 'Sales tax format', path: '/payroll/sales-tax' }
       ]
     },
-    { name: 'Procurement', icon: Briefcase, hasSub: true },
-    { name: 'Project management', icon: ClipboardList, hasSub: true },
-    { name: 'Recruitment', icon: UserCheck, hasSub: true },
-    { name: 'Reports', icon: FileText, hasSub: true },
-    { name: 'Reward points', icon: Target, hasSub: true },
-    { name: 'Setup rules', icon: Settings, hasSub: true },
-    { name: 'Settings', icon: Settings, hasSub: true },
-    { name: 'Message', icon: MessageSquare, hasSub: true },
+    {
+      name: 'Performance',
+      icon: Target,
+      hasSub: true,
+      subItems: [
+        { name: 'Appraisal List', path: '/performance/appraisal-list' },
+        { name: 'Appraisal Report', path: '/performance/appraisal-report' }
+      ]
+    },
+    {
+      name: 'Procurement',
+      icon: Briefcase,
+      hasSub: true,
+      subItems: [
+        { name: 'Item Request', path: '/procurement/request' },
+        { name: 'Request History', path: '/procurement/history' },
+        { name: 'Procurement Settings', path: '/procurement/settings' }
+      ]
+    },
+    {
+      name: 'Assets',
+      icon: Laptop,
+      path: '/assets/management'
+    },
+    {
+      name: 'Project Management',
+      icon: ClipboardList,
+      path: '/project-management'
+    },
+    { name: 'Recruitment', icon: UserCheck, path: '/recruitment' },
+    { name: 'Reports', icon: FileText, path: '/reports' },
+    { name: 'Reward points', icon: Target, path: '/reward-points' },
+    { name: 'Setup rules', icon: Settings, path: '/setup-rules' },
+    { name: 'Settings', icon: Settings, path: '/settings' },
+    { name: 'Message', icon: MessageSquare, path: '/message' },
   ];
 
   return (

@@ -48,7 +48,8 @@ export default function SalaryAdvance() {
     employee: '',
     amount: '',
     salaryMonth: '',
-    isActive: 'Active'
+    isActive: 'Active',
+    approved: false
   });
 
   const handleAdd = (e: React.FormEvent) => {
@@ -60,11 +61,11 @@ export default function SalaryAdvance() {
       releaseAmount: 0,
       salaryMonth: formData.salaryMonth,
       status: formData.isActive as 'Active' | 'Inactive',
-      approved: false
+      approved: formData.approved
     };
     setRecords([newRecord, ...records]);
     setIsModalOpen(false);
-    setFormData({ employee: '', amount: '', salaryMonth: '', isActive: 'Active' });
+    setFormData({ employee: '', amount: '', salaryMonth: '', isActive: 'Active', approved: false });
   };
 
   const handleDownload = (format: 'CSV' | 'Excel') => {
@@ -149,6 +150,7 @@ export default function SalaryAdvance() {
                     <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Amount</th>
                     <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Release amount</th>
                     <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Salary month</th>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Approved</th>
                     <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Status</th>
                     <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Action</th>
                   </tr>
@@ -161,6 +163,13 @@ export default function SalaryAdvance() {
                       <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{record.amount.toLocaleString()}</td>
                       <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{record.releaseAmount}</td>
                       <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{record.salaryMonth}</td>
+                      <td className="px-4 py-3 text-sm text-center">
+                        {record.approved ? (
+                          <CheckCircle2 className="w-5 h-5 text-emerald-500 mx-auto" />
+                        ) : (
+                          <XCircle className="w-5 h-5 text-red-500 mx-auto" />
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-sm">
                         <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${
                           record.status === 'Active' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'
@@ -285,6 +294,18 @@ export default function SalaryAdvance() {
                       />
                       <span className="text-sm text-slate-700 dark:text-slate-300">Inactive</span>
                     </label>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 items-center gap-4">
+                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Approved</label>
+                  <div className="col-span-2">
+                    <input 
+                      type="checkbox" 
+                      checked={formData.approved}
+                      onChange={(e) => setFormData({...formData, approved: e.target.checked})}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-slate-300 rounded"
+                    />
                   </div>
                 </div>
 

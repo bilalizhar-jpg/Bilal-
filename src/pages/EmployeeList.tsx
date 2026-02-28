@@ -35,6 +35,8 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+import AdminLayout from '../components/AdminLayout';
+
 interface CustomField {
   key: string;
   value: string;
@@ -63,7 +65,6 @@ interface Employee {
 type TabType = 'active' | 'positions' | 'inactive';
 
 export default function EmployeeList() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('active');
   const [showFilters, setShowFilters] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -241,71 +242,10 @@ export default function EmployeeList() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F0F2F5] flex">
-      {/* Sidebar */}
-      <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} bg-white border-r border-slate-200 flex flex-col transition-all duration-300 shrink-0`}>
-        <div className="p-4 flex items-center gap-2 border-b border-slate-100 h-16">
-          <div className="bg-indigo-600 p-1.5 rounded-lg shrink-0">
-            <Building2 className="w-6 h-6 text-white" />
-          </div>
-          {isSidebarOpen && <span className="font-display font-bold text-xl tracking-tight text-slate-800">HRM Pro</span>}
-        </div>
-        
-        <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-1 custom-scrollbar">
-          {menuItems.map((item) => (
-            <Link
-              key={item.name}
-              to={item.name === 'Dashboard' ? '/dashboard' : item.name === 'Attendance' ? '/attendance' : item.name === 'Award' ? '/award' : item.name === 'Department' ? '/department' : item.name === 'Employee' ? '/employee' : item.name === 'Leave' ? '/leave' : item.name === 'Loan' ? '/loan' : item.name === 'Notice board' ? '/notice' : '#'}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                item.active 
-                  ? 'bg-[#E8F0FE] text-[#1A73E8]' 
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <item.icon className={`w-5 h-5 ${item.active ? 'text-[#1A73E8]' : 'text-slate-500'}`} />
-                {isSidebarOpen && <span>{item.name}</span>}
-              </div>
-              {isSidebarOpen && item.hasSub && <ChevronRight className="w-4 h-4 text-slate-400" />}
-            </Link>
-          ))}
-        </nav>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-slate-500 hover:bg-slate-100 rounded-md">
-              <Menu className="w-5 h-5" />
-            </button>
-            <button className="flex items-center gap-2 px-3 py-1.5 bg-[#F8F9FA] border border-slate-200 rounded text-xs font-medium text-slate-600 hover:bg-slate-100">
-              <RefreshCw className="w-3.5 h-3.5 text-emerald-500" />
-              Cache clear
-            </button>
-          </div>
-          
-          <div className="flex items-center gap-6">
-            <button className="p-2 text-slate-500 hover:bg-slate-100 rounded-md">
-              <Maximize2 className="w-5 h-5" />
-            </button>
-            <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
-              <div className="text-right">
-                <div className="text-sm font-bold text-slate-800">Admin Admin</div>
-                <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Admin</div>
-              </div>
-              <div className="h-9 w-9 rounded-full bg-slate-200 overflow-hidden border border-slate-300">
-                <img src="https://picsum.photos/seed/admin/100/100" alt="Admin" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
-          {/* Tabs */}
-          <div className="flex items-center gap-2 mb-6">
+    <AdminLayout>
+      <div className="space-y-6">
+        {/* Tabs */}
+        <div className="flex items-center gap-2 mb-6">
             <button 
               onClick={() => setActiveTab('active')}
               className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
@@ -847,28 +787,7 @@ export default function EmployeeList() {
           )}
         </AnimatePresence>
 
-        {/* Footer */}
-        <footer className="h-12 bg-white border-t border-slate-200 flex items-center justify-between px-6 shrink-0 text-[11px] text-slate-500">
-          <div>© 2026 BDTASK. All Rights Reserved.</div>
-          <div>Designed by: <span className="text-indigo-600 font-bold">Bdtask</span></div>
-        </footer>
-      </main>
-
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #94a3b8;
-        }
-      `}</style>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }

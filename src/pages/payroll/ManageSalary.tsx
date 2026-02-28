@@ -13,7 +13,8 @@ import {
   Trash2,
   X,
   Filter,
-  ArrowLeft
+  ArrowLeft,
+  Building2
 } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
@@ -59,7 +60,17 @@ export default function ManageSalary() {
   };
 
   const downloadExcelDemo = () => {
-    alert("Downloading Excel Demo file...");
+    const csvContent = "data:text/csv;charset=utf-8,"
+      + "EmployeeID,FullName,Department,Month,Year,BasicSalary,Allowances,Deductions\n"
+      + "EMP001,John Doe,Engineering,2,2026,50000,5000,2000\n"
+      + "EMP002,Jane Smith,Design,2,2026,45000,4000,1500\n";
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "salary_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (

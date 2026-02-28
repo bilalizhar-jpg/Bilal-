@@ -33,6 +33,8 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+import AdminLayout from '../components/AdminLayout';
+
 interface Department {
   id: number;
   name: string;
@@ -43,7 +45,6 @@ interface Department {
 }
 
 export default function DepartmentList() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDept, setEditingDept] = useState<Department | null>(null);
   const [searchTerm, setSearchTerm] = useState('');

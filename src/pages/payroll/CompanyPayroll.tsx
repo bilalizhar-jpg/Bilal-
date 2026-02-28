@@ -1,0 +1,140 @@
+import React, { useState } from 'react';
+import { Search, Download, FileText, Printer, Filter } from 'lucide-react';
+import AdminLayout from '../../components/AdminLayout';
+import { useTheme } from '../../context/ThemeContext';
+
+interface CompanyPayrollRecord {
+  id: string;
+  month: string;
+  department: string;
+  totalAmount: number;
+  status: 'Paid' | 'Pending';
+  generatedDate: string;
+}
+
+const initialPayrolls: CompanyPayrollRecord[] = [
+  { id: '1', month: 'February 2026', department: 'Engineering', totalAmount: 150000, status: 'Paid', generatedDate: '2026-02-28' },
+  { id: '2', month: 'February 2026', department: 'Design', totalAmount: 85000, status: 'Paid', generatedDate: '2026-02-28' },
+  { id: '3', month: 'February 2026', department: 'Marketing', totalAmount: 95000, status: 'Paid', generatedDate: '2026-02-28' },
+  { id: '4', month: 'January 2026', department: 'Engineering', totalAmount: 148000, status: 'Paid', generatedDate: '2026-01-31' },
+  { id: '5', month: 'January 2026', department: 'Design', totalAmount: 84000, status: 'Paid', generatedDate: '2026-01-31' },
+  { id: '6', month: 'January 2026', department: 'Marketing', totalAmount: 93000, status: 'Paid', generatedDate: '2026-01-31' },
+];
+
+const departments = ['All', 'Engineering', 'Design', 'Marketing', 'Human Resources', 'Finance'];
+
+export default function CompanyPayroll() {
+  const [payrolls] = useState<CompanyPayrollRecord[]>(initialPayrolls);
+  const [startDate, setStartDate] = useState('2026-01-01');
+  const [endDate, setEndDate] = useState('2026-02-28');
+  const [selectedDepartment, setSelectedDepartment] = useState('All');
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  const handleDownload = (format: string) => {
+    alert(`Downloading payroll reports from ${startDate} to ${endDate} for ${selectedDepartment} department as ${format}`);
+  };
+
+  return (
+    <AdminLayout>
+      <div className="space-y-6">
+        {/* Filter Card */}
+        <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm overflow-hidden`}>
+          <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+            <h2 className="font-bold text-slate-800 dark:text-white">Company Payroll Report</h2>
+            <button className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838]">
+              <Filter className="w-3.5 h-3.5" />
+              Filter
+            </button>
+          </div>
+          <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div>
+              <label className="text-xs font-bold text-slate-500">Start Date</label>
+              <input 
+                type="date" 
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className={`mt-1 w-full border rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-slate-500">End Date</label>
+              <input 
+                type="date" 
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className={`mt-1 w-full border rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-slate-500">Department</label>
+              <select 
+                value={selectedDepartment}
+                onChange={(e) => setSelectedDepartment(e.target.value)}
+                className={`mt-1 w-full border rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+              >
+                {departments.map(dep => <option key={dep} value={dep}>{dep}</option>)}
+              </select>
+            </div>
+            <button className="bg-indigo-600 text-white px-6 py-2 rounded text-sm font-bold hover:bg-indigo-700 h-10">
+              Find
+            </button>
+          </div>
+        </div>
+
+        {/* Table Card */}
+        <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm overflow-hidden`}>
+          <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+            <h3 className="font-bold text-slate-700 dark:text-slate-300">Payroll List</h3>
+            <div className="flex gap-2">
+              <button onClick={() => handleDownload('Excel')} className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838]">
+                <Download className="w-3.5 h-3.5" />
+                Excel
+              </button>
+              <button onClick={() => handleDownload('PDF')} className="bg-red-600 text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-red-700">
+                <FileText className="w-3.5 h-3.5" />
+                PDF
+              </button>
+              <button onClick={() => window.print()} className="bg-slate-600 text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-slate-700">
+                <Printer className="w-3.5 h-3.5" />
+                Print
+              </button>
+            </div>
+          </div>
+          <div className="p-6">
+            <div className="overflow-x-auto border border-slate-100 dark:border-slate-800 rounded-lg">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} border-b border-slate-100 dark:border-slate-800`}>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Month</th>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Department</th>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Total Amount</th>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Status</th>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Generated Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {payrolls.map((payroll) => (
+                    <tr key={payroll.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                      <td className="px-4 py-3 text-sm font-medium text-slate-800 dark:text-white">{payroll.month}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{payroll.department}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 font-mono">৳{payroll.totalAmount.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-sm">
+                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${
+                          payroll.status === 'Paid' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'
+                        }`}>
+                          {payroll.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{payroll.generatedDate}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </AdminLayout>
+  );
+}

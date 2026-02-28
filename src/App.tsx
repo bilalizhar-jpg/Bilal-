@@ -16,31 +16,22 @@ import SubDepartmentList from './pages/SubDepartmentList';
 import EmployeeList from './pages/EmployeeList';
 import LeaveManagement from './pages/LeaveManagement';
 import LoanManagement from './pages/LoanManagement';
+import NoticeBoard from './pages/NoticeBoard';
 import ManageSalary from './pages/payroll/ManageSalary';
 import SalaryAdvance from './pages/payroll/SalaryAdvance';
 import SalaryGenerate from './pages/payroll/SalaryGenerate';
 import SalesTaxFormat from './pages/payroll/SalesTaxFormat';
+import CompanyPayroll from './pages/payroll/CompanyPayroll';
+import PerformanceAppraisalList from './pages/performance/PerformanceAppraisalList';
+import PerformanceAppraisalReport from './pages/performance/PerformanceAppraisalReport';
+import ProcurementRequest from './pages/procurement/ProcurementRequest';
+import AssetManagement from './pages/assets/AssetManagement';
+import ProjectManagement from './pages/project-management/ProjectManagement';
 import { AnimatePresence } from 'motion/react';
 
 function AppContent() {
   const location = useLocation();
-  const isAuthPage = [
-    '/login', 
-    '/register', 
-    '/dashboard', 
-    '/attendance', 
-    '/award', 
-    '/department', 
-    '/sub-department', 
-    '/employee', 
-    '/leave', 
-    '/loan', 
-    '/notice',
-    '/payroll/salary-advance',
-    '/payroll/salary-generate',
-    '/payroll/manage-salary',
-    '/payroll/sales-tax'
-  ].includes(location.pathname);
+  const isAuthPage = location.pathname !== '/';
 
   return (
     <>
@@ -64,6 +55,13 @@ function AppContent() {
             <Route path="/payroll/salary-generate" element={<SalaryGenerate />} />
             <Route path="/payroll/manage-salary" element={<ManageSalary />} />
             <Route path="/payroll/sales-tax" element={<SalesTaxFormat />} />
+            <Route path="/payroll/company-payroll" element={<CompanyPayroll />} />
+            <Route path="/performance/appraisal-list" element={<PerformanceAppraisalList />} />
+            <Route path="/performance/appraisal-report" element={<PerformanceAppraisalReport />} />
+            <Route path="/procurement/request" element={<ProcurementRequest />} />
+            <Route path="/assets/management" element={<AssetManagement />} />
+            <Route path="/project-management" element={<ProjectManagement />} />
+            <Route path="*" element={<Dashboard />} />
           </Routes>
         </div>
       </AnimatePresence>

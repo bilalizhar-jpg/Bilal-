@@ -1,391 +1,227 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Plus, 
-  Trash2, 
-  Printer, 
-  Download, 
-  FileText, 
-  Save, 
-  Edit3,
-  X,
-  Settings,
-  Image as ImageIcon
-} from 'lucide-react';
+import { Printer, Download, Plus, Trash2, Edit3, Save } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
 
 interface TaxField {
-  id: string;
+  id: number;
   label: string;
   value: string;
-  type: 'text' | 'number' | 'date';
+}
+
+interface TaxDetails {
+  sNo: string;
+  dateOfIssue: string;
+  certifiedAmount: string;
+  certifiedAmountWords: string;
+  collectedFrom: string;
+  nationalTaxNumber: string;
+  cnic: string;
+  periodFrom: string;
+  periodTo: string;
+  underSection: string;
+  onAccountOf: string;
+  onValueAmount: string;
+  companyName: string;
+  address: string;
+  ntn: string;
+  signatureName: string;
+  designation: string;
+  date: string;
 }
 
 export default function SalesTaxFormat() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const [isEditing, setIsEditing] = useState(false);
-  
-  const [taxData, setTaxData] = useState({
-    certificateNo: '001/2026',
-    dateOfIssue: '2026-02-27',
-    periodFrom: '2025-07-01',
-    periodTo: '2026-06-30',
-    taxPayerName: 'John Doe',
-    address: '123 Business Road, Tech City',
-    ntn: '1234567-8',
-    cnic: '42101-1234567-1',
-    status: 'Individual',
-    amountOfPayment: '500000',
-    taxCollected: '50000',
-    section: '153(1)(b)',
-    description: 'Payment for services rendered'
+
+  const [taxDetails, setTaxDetails] = useState<TaxDetails>({
+    sNo: '1',
+    dateOfIssue: '2022-09-01',
+    certifiedAmount: '16,408',
+    certifiedAmountWords: 'Sixteen Thousand Four Hundred and Eight',
+    collectedFrom: 'Muhammad Saad Khan',
+    nationalTaxNumber: '',
+    cnic: '36401-5216534-1',
+    periodFrom: '2022-07-01',
+    periodTo: '2023-06-30',
+    underSection: '149',
+    onAccountOf: 'Salary',
+    onValueAmount: '1,094,500',
+    companyName: 'ALGOREPUBLIC',
+    address: '614 Siddeeq Trade Center Gulberg Lahore',
+    ntn: '7389217-1',
+    signatureName: '',
+    designation: '',
+    date: ''
   });
 
-  const [customFields, setCustomFields] = useState<TaxField[]>([]);
-  const [newFieldLabel, setNewFieldLabel] = useState('');
+  const [customFields, setCustomFields] = useState<TaxField[]>([
+    { id: 1, label: 'Deposit Date', value: '' },
+    { id: 2, label: 'Treasury', value: '' },
+    { id: 3, label: 'Branch/City', value: '' },
+    { id: 4, label: 'Account', value: '' },
+    { id: 5, label: 'Challan Treasury/INSTR No.', value: '' },
+  ]);
 
-  const handleAddCustomField = () => {
-    if (newFieldLabel.trim()) {
-      const newField: TaxField = {
-        id: Math.random().toString(36).substr(2, 9),
-        label: newFieldLabel,
-        value: '',
-        type: 'text'
-      };
-      setCustomFields([...customFields, newField]);
-      setNewFieldLabel('');
-    }
+  const handleDetailChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setTaxDetails(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleRemoveCustomField = (id: string) => {
-    setCustomFields(customFields.filter(f => f.id !== id));
+  const handleCustomFieldChange = (id: number, field: 'label' | 'value', value: string) => {
+    setCustomFields(prev => prev.map(f => f.id === id ? { ...f, [field]: value } : f));
   };
 
-  const updateCustomFieldValue = (id: string, value: string) => {
-    setCustomFields(customFields.map(f => f.id === id ? { ...f, value } : f));
+  const addCustomField = () => {
+    const newId = customFields.length > 0 ? Math.max(...customFields.map(f => f.id)) + 1 : 1;
+    setCustomFields(prev => [...prev, { id: newId, label: 'New Field', value: '' }]);
+  };
+
+  const removeCustomField = (id: number) => {
+    setCustomFields(prev => prev.filter(f => f.id !== id));
   };
 
   const handleSave = () => {
     setIsEditing(false);
-    alert("Tax format saved successfully!");
+    alert('Saving tax format details...');
+    console.log({ taxDetails, customFields });
   };
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold text-slate-800 dark:text-white">Sales Tax Format / Income Tax Certificate</h2>
+      <div className={`p-6 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm`}>
+        <div className="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-800">
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Certificate of Collection or Deduction of Income Tax</h1>
           <div className="flex gap-2">
-            <button 
-              onClick={() => setIsEditing(!isEditing)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                isEditing ? 'bg-amber-500 text-white' : 'bg-indigo-600 text-white hover:bg-indigo-700'
-              }`}
-            >
-              {isEditing ? <Save className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
+            <button onClick={() => window.print()} className="bg-slate-600 text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-slate-700">
+              <Printer size={16} /> Print
+            </button>
+            <button onClick={() => { isEditing ? handleSave() : setIsEditing(true) }} className={`${isEditing ? 'bg-green-600' : 'bg-indigo-600'} text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-opacity-90`}>
+              {isEditing ? <Save size={16} /> : <Edit3 size={16} />}
               {isEditing ? 'Save Changes' : 'Edit Format'}
-            </button>
-            <button className="flex items-center gap-2 bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-700">
-              <Printer className="w-4 h-4" />
-              Print
-            </button>
-            <button className="flex items-center gap-2 bg-[#28A745] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#218838]">
-              <Download className="w-4 h-4" />
-              Download PDF
             </button>
           </div>
         </div>
 
-        {/* Certificate Content */}
-        <div className={`max-w-4xl mx-auto p-12 shadow-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} rounded-xl space-y-8 print:shadow-none print:border-none print:p-0`}>
-          {/* Header */}
-          <div className="text-center space-y-4">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white uppercase tracking-wider">Certificate of Collection or Deduction of Income Tax</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">(Under Section 164 of the Income Tax Ordinance, 2001)</p>
+        <div className="mt-6 space-y-6">
+          {/* Top Section */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <InputField label="S.No." name="sNo" value={taxDetails.sNo} onChange={handleDetailChange} isEditing={isEditing} />
+            <InputField label="Original/Duplicate" value="Original/Duplicate" readOnly />
+            <InputField label="Date of Issue" name="dateOfIssue" value={taxDetails.dateOfIssue} onChange={handleDetailChange} type="date" isEditing={isEditing} />
           </div>
 
-          <div className="grid grid-cols-2 gap-8 text-sm">
-            <div className="space-y-4">
-              <div className="flex flex-col gap-1">
-                <label className="font-bold text-slate-500 uppercase text-[10px]">Certificate No.</label>
-                {isEditing ? (
-                  <input 
-                    type="text" 
-                    value={taxData.certificateNo}
-                    onChange={(e) => setTaxData({...taxData, certificateNo: e.target.value})}
-                    className="border rounded px-2 py-1 bg-transparent dark:border-slate-700"
-                  />
-                ) : (
-                  <span className="font-medium text-slate-800 dark:text-white">{taxData.certificateNo}</span>
-                )}
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="font-bold text-slate-500 uppercase text-[10px]">Date of Issue</label>
-                {isEditing ? (
-                  <input 
-                    type="date" 
-                    value={taxData.dateOfIssue}
-                    onChange={(e) => setTaxData({...taxData, dateOfIssue: e.target.value})}
-                    className="border rounded px-2 py-1 bg-transparent dark:border-slate-700"
-                  />
-                ) : (
-                  <span className="font-medium text-slate-800 dark:text-white">{taxData.dateOfIssue}</span>
-                )}
-              </div>
+          {/* Main Details */}
+          <div className="space-y-4 p-4 border border-slate-200 dark:border-slate-800 rounded-lg">
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              Certified that the sum of Rupees <InputField inline name="certifiedAmount" value={taxDetails.certifiedAmount} onChange={handleDetailChange} isEditing={isEditing} />
+              (<InputField inline name="certifiedAmountWords" value={taxDetails.certifiedAmountWords} onChange={handleDetailChange} isEditing={isEditing} />) on account of income tax has been deducted/collected from <InputField inline name="collectedFrom" value={taxDetails.collectedFrom} onChange={handleDetailChange} isEditing={isEditing} />.
+            </p>
+            <InputField label="having National Tax Number" name="nationalTaxNumber" value={taxDetails.nationalTaxNumber} onChange={handleDetailChange} isEditing={isEditing} />
+            <InputField label="holder of CNIC No" name="cnic" value={taxDetails.cnic} onChange={handleDetailChange} isEditing={isEditing} />
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-slate-500">Or during the period</span>
+              <InputField label="From" name="periodFrom" value={taxDetails.periodFrom} onChange={handleDetailChange} type="date" isEditing={isEditing} />
+              <InputField label="To" name="periodTo" value={taxDetails.periodTo} onChange={handleDetailChange} type="date" isEditing={isEditing} />
             </div>
-            <div className="space-y-4">
-              <div className="flex flex-col gap-1">
-                <label className="font-bold text-slate-500 uppercase text-[10px]">Period From</label>
-                {isEditing ? (
-                  <input 
-                    type="date" 
-                    value={taxData.periodFrom}
-                    onChange={(e) => setTaxData({...taxData, periodFrom: e.target.value})}
-                    className="border rounded px-2 py-1 bg-transparent dark:border-slate-700"
-                  />
-                ) : (
-                  <span className="font-medium text-slate-800 dark:text-white">{taxData.periodFrom}</span>
-                )}
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="font-bold text-slate-500 uppercase text-[10px]">Period To</label>
-                {isEditing ? (
-                  <input 
-                    type="date" 
-                    value={taxData.periodTo}
-                    onChange={(e) => setTaxData({...taxData, periodTo: e.target.value})}
-                    className="border rounded px-2 py-1 bg-transparent dark:border-slate-700"
-                  />
-                ) : (
-                  <span className="font-medium text-slate-800 dark:text-white">{taxData.periodTo}</span>
-                )}
-              </div>
-            </div>
+            <InputField label="under section" name="underSection" value={taxDetails.underSection} onChange={handleDetailChange} isEditing={isEditing} />
+            <InputField label="on account of" name="onAccountOf" value={taxDetails.onAccountOf} onChange={handleDetailChange} isEditing={isEditing} />
+            <InputField label="on the value/amount of Rupee" name="onValueAmount" value={taxDetails.onValueAmount} onChange={handleDetailChange} isEditing={isEditing} />
           </div>
 
-          <div className="border-t border-slate-100 dark:border-slate-800 pt-8 space-y-6">
-            <h3 className="font-bold text-slate-800 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2">Tax Payer Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-              <div className="space-y-4">
-                <div className="flex flex-col gap-1">
-                  <label className="font-bold text-slate-500 uppercase text-[10px]">Name of Tax Payer</label>
-                  {isEditing ? (
-                    <input 
-                      type="text" 
-                      value={taxData.taxPayerName}
-                      onChange={(e) => setTaxData({...taxData, taxPayerName: e.target.value})}
-                      className="border rounded px-2 py-1 bg-transparent dark:border-slate-700"
-                    />
-                  ) : (
-                    <span className="font-medium text-slate-800 dark:text-white">{taxData.taxPayerName}</span>
-                  )}
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="font-bold text-slate-500 uppercase text-[10px]">Address</label>
-                  {isEditing ? (
-                    <textarea 
-                      value={taxData.address}
-                      onChange={(e) => setTaxData({...taxData, address: e.target.value})}
-                      className="border rounded px-2 py-1 bg-transparent dark:border-slate-700 h-20"
-                    />
-                  ) : (
-                    <span className="font-medium text-slate-800 dark:text-white">{taxData.address}</span>
-                  )}
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div className="flex flex-col gap-1">
-                  <label className="font-bold text-slate-500 uppercase text-[10px]">NTN No.</label>
-                  {isEditing ? (
-                    <input 
-                      type="text" 
-                      value={taxData.ntn}
-                      onChange={(e) => setTaxData({...taxData, ntn: e.target.value})}
-                      className="border rounded px-2 py-1 bg-transparent dark:border-slate-700"
-                    />
-                  ) : (
-                    <span className="font-medium text-slate-800 dark:text-white">{taxData.ntn}</span>
-                  )}
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="font-bold text-slate-500 uppercase text-[10px]">CNIC No.</label>
-                  {isEditing ? (
-                    <input 
-                      type="text" 
-                      value={taxData.cnic}
-                      onChange={(e) => setTaxData({...taxData, cnic: e.target.value})}
-                      className="border rounded px-2 py-1 bg-transparent dark:border-slate-700"
-                    />
-                  ) : (
-                    <span className="font-medium text-slate-800 dark:text-white">{taxData.cnic}</span>
-                  )}
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="font-bold text-slate-500 uppercase text-[10px]">Status</label>
-                  {isEditing ? (
-                    <select 
-                      value={taxData.status}
-                      onChange={(e) => setTaxData({...taxData, status: e.target.value})}
-                      className="border rounded px-2 py-1 bg-transparent dark:border-slate-700"
-                    >
-                      <option>Individual</option>
-                      <option>Company</option>
-                      <option>AOP</option>
-                    </select>
-                  ) : (
-                    <span className="font-medium text-slate-800 dark:text-white">{taxData.status}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t border-slate-100 dark:border-slate-800 pt-8 space-y-6">
-            <h3 className="font-bold text-slate-800 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2">Tax Deduction Details</h3>
-            <div className="overflow-hidden border border-slate-100 dark:border-slate-800 rounded-lg">
-              <table className="w-full text-left border-collapse text-sm">
-                <thead>
-                  <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                    <th className="px-4 py-3 font-bold text-slate-600 dark:text-slate-400 uppercase text-[10px]">Description of Payment</th>
-                    <th className="px-4 py-3 font-bold text-slate-600 dark:text-slate-400 uppercase text-[10px]">Section</th>
-                    <th className="px-4 py-3 font-bold text-slate-600 dark:text-slate-400 uppercase text-[10px]">Amount of Payment</th>
-                    <th className="px-4 py-3 font-bold text-slate-600 dark:text-slate-400 uppercase text-[10px]">Tax Collected/Deducted</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  <tr>
-                    <td className="px-4 py-3">
-                      {isEditing ? (
-                        <input 
-                          type="text" 
-                          value={taxData.description}
-                          onChange={(e) => setTaxData({...taxData, description: e.target.value})}
-                          className="w-full border rounded px-2 py-1 bg-transparent dark:border-slate-700"
-                        />
-                      ) : (
-                        <span className="text-slate-800 dark:text-white">{taxData.description}</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      {isEditing ? (
-                        <input 
-                          type="text" 
-                          value={taxData.section}
-                          onChange={(e) => setTaxData({...taxData, section: e.target.value})}
-                          className="w-full border rounded px-2 py-1 bg-transparent dark:border-slate-700"
-                        />
-                      ) : (
-                        <span className="text-slate-800 dark:text-white">{taxData.section}</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      {isEditing ? (
-                        <input 
-                          type="number" 
-                          value={taxData.amountOfPayment}
-                          onChange={(e) => setTaxData({...taxData, amountOfPayment: e.target.value})}
-                          className="w-full border rounded px-2 py-1 bg-transparent dark:border-slate-700 text-right"
-                        />
-                      ) : (
-                        <span className="text-slate-800 dark:text-white font-mono text-right block">{parseFloat(taxData.amountOfPayment).toLocaleString()}</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      {isEditing ? (
-                        <input 
-                          type="number" 
-                          value={taxData.taxCollected}
-                          onChange={(e) => setTaxData({...taxData, taxCollected: e.target.value})}
-                          className="w-full border rounded px-2 py-1 bg-transparent dark:border-slate-700 text-right"
-                        />
-                      ) : (
-                        <span className="text-slate-800 dark:text-white font-bold font-mono text-right block">{parseFloat(taxData.taxCollected).toLocaleString()}</span>
-                      )}
-                    </td>
-                  </tr>
-                  {/* Custom Fields Row */}
-                  {customFields.map(field => (
-                    <tr key={field.id}>
-                      <td className="px-4 py-3">
-                        <span className="text-slate-800 dark:text-white">{field.label}</span>
-                      </td>
-                      <td className="px-4 py-3">-</td>
-                      <td className="px-4 py-3" colSpan={2}>
-                        {isEditing ? (
-                          <div className="flex items-center gap-2">
-                            <input 
-                              type="text" 
-                              value={field.value}
-                              onChange={(e) => updateCustomFieldValue(field.id, e.target.value)}
-                              className="flex-1 border rounded px-2 py-1 bg-transparent dark:border-slate-700"
-                            />
-                            <button onClick={() => handleRemoveCustomField(field.id)} className="text-red-500 hover:text-red-700">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ) : (
-                          <span className="text-slate-800 dark:text-white">{field.value || 'N/A'}</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            
-            {isEditing && (
-              <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-dashed border-slate-300 dark:border-slate-700">
-                <input 
-                  type="text" 
-                  placeholder="New field label..." 
-                  value={newFieldLabel}
-                  onChange={(e) => setNewFieldLabel(e.target.value)}
-                  className="flex-1 border rounded px-3 py-2 text-sm bg-white dark:bg-slate-900 dark:border-slate-700"
-                />
-                <button 
-                  onClick={handleAddCustomField}
-                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Custom Field
+          {/* Custom Fields Section */}
+          <div className="p-4 border border-slate-200 dark:border-slate-800 rounded-lg">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-slate-700 dark:text-slate-300">Deposit Details</h3>
+              {isEditing && (
+                <button onClick={addCustomField} className="bg-emerald-500 text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-emerald-600">
+                  <Plus size={14} /> Add Field
                 </button>
-              </div>
-            )}
+              )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {customFields.map(field => (
+                <div key={field.id} className="flex items-center gap-2">
+                  {isEditing ? (
+                    <>
+                      <input 
+                        type="text" 
+                        value={field.label}
+                        onChange={(e) => handleCustomFieldChange(field.id, 'label', e.target.value)}
+                        className={`flex-grow border rounded px-3 py-2 text-sm font-bold outline-none focus:ring-1 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                      />
+                      <input 
+                        type="text" 
+                        value={field.value}
+                        onChange={(e) => handleCustomFieldChange(field.id, 'value', e.target.value)}
+                        className={`flex-grow border rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                      />
+                      <button onClick={() => removeCustomField(field.id)} className="text-red-500 hover:text-red-700">
+                        <Trash2 size={16} />
+                      </button>
+                    </>
+                  ) : (
+                    <div className="w-full">
+                      <label className="text-xs font-bold text-slate-500 mb-1 block">{field.label}</label>
+                      <p className={`w-full border rounded px-3 py-2 text-sm ${isDark ? 'bg-slate-800/50 border-slate-700 text-white' : 'bg-slate-50 border-slate-200'}`}>{field.value || 'N/A'}</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Footer Info */}
-          <div className="border-t border-slate-100 dark:border-slate-800 pt-12 grid grid-cols-2 gap-12">
-            <div className="space-y-6">
-              <div className="border-b border-slate-200 dark:border-slate-800 pb-2">
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Authorized Signature</p>
-              </div>
-              <div className="space-y-1 text-xs">
-                <p className="font-bold text-slate-800 dark:text-white">Bdtask HRM Pro</p>
-                <p className="text-slate-500">Tax Withholding Agent</p>
-                <p className="text-slate-500">NTN: 9876543-2</p>
-              </div>
+          {/* Company & Signature */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6">
+            <div className="space-y-4">
+              <InputField label="Company / office etc. collecting/deducting the tax" name="companyName" value={taxDetails.companyName} onChange={handleDetailChange} isEditing={isEditing} />
+              <InputField label="Address" name="address" value={taxDetails.address} onChange={handleDetailChange} isEditing={isEditing} as="textarea" />
+              <InputField label="NTN (if any)" name="ntn" value={taxDetails.ntn} onChange={handleDetailChange} isEditing={isEditing} />
             </div>
-            <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-xl border border-slate-100 dark:border-slate-800">
-              <p className="text-[10px] text-slate-500 leading-relaxed italic">
-                This is a computer generated certificate and does not require a physical signature. 
-                The tax collected/deducted has been deposited in the Government Treasury.
-              </p>
+            <div className="space-y-4">
+              <InputField label="Signature" name="signatureName" value={taxDetails.signatureName} onChange={handleDetailChange} isEditing={isEditing} />
+              <InputField label="Designation" name="designation" value={taxDetails.designation} onChange={handleDetailChange} isEditing={isEditing} />
+              <InputField label="Date" name="date" value={taxDetails.date} onChange={handleDetailChange} type="date" isEditing={isEditing} />
             </div>
           </div>
         </div>
       </div>
-
-      <style>{`
-        @media print {
-          .no-print { display: none !important; }
-          body { background: white !important; }
-          .print\:shadow-none { box-shadow: none !important; }
-          .print\:border-none { border: none !important; }
-          .print\:p-0 { padding: 0 !important; }
-        }
-      `}</style>
     </AdminLayout>
   );
 }
+
+interface InputFieldProps {
+  label?: string;
+  name?: keyof TaxDetails | string;
+  value: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  type?: string;
+  readOnly?: boolean;
+  inline?: boolean;
+  isEditing?: boolean;
+  as?: 'input' | 'textarea';
+}
+
+const InputField: React.FC<InputFieldProps> = ({ label, name, value, onChange, type = 'text', readOnly = false, inline = false, isEditing = false, as = 'input' }) => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const commonClass = `border rounded px-3 py-2 text-sm outline-none ${isDark ? 'border-slate-700 text-white' : 'border-slate-200'}`;
+  const editingClass = isEditing ? `focus:ring-1 focus:ring-indigo-500 ${isDark ? 'bg-slate-800' : 'bg-white'}` : `${isDark ? 'bg-slate-800/50' : 'bg-slate-50'}`;
+  const finalClass = `${commonClass} ${editingClass}`;
+
+  if (inline) {
+    return <input type={type} name={name} value={value} onChange={onChange} readOnly={!isEditing || readOnly} className={`${finalClass} inline-block w-auto mx-1`} />;
+  }
+
+  return (
+    <div>
+      {label && <label className="text-xs font-bold text-slate-500 mb-1 block">{label}</label>}
+      {as === 'textarea' ? (
+        <textarea name={name} value={value} onChange={onChange} readOnly={!isEditing || readOnly} className={`${finalClass} w-full h-24`}></textarea>
+      ) : (
+        <input type={type} name={name} value={value} onChange={onChange} readOnly={!isEditing || readOnly} className={`${finalClass} w-full`} />
+      )}
+    </div>
+  );
+};
