@@ -10,6 +10,7 @@ import html2canvas from 'html2canvas';
 
 // ... (Invoice types and interfaces from InvoiceGenerator.tsx) ...
 type InvoiceType = 'simple' | 'tax';
+type InvoiceTemplate = 'basic' | 'pro' | 'enterprise';
 
 interface InvoiceItem {
   id: string;
@@ -38,6 +39,7 @@ interface InvoiceData {
   billToCompany: string;
   billToAddress: string;
   billToPhone: string;
+  billToEmail: string;
   
   shipToName: string;
   shipToCompany: string;
@@ -76,8 +78,9 @@ export default function SuperAdminInvoiceGenerator() {
     
     billToName: company?.name || 'Client Name',
     billToCompany: company?.name || 'Client Company',
-    billToAddress: 'Client Address',
+    billToAddress: company?.headOffice || 'Client Address',
     billToPhone: company?.mobile || '',
+    billToEmail: company?.email || '',
     
     shipToName: '',
     shipToCompany: '',
@@ -106,6 +109,7 @@ export default function SuperAdminInvoiceGenerator() {
   const invoiceRef = useRef<HTMLDivElement>(null);
   const [design, setDesign] = useState({ color: '#4f46e5', font: 'font-sans' });
   const [activeTab, setActiveTab] = useState<InvoiceType>('simple');
+  const [template, setTemplate] = useState<InvoiceTemplate>('basic');
 
   const subtotal = data.items.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
   const taxAmount = activeTab === 'tax' ? data.items.reduce((sum, item) => sum + (item.taxable !== false ? (item.quantity * item.rate * (data.taxRate / 100)) : 0), 0) : 0;
@@ -128,13 +132,20 @@ export default function SuperAdminInvoiceGenerator() {
     <SuperAdminLayout>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Generate Invoice for {company?.name}</h1>
-        <button onClick={exportPDF} className="bg-indigo-600 text-white px-4 py-2 rounded flex items-center gap-2">
-          <Printer className="w-4 h-4" /> Download PDF
-        </button>
+        <div className="flex gap-2">
+          <select value={template} onChange={(e) => setTemplate(e.target.value as InvoiceTemplate)} className="border rounded px-3 py-2">
+            <option value="basic">Basic Template</option>
+            <option value="pro">Pro Template</option>
+            <option value="enterprise">Enterprise Template</option>
+          </select>
+          <button onClick={exportPDF} className="bg-indigo-600 text-white px-4 py-2 rounded flex items-center gap-2">
+            <Printer className="w-4 h-4" /> Download PDF
+          </button>
+        </div>
       </div>
       
-      <div ref={invoiceRef} className="bg-white p-12 rounded-xl shadow-sm border border-slate-200">
-        <h2 className="text-xl font-bold mb-4">Invoice</h2>
+      <div ref={invoiceRef} className={`bg-white p-12 rounded-xl shadow-sm border border-slate-200 ${template === 'pro' ? 'border-indigo-500' : template === 'enterprise' ? 'border-2 border-slate-900' : ''}`}>
+        <h2 className={`text-xl font-bold mb-4 ${template === 'enterprise' ? 'uppercase tracking-widest' : ''}`}>Invoice</h2>
         <div className="grid grid-cols-2 gap-8 mb-8">
           <div>
             <p className="font-bold">{data.companyName}</p>
@@ -144,12 +155,14 @@ export default function SuperAdminInvoiceGenerator() {
           <div className="text-right">
             <p className="font-bold">Bill To:</p>
             <p>{data.billToCompany}</p>
+            <p className="text-sm text-slate-500">{data.billToAddress}</p>
+            <p className="text-sm text-slate-500">{data.billToEmail}</p>
             <p className="text-sm text-slate-500">{data.billToPhone}</p>
           </div>
         </div>
         
-        <table className="w-full mb-8">
-          <thead>
+        <table className={`w-full mb-8 ${template === 'pro' ? 'border-collapse' : ''}`}>
+          <thead className={template === 'pro' ? 'bg-indigo-50' : ''}>
             <tr className="border-b">
               <th className="text-left py-2">Description</th>
               <th className="text-right py-2">Amount</th>
@@ -165,7 +178,7 @@ export default function SuperAdminInvoiceGenerator() {
           </tbody>
         </table>
         
-        <div className="text-right text-xl font-bold">
+        <div className={`text-right text-xl font-bold ${template === 'enterprise' ? 'border-t-2 border-slate-900 pt-4' : ''}`}>
           Total: ${total.toFixed(2)}
         </div>
       </div>

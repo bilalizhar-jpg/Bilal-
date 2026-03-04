@@ -195,8 +195,8 @@ import { LetterProvider } from './context/LetterContext';
 
 export default function App() {
   return (
-    <AuthProvider>
-      <SuperAdminProvider>
+    <SuperAdminProvider>
+      <AuthProvider>
         <EmployeeProvider>
           <AttendanceProvider>
             <TimeTrackingProvider>
@@ -212,7 +212,7 @@ export default function App() {
             </TimeTrackingProvider>
           </AttendanceProvider>
         </EmployeeProvider>
-      </SuperAdminProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </SuperAdminProvider>
   );
 }

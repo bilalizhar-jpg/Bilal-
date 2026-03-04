@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useSuperAdmin } from '../context/SuperAdminContext';
 import { 
   Building2, 
   Menu, 
@@ -32,7 +34,6 @@ import {
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import { useAuth } from '../context/AuthContext';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -44,9 +45,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme } = useTheme();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+  const { companies } = useSuperAdmin();
   const isDark = theme === 'dark';
   const isDashboard = location.pathname === '/dashboard';
+
+  const company = companies.find(c => c.id === user?.companyId);
+  const blockedMenus = company?.blockedMenus || [];
 
   const toggleMenu = (name: string) => {
     setOpenMenus(prev => 
@@ -61,7 +66,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-    { name: 'Time Tracker', icon: Clock, path: '/time-tracker' },
+    { name: 'Time Track', icon: Clock, path: '/time-tracker' },
     { 
       name: 'Org Chart', 
       icon: GitGraph, 
@@ -100,14 +105,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         { name: 'Custom Letter', path: '/offboarding/custom-letter' },
       ]
     },
-    { name: 'Leave', icon: UserMinus, path: '/leave' },
-    { name: 'Loan', icon: CreditCard, path: '/loan' },
-    { name: 'Notice board', icon: Bell, path: '/notice' },
-    { 
-      name: 'Payroll', 
-      icon: DollarSign, 
-      hasSub: true,
-      subItems: [
+    { name: 'Leaves', icon: UserMinus, path: '/leave' },
+    { name: 'Notice Board', icon: Bell, path: '/notice' },
+    { name: 'Payroll', icon: DollarSign, hasSub: true, subItems: [
         { name: 'Company Payroll', path: '/payroll/company-payroll' },
         { name: 'Salary advance', path: '/payroll/salary-advance' },
         { name: 'Salary generate', path: '/payroll/salary-generate' },
@@ -115,52 +115,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         { name: 'Sales tax format', path: '/payroll/sales-tax' }
       ]
     },
-    {
-      name: 'Invoice',
-      icon: Receipt,
-      path: '/invoice'
-    },
-    {
-      name: 'Performance',
-      icon: Target,
-      hasSub: true,
-      subItems: [
+    { name: 'Invoice', icon: Receipt, path: '/invoice' },
+    { name: 'Performance', icon: Target, hasSub: true, subItems: [
         { name: 'KPI Templates', path: '/performance/kpis' },
         { name: 'Appraisal List', path: '/performance/appraisal-list' },
         { name: 'Appraisal Report', path: '/performance/appraisal-report' }
       ]
     },
-    {
-      name: 'Assets',
-      icon: Laptop,
-      path: '/assets/management'
-    },
-    {
-      name: 'Project Management',
-      icon: ClipboardList,
-      path: '/project-management'
-    },
-    { 
-      name: 'Recruitment', 
-      icon: UserCheck, 
-      hasSub: true,
-      subItems: [
-        { name: 'Career Page', path: '/careers' },
-        { name: 'Career Page Settings', path: '/recruitment/career-page-settings' },
-        { name: 'Job Posting', path: '/recruitment/job-posting' },
-        { name: 'Jobs List', path: '/recruitment/jobs-list' },
-        { name: 'Bulk CV Upload', path: '/recruitment/bulk-cv-upload' },
-        { name: 'Search Candidates', path: '/recruitment/search-candidates' },
-        { name: 'Offer Letters', path: '/recruitment/offer-letters' },
-        { name: 'Agreements', path: '/recruitment/agreements' },
-        { name: 'Custom Design', path: '/recruitment/custom-design' }
-      ]
-    },
-    {
-      name: 'Marketing',
-      icon: MessageSquare,
-      hasSub: true,
-      subItems: [
+    { name: 'Assets', icon: Laptop, path: '/assets/management' },
+    { name: 'Project Management', icon: ClipboardList, path: '/project-management' },
+    { name: 'Marketing', icon: MessageSquare, hasSub: true, subItems: [
         { name: 'Email Database', path: '/marketing/lists' },
         { name: 'Campaigns', path: '/marketing/campaigns' },
         { name: 'Templates', path: '/marketing/templates' },
@@ -168,49 +132,27 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       ]
     },
     { name: 'Reports', icon: FileText, path: '/reports' },
-    { name: 'Reward points', icon: Target, path: '/reward-points' },
-    { name: 'Setup rules', icon: Settings, path: '/setup-rules' },
-    {
-      name: 'Settings',
-      icon: Settings,
-      hasSub: true,
-      subItems: [
-        { name: 'General Settings', path: '/settings' },
-        { name: 'Roles & Permissions', path: '/settings/roles' }
-      ]
-    },
+    { name: 'Reward Points', icon: Target, path: '/reward-points' },
+    { name: 'Setup Rules', icon: Settings, path: '/setup-rules' },
     { name: 'Message', icon: MessageSquare, path: '/message' },
-    {
-      name: 'Supply chain management (Coming soon)',
-      icon: Briefcase,
-      path: '#'
-    },
-    {
-      name: 'Procurement (Coming Soon)',
-      icon: Briefcase,
-      hasSub: true,
-      subItems: [
+    { name: 'Supply Chain Management', icon: Briefcase, path: '#' },
+    { name: 'Procurement', icon: Briefcase, hasSub: true, subItems: [
         { name: 'Item Request', path: '/procurement/request' },
         { name: 'Request History', path: '/procurement/history' },
         { name: 'Procurement Settings', path: '/procurement/settings' }
       ]
     },
-    {
-      name: 'Accounts (Coming Soon)',
-      icon: FileText,
-      path: '#'
-    },
-    {
-      name: 'CRM (Coming Soon)',
-      icon: Users,
-      path: '#'
-    },
-    {
-      name: 'Purchase Dep (Coming soon)',
-      icon: Briefcase,
-      path: '#'
-    },
+    { name: 'Accounts', icon: FileText, path: '#' },
+    { name: 'CRM', icon: Users, path: '#' },
+    { name: 'Purchase Dep', icon: Briefcase, path: '#' },
+    { name: 'Settings', icon: Settings, hasSub: true, subItems: [
+        { name: 'General Settings', path: '/settings' },
+        { name: 'Roles & Permissions', path: '/settings/roles' }
+      ]
+    }
   ];
+
+  const filteredMenuItems = menuItems.filter(item => !blockedMenus.includes(item.name));
 
   return (
     <div className={`min-h-screen flex ${isDark ? 'bg-slate-950 text-white' : 'bg-[#F0F2F5] text-slate-900'}`}>
@@ -235,7 +177,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </div>
 
         <nav className="flex-1 overflow-y-auto px-2 space-y-1 custom-scrollbar">
-          {menuItems.map((item) => {
+          {filteredMenuItems.map((item) => {
             const isActive = location.pathname === item.path || (item.subItems?.some(sub => location.pathname === sub.path));
             const isOpen = openMenus.includes(item.name);
 

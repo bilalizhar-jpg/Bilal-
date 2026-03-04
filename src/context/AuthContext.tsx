@@ -6,6 +6,7 @@ interface User {
   name: string;
   role: 'admin' | 'employee' | 'superadmin';
   employeeId?: string; // For employees
+  companyId?: string; // For admins
   avatar?: string;
 }
 

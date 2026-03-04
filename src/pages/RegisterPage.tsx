@@ -2,9 +2,11 @@ import { useState, ChangeEvent, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Building2, Upload, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { useSuperAdmin } from '../context/SuperAdminContext';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const { addCompany } = useSuperAdmin();
   const [isLoading, setIsLoading] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
@@ -36,6 +38,19 @@ export default function RegisterPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    
+    // Add company to SuperAdminContext
+    addCompany({
+      name: formData.companyName,
+      email: formData.officialEmail,
+      mobile: formData.officialMobile,
+      subscriptionPlan: 'Basic',
+      uniqueCode: Math.random().toString(36).substring(2, 9).toUpperCase(),
+      logo: logoPreview || '',
+      headOffice: formData.companyAddress,
+      adminUsername: formData.userName,
+      adminPassword: formData.password,
+    });
     
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1500));

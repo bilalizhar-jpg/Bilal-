@@ -66,6 +66,7 @@ export default function LoginPage() {
         id: 'admin',
         name: 'Administrator',
         role: 'admin',
+        companyId: '1', // Default company ID
         avatar: 'https://ui-avatars.com/api/?name=Admin&background=random'
       });
       // Check if there's a return url
