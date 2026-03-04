@@ -4,7 +4,7 @@ import { useSuperAdmin, ALL_MENU_ITEMS } from '../../context/SuperAdminContext';
 import { Search } from 'lucide-react';
 
 export default function SubscriptionPlans() {
-  const { companies, toggleMenuAccess } = useSuperAdmin();
+  const { companies, toggleMenuAccess, updateCompany } = useSuperAdmin();
   const [search, setSearch] = useState('');
 
   const filteredCompanies = companies.filter(c => 

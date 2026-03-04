@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { useAuth } from './AuthContext';
 
 export interface CustomField {
   key: string;
@@ -7,6 +8,7 @@ export interface CustomField {
 
 export interface Employee {
   id: string;
+  companyId: string;
   employeeId: string;
   name: string;
   email: string;
@@ -35,11 +37,12 @@ export interface Employee {
 
 interface EmployeeContextType {
   employees: Employee[];
-  addEmployee: (employee: Employee) => void;
-  addEmployees: (employees: Employee[]) => void;
+  addEmployee: (employee: Omit<Employee, 'companyId'>) => void;
+  addEmployees: (employees: Omit<Employee, 'companyId'>[]) => void;
   updateEmployee: (id: string, employee: Partial<Employee>) => void;
   deleteEmployee: (id: string) => void;
   regenerateCredentials: (id: string) => void;
+  validateEmployee: (username: string, password: string) => Employee | undefined;
 }
 
 const EmployeeContext = createContext<EmployeeContextType | undefined>(undefined);
@@ -59,196 +62,61 @@ const generateCredentials = (name: string, employeeId: string) => {
 };
 
 export const EmployeeProvider = ({ children }: { children: ReactNode }) => {
-  const [employees, setEmployees] = useState<Employee[]>(() => {
+  const { user } = useAuth();
+  const [allEmployees, setAllEmployees] = useState<Employee[]>(() => {
     const saved = localStorage.getItem('employees');
     if (saved) {
-      const parsed = JSON.parse(saved);
-      // Cleanup: Remove "Test Candidate" if it exists in saved data
-      return parsed.filter((emp: Employee) => emp.name !== 'Test Candidate');
+      return JSON.parse(saved);
     }
-    return [
-    { 
-      id: '1', 
-      employeeId: '000031', 
-      name: 'Babara Patel', 
-      email: 'babara@gmail.com', 
-      mobile: '+25670268239', 
-      dob: '1990-05-15', 
-      designation: 'Manager', 
-      joiningDate: '2023-01-10', 
-      status: 'Active', 
-      bloodGroup: 'A+', 
-      nationalId: '123456789', 
-      department: 'Electrical', 
-      employeeType: 'Full Time', 
-      country: 'USA', 
-      gender: 'Female', 
-      maritalStatus: 'Single', 
-      customFields: [], 
-      avatar: 'https://picsum.photos/seed/babara/40/40',
-      salary: 5000,
-      taxDeduction: 10,
-      bankName: 'Chase Bank',
-      bankAccountNo: '1234567890',
-      modeOfPayment: 'Bank Transfer',
-      username: 'babara000031',
-      password: 'password123'
-    },
-    { 
-      id: '3', 
-      employeeId: '000029', 
-      name: 'Ch. Monalisa Subudhi', 
-      email: 'monalisasubudhi091@gmail.com', 
-      mobile: '7787890451', 
-      dob: '1992-11-30', 
-      designation: 'Designer', 
-      joiningDate: '2023-03-01', 
-      status: 'Active', 
-      bloodGroup: 'O+', 
-      nationalId: '456789123', 
-      department: 'Electrical', 
-      employeeType: 'Full Time', 
-      country: 'India', 
-      gender: 'Female', 
-      maritalStatus: 'Single', 
-      customFields: [], 
-      avatar: 'https://picsum.photos/seed/monalisa/40/40',
-      salary: 3500,
-      taxDeduction: 5,
-      bankName: 'HDFC Bank',
-      bankAccountNo: '1122334455',
-      modeOfPayment: 'Bank Transfer',
-      username: 'monalisa000029',
-      password: 'password123'
-    },
-    { 
-      id: '4', 
-      employeeId: '000028', 
-      name: 'Mohmed Afif Akram', 
-      email: 'mohaafif@gmail.com', 
-      mobile: '26523333', 
-      dob: '1988-03-12', 
-      designation: 'Lead', 
-      joiningDate: '2023-01-05', 
-      status: 'Active', 
-      bloodGroup: 'AB+', 
-      nationalId: '789123456', 
-      department: 'Production', 
-      employeeType: 'Full Time', 
-      country: 'UAE', 
-      gender: 'Male', 
-      maritalStatus: 'Married', 
-      customFields: [], 
-      avatar: 'https://picsum.photos/seed/mohmed/40/40',
-      salary: 6000,
-      taxDeduction: 0,
-      bankName: 'Emirates NBD',
-      bankAccountNo: '9988776655',
-      modeOfPayment: 'Bank Transfer',
-      username: 'mohmed000028',
-      password: 'password123'
-    },
-    { 
-      id: '5', 
-      employeeId: '000027', 
-      name: 'Uma Stafford', 
-      email: 'nocunocu@mailinator.com', 
-      mobile: '+1(617)434-2319', 
-      dob: '1993-07-25', 
-      designation: 'Analyst', 
-      joiningDate: '2023-04-10', 
-      status: 'Active', 
-      bloodGroup: 'A-', 
-      nationalId: '321654987', 
-      department: 'Electrical', 
-      employeeType: 'Part Time', 
-      country: 'Canada', 
-      gender: 'Female', 
-      maritalStatus: 'Single', 
-      customFields: [], 
-      avatar: 'https://picsum.photos/seed/uma/40/40',
-      salary: 2500,
-      taxDeduction: 15,
-      bankName: 'RBC',
-      bankAccountNo: '5544332211',
-      modeOfPayment: 'Cheque',
-      username: 'uma000027',
-      password: 'password123'
-    },
-    { 
-      id: '6', 
-      employeeId: '000026', 
-      name: 'Khubaib Ahmed', 
-      email: 'khubaib@gmail.com', 
-      mobile: '0300-1234567', 
-      dob: '1991-09-18', 
-      designation: 'Engineer', 
-      joiningDate: '2023-05-20', 
-      status: 'Inactive', 
-      bloodGroup: 'B-', 
-      nationalId: '654987321', 
-      department: 'Electrical', 
-      employeeType: 'Full Time', 
-      country: 'Pakistan', 
-      gender: 'Male', 
-      maritalStatus: 'Married', 
-      customFields: [], 
-      avatar: 'https://picsum.photos/seed/khubaib/40/40',
-      salary: 1500,
-      taxDeduction: 2,
-      bankName: 'HBL',
-      bankAccountNo: '6677889900',
-      modeOfPayment: 'Cash',
-      username: 'khubaib000026',
-      password: 'password123'
-    },
-  ];
+    return [];
   });
 
-  // Save to localStorage whenever employees change
-  React.useEffect(() => {
-    localStorage.setItem('employees', JSON.stringify(employees));
-  }, [employees]);
+  // Filter employees by companyId
+  const employees = allEmployees.filter(emp => emp.companyId === user?.companyId);
 
-  const addEmployee = (employee: Employee) => {
+  // Save to localStorage whenever allEmployees change
+  React.useEffect(() => {
+    localStorage.setItem('employees', JSON.stringify(allEmployees));
+  }, [allEmployees]);
+
+  const addEmployee = (employee: Omit<Employee, 'companyId'>) => {
+    if (!user?.companyId) return;
     const { username, password } = generateCredentials(employee.name, employee.employeeId);
-    const newEmployee = {
+    const newEmployee: Employee = {
       ...employee,
+      companyId: user.companyId,
       username: employee.username || username,
       password: employee.password || password
     };
-    setEmployees((prev) => [...prev, newEmployee]);
+    setAllEmployees((prev) => [...prev, newEmployee]);
   };
 
-  const addEmployees = (newEmployees: Employee[]) => {
+  const addEmployees = (newEmployees: Omit<Employee, 'companyId'>[]) => {
+    if (!user?.companyId) return;
     const employeesWithCredentials = newEmployees.map(emp => {
       const { username, password } = generateCredentials(emp.name, emp.employeeId);
       return {
         ...emp,
+        companyId: user.companyId!,
         username: emp.username || username,
         password: emp.password || password
       };
     });
-    setEmployees((prev) => [...prev, ...employeesWithCredentials]);
+    setAllEmployees((prev) => [...prev, ...employeesWithCredentials]);
   };
 
   const updateEmployee = (id: string, updatedFields: Partial<Employee>) => {
-    setEmployees((prev) =>
+    setAllEmployees((prev) =>
       prev.map((emp) => (emp.id === id ? { ...emp, ...updatedFields } : emp))
     );
   };
 
   const deleteEmployee = (id: string) => {
-    console.log("Deleting employee with id:", id);
-    setEmployees((prev) => {
-      const newEmployees = prev.filter((emp) => emp.id !== id);
-      console.log("New employees list:", newEmployees);
-      return newEmployees;
-    });
+    setAllEmployees((prev) => prev.filter((emp) => emp.id !== id));
   };
 
   const regenerateCredentials = (id: string) => {
-    setEmployees((prev) => prev.map(emp => {
+    setAllEmployees((prev) => prev.map(emp => {
       if (emp.id === id) {
         const { username, password } = generateCredentials(emp.name, emp.employeeId);
         return { ...emp, username, password };
@@ -257,8 +125,14 @@ export const EmployeeProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
+  const validateEmployee = (username: string, password: string) => {
+    return allEmployees.find(emp => 
+      (emp.username === username || emp.email === username) && emp.password === password
+    );
+  };
+
   return (
-    <EmployeeContext.Provider value={{ employees, addEmployee, addEmployees, updateEmployee, deleteEmployee, regenerateCredentials }}>
+    <EmployeeContext.Provider value={{ employees, addEmployee, addEmployees, updateEmployee, deleteEmployee, regenerateCredentials, validateEmployee }}>
       {children}
     </EmployeeContext.Provider>
   );

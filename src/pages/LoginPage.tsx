@@ -4,12 +4,14 @@ import { motion } from 'motion/react';
 import { Building2, Lock, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useEmployees } from '../context/EmployeeContext';
+import { useSuperAdmin } from '../context/SuperAdminContext';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isAuthenticated, user } = useAuth();
   const { employees } = useEmployees();
+  const { companies } = useSuperAdmin();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -60,27 +62,32 @@ export default function LoginPage() {
       return;
     }
 
-    // 2. Check Admin Credentials (Hardcoded for now)
-    if (username === 'admin' && password === 'admin123') {
-      login({
-        id: 'admin',
-        name: 'Administrator',
-        role: 'admin',
-        companyId: '1', // Default company ID
-        avatar: 'https://ui-avatars.com/api/?name=Admin&background=random'
-      });
-      // Check if there's a return url
-      const from = location.state?.from?.pathname || '/dashboard';
-      // Ensure admin doesn't get redirected to employee portal by mistake if that was the 'from'
-      if (from.startsWith('/employee-portal')) {
-         navigate('/dashboard');
-      } else {
-         navigate(from);
+    // 2. Check Company Admin Credentials
+    console.log("Attempting login with:", username, password);
+    console.log("Available companies:", companies);
+    const company = companies.find(c => 
+      c.adminUsername === username && c.adminPassword === password
+    );
+    console.log("Found company:", company);
+
+    if (company) {
+      if (!company.isActive) {
+        setError('Your account is on hold. Please contact Super Admin.');
+        setIsLoading(false);
+        return;
       }
+      login({
+        id: company.id,
+        name: company.name,
+        role: 'admin',
+        companyId: company.id,
+        avatar: company.logo || 'https://ui-avatars.com/api/?name=Admin&background=random'
+      });
+      navigate('/dashboard');
       return;
     }
 
-    // 2. Check Employee Credentials
+    // 3. Check Employee Credentials
     const employee = employees.find(emp => 
       (emp.username === username || emp.email === username) && emp.password === password
     );
@@ -104,7 +111,7 @@ export default function LoginPage() {
       return;
     }
 
-    // 3. Login Failed
+    // 4. Login Failed
     setError('Invalid username or password');
     setIsLoading(false);
   };

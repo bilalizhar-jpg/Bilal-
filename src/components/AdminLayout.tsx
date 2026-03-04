@@ -159,10 +159,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       {/* Sidebar */}
       <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} border-r flex flex-col transition-all duration-300 shrink-0 z-30`}>
         <div className={`p-4 flex items-center gap-2 border-b ${isDark ? 'border-slate-800' : 'border-slate-100'} h-16`}>
-          <div className="bg-indigo-600 p-1.5 rounded-lg shrink-0">
-            <Building2 className="w-6 h-6 text-white" />
+          <div className="bg-indigo-600 p-1.5 rounded-lg shrink-0 overflow-hidden w-9 h-9 flex items-center justify-center">
+            {company?.logo ? (
+              <img src={company.logo} alt="Logo" className="w-full h-full object-cover" />
+            ) : (
+              <Building2 className="w-6 h-6 text-white" />
+            )}
           </div>
-          {isSidebarOpen && <span className={`font-display font-bold text-xl tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>HRM Pro</span>}
+          {isSidebarOpen && <span className={`font-display font-bold text-xl tracking-tight truncate ${isDark ? 'text-white' : 'text-slate-800'}`}>{company?.name || 'HRM Pro'}</span>}
         </div>
         
         <div className="p-4">
@@ -272,11 +276,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </button>
             <div className={`flex items-center gap-3 pl-4 border-l ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
               <div className="text-right">
-                <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>Admin Admin</div>
-                <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Admin</div>
+                <div className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{user?.name || 'Admin'}</div>
+                <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">{user?.role || 'Admin'}</div>
               </div>
               <div className={`h-9 w-9 rounded-full ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-200 border-slate-300'} overflow-hidden border`}>
-                <img src="https://picsum.photos/seed/admin/100/100" alt="Admin" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                <img src={user?.avatar || "https://picsum.photos/seed/admin/100/100"} alt="Admin" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               </div>
             </div>
           </div>
