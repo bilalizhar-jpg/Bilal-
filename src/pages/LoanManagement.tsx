@@ -34,7 +34,9 @@ import {
   Mail,
   Check
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import AdminLayout from '../components/AdminLayout';
+import { useTheme } from '../context/ThemeContext';
+import * as XLSX from 'xlsx';
 
 interface Loan {
   id: string;
@@ -51,22 +53,27 @@ interface Loan {
   status: 'Active' | 'Inactive';
   approvalStatus: 'Approved' | 'Under Consideration' | 'Rejected';
   autoReminder: boolean;
+  notifyEmployee?: boolean;
 }
 
 type TabType = 'loan-list' | 'disburse-report' | 'employee-wise';
 
 export default function LoanManagement() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [activeTab, setActiveTab] = useState<TabType>('loan-list');
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLoan, setEditingLoan] = useState<Loan | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterEmployee, setFilterEmployee] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
 
   const [loans, setLoans] = useState<Loan[]>([
-    { id: '1', employeeName: 'Maisha Lucy Zamora Gonzales', permittedBy: 'Jerome Grace Willis Terry', loanNo: '000115', amount: 48000, interestRate: 0, installmentPeriod: 1000, installmentCleared: 0, repaymentAmount: 48000, approvedDate: '2026-01-28', repaymentFrom: '2026-01-14', status: 'Active', approvalStatus: 'Approved', autoReminder: true },
-    { id: '2', employeeName: 'Honorato Imogene Curry Terry', permittedBy: 'Ora Caryn Garcia Cardenas', loanNo: '000114', amount: 1, interestRate: 20, installmentPeriod: 6, installmentCleared: 0, repaymentAmount: 1, approvedDate: '2026-01-21', repaymentFrom: '2026-06-21', status: 'Active', approvalStatus: 'Approved', autoReminder: false },
-    { id: '3', employeeName: 'Jonathan Ibrahim Shekh', permittedBy: 'Nell Mohona Lacey Byers Lewis', loanNo: '000113', amount: 50000, interestRate: 5, installmentPeriod: 12, installmentCleared: 6, repaymentAmount: 52500, approvedDate: '2025-12-27', repaymentFrom: '2026-12-30', status: 'Active', approvalStatus: 'Approved', autoReminder: true },
-    { id: '4', employeeName: 'Maisha Lucy Zamora Gonzales', permittedBy: 'Arnika Paula Roach Mcmillan', loanNo: '000112', amount: 10000, interestRate: 0, installmentPeriod: 1, installmentCleared: 0, repaymentAmount: 10000, approvedDate: '2025-12-05', repaymentFrom: '2025-12-06', status: 'Active', approvalStatus: 'Approved', autoReminder: false },
+    { id: '1', employeeName: 'Maisha Lucy Zamora Gonzales', permittedBy: 'Jerome Grace Willis Terry', loanNo: '000115', amount: 48000, interestRate: 0, installmentPeriod: 1000, installmentCleared: 0, repaymentAmount: 48000, approvedDate: '2026-01-28', repaymentFrom: '2026-01-14', status: 'Active', approvalStatus: 'Approved', autoReminder: true, notifyEmployee: false },
+    { id: '2', employeeName: 'Honorato Imogene Curry Terry', permittedBy: 'Ora Caryn Garcia Cardenas', loanNo: '000114', amount: 1, interestRate: 20, installmentPeriod: 6, installmentCleared: 0, repaymentAmount: 1, approvedDate: '2026-01-21', repaymentFrom: '2026-06-21', status: 'Active', approvalStatus: 'Approved', autoReminder: false, notifyEmployee: false },
+    { id: '3', employeeName: 'Jonathan Ibrahim Shekh', permittedBy: 'Nell Mohona Lacey Byers Lewis', loanNo: '000113', amount: 50000, interestRate: 5, installmentPeriod: 12, installmentCleared: 6, repaymentAmount: 52500, approvedDate: '2025-12-27', repaymentFrom: '2026-12-30', status: 'Active', approvalStatus: 'Approved', autoReminder: true, notifyEmployee: false },
+    { id: '4', employeeName: 'Maisha Lucy Zamora Gonzales', permittedBy: 'Arnika Paula Roach Mcmillan', loanNo: '000112', amount: 10000, interestRate: 0, installmentPeriod: 1, installmentCleared: 0, repaymentAmount: 10000, approvedDate: '2025-12-05', repaymentFrom: '2025-12-06', status: 'Active', approvalStatus: 'Approved', autoReminder: false, notifyEmployee: false },
   ]);
 
   const [formData, setFormData] = useState<Partial<Loan>>({
@@ -79,33 +86,20 @@ export default function LoanManagement() {
     approvedDate: new Date().toISOString().split('T')[0],
     status: 'Active',
     approvalStatus: 'Under Consideration',
-    autoReminder: true
+    autoReminder: true,
+    notifyEmployee: false
   });
-
-  const menuItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-    { name: 'Attendance', icon: Calendar, hasSub: true, path: '/attendance' },
-    { name: 'Award', icon: Award, hasSub: true, path: '/award' },
-    { name: 'Department', icon: Building2, hasSub: true, path: '/department' },
-    { name: 'Employee', icon: Users, hasSub: true, path: '/employee' },
-    { name: 'Leave', icon: UserMinus, hasSub: true, path: '/leave' },
-    { name: 'Loan', icon: CreditCard, active: true, hasSub: true, path: '/loan' },
-    { name: 'Notice board', icon: Bell, hasSub: true, path: '/notice' },
-    { name: 'Payroll', icon: DollarSign, hasSub: true },
-    { name: 'Procurement', icon: Briefcase, hasSub: true },
-    { name: 'Project management', icon: ClipboardList, hasSub: true },
-    { name: 'Recruitment', icon: UserCheck, hasSub: true },
-    { name: 'Reports', icon: FileText, hasSub: true },
-    { name: 'Reward points', icon: Target, hasSub: true },
-    { name: 'Setup rules', icon: Settings, hasSub: true },
-    { name: 'Settings', icon: Settings, hasSub: true },
-    { name: 'Message', icon: MessageSquare, hasSub: true },
-  ];
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingLoan) {
       setLoans(prev => prev.map(l => l.id === editingLoan.id ? { ...l, ...formData } as Loan : l));
+      if (formData.approvalStatus === 'Approved' && editingLoan.approvalStatus !== 'Approved') {
+        alert(`Notification sent to Accounts Department and CEO: Loan for ${formData.employeeName} has been approved.`);
+        if (formData.notifyEmployee) {
+          alert(`Notification sent to ${formData.employeeName}'s dashboard: Your loan has been approved.`);
+        }
+      }
     } else {
       const newLoan = {
         ...formData,
@@ -115,6 +109,12 @@ export default function LoanManagement() {
         repaymentAmount: (formData.amount || 0) * (1 + (formData.interestRate || 0) / 100)
       } as Loan;
       setLoans(prev => [...prev, newLoan]);
+      if (formData.approvalStatus === 'Approved') {
+        alert(`Notification sent to Accounts Department and CEO: Loan for ${formData.employeeName} has been approved.`);
+        if (formData.notifyEmployee) {
+          alert(`Notification sent to ${formData.employeeName}'s dashboard: Your loan has been approved.`);
+        }
+      }
     }
     setIsModalOpen(false);
     setEditingLoan(null);
@@ -126,77 +126,45 @@ export default function LoanManagement() {
     }
   };
 
-  const filteredLoans = loans.filter(l => 
-    l.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    l.loanNo.includes(searchTerm)
-  );
+  const filteredLoans = loans.filter(l => {
+    const matchesSearch = l.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) || l.loanNo.includes(searchTerm);
+    const matchesEmployee = !filterEmployee || l.employeeName === filterEmployee;
+    const matchesStatus = !filterStatus || l.status === filterStatus;
+    return matchesSearch && matchesEmployee && matchesStatus;
+  });
+
+  const handleExport = (format: 'csv' | 'excel') => {
+    const dataToExport = filteredLoans.map(l => ({
+      'Employee Name': l.employeeName,
+      'Permitted By': l.permittedBy,
+      'Loan No': l.loanNo,
+      'Amount': l.amount,
+      'Interest Rate': `${l.interestRate}%`,
+      'Installment Period': l.installmentPeriod,
+      'Installment Cleared': l.installmentCleared,
+      'Repayment Amount': l.repaymentAmount,
+      'Approved Date': l.approvedDate,
+      'Repayment From': l.repaymentFrom,
+      'Approval Status': l.approvalStatus,
+      'Status': l.status
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Loans");
+    
+    if (format === 'csv') {
+      XLSX.writeFile(wb, 'loan_list.csv');
+    } else {
+      XLSX.writeFile(wb, 'loan_list.xlsx');
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-[#F0F2F5] flex">
-      {/* Sidebar */}
-      <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} bg-white border-r border-slate-200 flex flex-col transition-all duration-300 shrink-0`}>
-        <div className="p-4 flex items-center gap-2 border-b border-slate-100 h-16">
-          <div className="bg-indigo-600 p-1.5 rounded-lg shrink-0">
-            <Building2 className="w-6 h-6 text-white" />
-          </div>
-          {isSidebarOpen && <span className="font-display font-bold text-xl tracking-tight text-slate-800">HRM Pro</span>}
-        </div>
-        
-        <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-1 custom-scrollbar">
-          {menuItems.map((item) => (
-            <Link
-              key={item.name}
-              to={item.path || '#'}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                item.active 
-                  ? 'bg-[#E8F0FE] text-[#1A73E8]' 
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <item.icon className={`w-5 h-5 ${item.active ? 'text-[#1A73E8]' : 'text-slate-500'}`} />
-                {isSidebarOpen && <span>{item.name}</span>}
-              </div>
-              {isSidebarOpen && item.hasSub && <ChevronRight className="w-4 h-4 text-slate-400" />}
-            </Link>
-          ))}
-        </nav>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-slate-500 hover:bg-slate-100 rounded-md">
-              <Menu className="w-5 h-5" />
-            </button>
-            <button className="flex items-center gap-2 px-3 py-1.5 bg-[#F8F9FA] border border-slate-200 rounded text-xs font-medium text-slate-600 hover:bg-slate-100">
-              <RefreshCw className="w-3.5 h-3.5 text-emerald-500" />
-              Cache clear
-            </button>
-          </div>
-          
-          <div className="flex items-center gap-6">
-            <button className="p-2 text-slate-500 hover:bg-slate-100 rounded-md">
-              <Maximize2 className="w-5 h-5" />
-            </button>
-            <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
-              <div className="text-right">
-                <div className="text-sm font-bold text-slate-800">Admin Admin</div>
-                <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Admin</div>
-              </div>
-              <div className="h-9 w-9 rounded-full bg-slate-200 overflow-hidden border border-slate-300">
-                <img src="https://picsum.photos/seed/admin/100/100" alt="Admin" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
-          {/* Tabs */}
-          <div className="flex items-center gap-2 mb-6">
+    <AdminLayout>
+      <div className="space-y-6">
+        {/* Tabs */}
+        <div className="flex items-center gap-2 mb-6">
             <button 
               onClick={() => setActiveTab('loan-list')}
               className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
@@ -227,7 +195,10 @@ export default function LoanManagement() {
             <div className="p-4 border-b border-slate-100 flex justify-between items-center">
               <h2 className="font-bold text-slate-800">Loan list</h2>
               <div className="flex gap-2">
-                <button className="bg-[#17A2B8] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#138496]">
+                <button 
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="bg-[#17A2B8] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#138496]"
+                >
                   <Filter className="w-3.5 h-3.5" />
                   Filter
                 </button>
@@ -244,7 +215,8 @@ export default function LoanManagement() {
                       approvedDate: new Date().toISOString().split('T')[0],
                       status: 'Active',
                       approvalStatus: 'Under Consideration',
-                      autoReminder: true
+                      autoReminder: true,
+                      notifyEmployee: false
                     });
                     setIsModalOpen(true);
                   }}
@@ -255,6 +227,47 @@ export default function LoanManagement() {
                 </button>
               </div>
             </div>
+
+            <AnimatePresence>
+              {showFilters && (
+                <motion.div 
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="p-4 bg-slate-50 border-b border-slate-100 overflow-hidden"
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <select 
+                      value={filterEmployee}
+                      onChange={(e) => setFilterEmployee(e.target.value)}
+                      className="border border-slate-200 rounded px-3 py-2 text-sm outline-none bg-white"
+                    >
+                      <option value="">All Employees</option>
+                      {Array.from(new Set(loans.map(l => l.employeeName))).map(name => (
+                        <option key={name} value={name}>{name}</option>
+                      ))}
+                    </select>
+                    <select 
+                      value={filterStatus}
+                      onChange={(e) => setFilterStatus(e.target.value)}
+                      className="border border-slate-200 rounded px-3 py-2 text-sm outline-none bg-white"
+                    >
+                      <option value="">All Status</option>
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
+                    </select>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => { setFilterEmployee(''); setFilterStatus(''); setSearchTerm(''); }}
+                        className="bg-[#DC3545] text-white px-4 py-2 rounded text-sm font-bold hover:bg-[#C82333]"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <div className="p-4 flex justify-between items-center bg-slate-50/50 border-b border-slate-100">
               <div className="flex items-center gap-2">
@@ -268,10 +281,16 @@ export default function LoanManagement() {
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex gap-1">
-                  <button className="bg-[#28A745] text-white px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1">
+                  <button 
+                    onClick={() => handleExport('csv')}
+                    className="bg-[#28A745] text-white px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1"
+                  >
                     <FileText className="w-3 h-3" /> CSV
                   </button>
-                  <button className="bg-[#28A745] text-white px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1">
+                  <button 
+                    onClick={() => handleExport('excel')}
+                    className="bg-[#28A745] text-white px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1"
+                  >
                     <FileText className="w-3 h-3" /> Excel
                   </button>
                 </div>
@@ -375,7 +394,6 @@ export default function LoanManagement() {
               </div>
             </div>
           </div>
-        </div>
 
         {/* Modal */}
         <AnimatePresence>
@@ -591,29 +609,7 @@ export default function LoanManagement() {
             </div>
           )}
         </AnimatePresence>
-
-        {/* Footer */}
-        <footer className="h-12 bg-white border-t border-slate-200 flex items-center justify-between px-6 shrink-0 text-[11px] text-slate-500">
-          <div>© 2026 BDTASK. All Rights Reserved.</div>
-          <div>Designed by: <span className="text-indigo-600 font-bold">Bdtask</span></div>
-        </footer>
-      </main>
-
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #94a3b8;
-        }
-      `}</style>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }

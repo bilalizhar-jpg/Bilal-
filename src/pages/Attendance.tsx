@@ -1,35 +1,22 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Building2, 
-  Menu, 
-  Maximize2, 
-  RefreshCw, 
   Search,
-  ChevronRight,
-  LayoutDashboard,
+  Plus, 
+  Download, 
+  ChevronDown, 
+  X, 
+  CheckCircle2, 
+  Trash2,
   Calendar,
-  Award,
-  Users,
-  UserMinus,
-  CreditCard,
-  Bell,
-  DollarSign,
-  Briefcase,
-  ClipboardList,
-  UserCheck,
   FileText,
-  Target,
-  Settings,
-  MessageSquare,
-  Plus,
-  Download,
-  ChevronDown,
-  X,
-  CheckCircle2,
-  Trash2
+  RefreshCw,
+  Settings
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 import { 
   BarChart, 
@@ -45,25 +32,18 @@ import {
 } from 'recharts';
 
 import AdminLayout from '../components/AdminLayout';
+import { useAttendance } from '../context/AttendanceContext';
+import { useEmployees } from '../context/EmployeeContext';
+import { useTimeTracking } from '../context/TimeTrackingContext';
 
 type TabType = 'form' | 'daily-status' | 'monthly' | 'working-hours' | 'missing';
 
-interface AttendanceRecord {
-  id: string;
-  employeeName: string;
-  loginTime: string;
-  logoutTime: string;
-  workingHours: string;
-  date: string;
-}
-
-const dailyAttendanceData: AttendanceRecord[] = [
-  { id: '1', employeeName: 'Alex Thompson', loginTime: '09:00 AM', logoutTime: '06:00 PM', workingHours: '9h 0m', date: '2026-02-26' },
-  { id: '2', employeeName: 'Sarah Jenkins', loginTime: '08:45 AM', logoutTime: '05:30 PM', workingHours: '8h 45m', date: '2026-02-26' },
-  { id: '3', employeeName: 'Michael Chen', loginTime: '09:15 AM', logoutTime: '06:15 PM', workingHours: '9h 0m', date: '2026-02-26' },
-  { id: '4', employeeName: 'Emma Wilson', loginTime: '09:00 AM', logoutTime: '05:00 PM', workingHours: '8h 0m', date: '2026-02-26' },
-  { id: '5', employeeName: 'Honorato Imogene', loginTime: '08:30 AM', logoutTime: '05:30 PM', workingHours: '9h 0m', date: '2026-02-26' },
-];
+// Helper to format seconds to HH:MM
+const formatSecondsToHM = (seconds: number) => {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  return `${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m`;
+};
 
 const workingHoursChartData = [
   { day: 'Mon', hours: 8.5 },
@@ -76,6 +56,9 @@ const workingHoursChartData = [
 ];
 
 export default function Attendance() {
+  const { attendanceRecords } = useAttendance();
+  const { employees } = useEmployees();
+  const { trackingData } = useTimeTracking();
   const [activeTab, setActiveTab] = useState<TabType>('form');
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [attendanceTime, setAttendanceTime] = useState('');
@@ -87,24 +70,112 @@ export default function Attendance() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [isDownloading, setIsDownloading] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+
+  const dailyAttendanceData = attendanceRecords
+    .filter(record => {
+      const matchesDate = record.date === selectedDate;
+      const employeeExists = employees.some(e => (e.employeeId === record.employeeId || e.id === record.employeeId) && e.status === 'Active');
+      return matchesDate && employeeExists;
+    })
+    .map(record => {
+      const tracking = trackingData[record.employeeId];
+      const realWorkingHours = tracking && record.date === new Date().toISOString().split('T')[0] 
+        ? formatSecondsToHM(tracking.workingTime) 
+        : (record.workingHours || '-');
+
+      return {
+        id: record.id,
+        employeeName: record.employeeName,
+        loginTime: record.loginTime || '-',
+        logoutTime: record.logoutTime || '-',
+        workingHours: realWorkingHours,
+        date: record.date
+      };
+    });
 
   const handleDownload = (format: 'Excel' | 'PDF', period?: string) => {
     setIsDownloading(true);
     
-    // Simulate a delay for "working" feel
     setTimeout(() => {
-      let msg = '';
-      if (period === 'Custom' && startDate && endDate) {
-        msg = `Downloading Attendance Report from ${startDate} to ${endDate} in ${format} format...`;
-      } else if (period) {
-        msg = `Downloading ${period} Attendance Report in ${format} format...`;
-      } else {
-        msg = `Downloading Attendance Report in ${format} format...`;
+      try {
+        let dataToExport: any[] = [];
+        let filename = 'attendance_report';
+        let columns: string[] = [];
+        
+        if (activeTab === 'daily-status') {
+          dataToExport = dailyAttendanceData.filter(r => r.employeeName.toLowerCase().includes(searchTerm.toLowerCase())).map((r, i) => ({
+            'Sl': i + 1,
+            'Employee Name': r.employeeName,
+            'Login Time': r.loginTime,
+            'Logout Time': r.logoutTime,
+            'Working Hours': r.workingHours,
+            'Date': r.date
+          }));
+          filename = `daily_attendance_${period || 'report'}`;
+          columns = ['Sl', 'Employee Name', 'Login Time', 'Logout Time', 'Working Hours', 'Date'];
+        } else if (activeTab === 'monthly') {
+          dataToExport = employees.map((emp, i) => ({
+            'Employee': emp.name,
+            'Total Days': 28,
+            'Present': 22,
+            'Absent': 2,
+            'Leave': 4,
+            'Total Hours': '198h'
+          }));
+          filename = 'monthly_attendance';
+          columns = ['Employee', 'Total Days', 'Present', 'Absent', 'Leave', 'Total Hours'];
+        } else if (activeTab === 'working-hours') {
+          dataToExport = workingHoursChartData.map(d => ({
+            'Day': d.day,
+            'Hours': d.hours
+          }));
+          filename = 'working_hours_report';
+          columns = ['Day', 'Hours'];
+        }
+
+        if (format === 'Excel') {
+          const ws = XLSX.utils.json_to_sheet(dataToExport);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Report");
+          XLSX.writeFile(wb, `${filename}.xlsx`);
+        } else if (format === 'PDF') {
+          const doc = new jsPDF();
+          doc.text(`Attendance Report - ${activeTab}`, 14, 15);
+          
+          const tableData = dataToExport.map(row => columns.map(col => row[col]));
+          
+          autoTable(doc, {
+            head: [columns],
+            body: tableData,
+            startY: 20,
+          });
+          
+          doc.save(`${filename}.pdf`);
+        }
+      } catch (error) {
+        console.error('Download error:', error);
+        alert('Failed to generate report');
+      } finally {
+        setIsDownloading(false);
       }
-      
-      alert(msg);
-      setIsDownloading(false);
-    }, 1000);
+    }, 500);
+  };
+
+  const handleBulkInsertClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      alert(`File "${file.name}" uploaded successfully for bulk insert.`);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
 
   const handleAddCustomField = (e: React.FormEvent) => {
@@ -114,15 +185,6 @@ export default function Attendance() {
       setNewFieldName('');
     }
   };
-
-  const employees = [
-    'Alex Thompson',
-    'Sarah Jenkins',
-    'Michael Chen',
-    'Emma Wilson',
-    'Honorato Imogene',
-    'Amy Aphrodite'
-  ];
 
   return (
     <AdminLayout>
@@ -190,10 +252,22 @@ export default function Attendance() {
                   Custom field
                 </button>
                 {activeTab === 'form' && (
-                  <button className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838]">
-                    <Plus className="w-3.5 h-3.5" />
-                    Bulk insert
-                  </button>
+                  <>
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      onChange={handleFileUpload} 
+                      accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                      className="hidden" 
+                    />
+                    <button 
+                      onClick={handleBulkInsertClick}
+                      className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838]"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Bulk insert
+                    </button>
+                  </>
                 )}
                 {(activeTab === 'daily-status' || activeTab === 'monthly' || activeTab === 'working-hours') && (
                   <div className="flex gap-1">
@@ -231,7 +305,7 @@ export default function Attendance() {
                       >
                         <option value="">Select one</option>
                         {employees.map(emp => (
-                          <option key={emp} value={emp}>{emp}</option>
+                          <option key={emp.id} value={emp.name}>{emp.name}</option>
                         ))}
                       </select>
                     </div>
@@ -279,7 +353,12 @@ export default function Attendance() {
                           className="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 w-64"
                         />
                       </div>
-                      <input type="date" className="border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none" defaultValue="2026-02-26" />
+                      <input 
+                        type="date" 
+                        className="border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none" 
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                      />
                     </div>
                     
                     <div className="flex flex-wrap items-center gap-4">
@@ -354,6 +433,13 @@ export default function Attendance() {
                             <td className="px-4 py-3 text-sm text-slate-500">{record.date}</td>
                           </tr>
                         ))}
+                        {dailyAttendanceData.length === 0 && (
+                          <tr>
+                            <td colSpan={6} className="px-4 py-8 text-center text-slate-500 text-sm">
+                              No attendance records found.
+                            </td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -396,9 +482,11 @@ export default function Attendance() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {employees.map((emp, idx) => (
+                        {employees
+                          .filter(emp => emp.status === 'Active')
+                          .map((emp, idx) => (
                           <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="px-4 py-3 text-sm font-medium text-slate-800">{emp}</td>
+                            <td className="px-4 py-3 text-sm font-medium text-slate-800">{emp.name}</td>
                             <td className="px-4 py-3 text-sm text-slate-600">28</td>
                             <td className="px-4 py-3 text-sm text-emerald-600 font-bold">22</td>
                             <td className="px-4 py-3 text-sm text-red-600 font-bold">2</td>
@@ -418,7 +506,10 @@ export default function Attendance() {
                     <div>
                       <label className="block text-sm font-bold text-slate-700 mb-2">Select Employee</label>
                       <select className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none bg-white">
-                        {employees.map(emp => <option key={emp}>{emp}</option>)}
+                        <option value="All">All Employees</option>
+                        {employees
+                          .filter(emp => emp.status === 'Active')
+                          .map(emp => <option key={emp.id} value={emp.name}>{emp.name}</option>)}
                       </select>
                     </div>
                     <div>
@@ -497,9 +588,7 @@ export default function Attendance() {
               )}
             </div>
           </div>
-        </div>
 
-        {/* Custom Field Modal */}
         <AnimatePresence>
           {isCustomFieldModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
@@ -564,6 +653,7 @@ export default function Attendance() {
             </div>
           )}
         </AnimatePresence>
+      </div>
     </AdminLayout>
   );
 }

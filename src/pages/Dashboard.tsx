@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Users, 
@@ -12,6 +12,9 @@ import {
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import AdminLayout from '../components/AdminLayout';
+import { useEmployees } from '../context/EmployeeContext';
+import { useAttendance } from '../context/AttendanceContext';
+import { useLeaves } from '../context/LeaveContext';
 import { 
   BarChart, 
   Bar, 
@@ -26,32 +29,78 @@ import {
   Cell
 } from 'recharts';
 
-const attendanceData = [
-  { name: 'Computer Studies', leave: 0, present: 0, absent: 0 },
-  { name: 'test', leave: 0, present: 0, absent: 0 },
-  { name: 'Gynae', leave: 0, present: 0, absent: 0 },
-  { name: 'Production', leave: 20, present: 40, absent: 40 },
-  { name: 'Electrical', leave: 14, present: 46, absent: 40 },
-];
-
-const awardedData = [
-  { name: 'Computer Studies', value: 0 },
-  { name: 'test', value: 0 },
-  { name: 'Gynae', value: 0 },
-  { name: 'Production', value: 10 },
-  { name: 'Electrical', value: 0 },
-];
-
 export default function Dashboard() {
   const [showLeaveNotification, setShowLeaveNotification] = useState(true);
   const { theme } = useTheme();
+  const { employees } = useEmployees();
+  const { attendanceRecords } = useAttendance();
+  const { leaveRequests } = useLeaves();
+
+  const activeEmployees = useMemo(() => employees.filter(e => e.status === 'Active'), [employees]);
+  
+  const pendingLeave = useMemo(() => leaveRequests.find(r => r.status === 'Pending'), [leaveRequests]);
+  const recentLeaves = useMemo(() => leaveRequests.slice(0, 4), [leaveRequests]);
+  
+  const awardedData = useMemo(() => {
+    // Group active employees by department and count them as a mock for "awarded"
+    // or just show top 5 departments
+    const depts = Array.from(new Set(activeEmployees.map(e => e.department)));
+    return depts.slice(0, 5).map(dept => ({
+      name: dept,
+      value: activeEmployees.filter(e => e.department === dept).length * 10 // Mock value
+    }));
+  }, [activeEmployees]);
+
+  const today = new Date().toISOString().split('T')[0];
+  const todayRecords = useMemo(() => attendanceRecords.filter(r => r.date === today), [attendanceRecords, today]);
+  
+  const stats = useMemo(() => {
+    const total = activeEmployees.length;
+    const present = todayRecords.filter(r => r.status === 'Present').length;
+    const leave = todayRecords.filter(r => r.status === 'Leave').length;
+    const absent = total - present - leave;
+    
+    return [
+      { label: 'Total employee', value: total.toString(), icon: Users, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+      { label: 'Today presents', value: present.toString(), icon: UserCheck, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+      { label: 'Today absents', value: Math.max(0, absent).toString(), icon: UserX, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+      { label: 'Today leave', value: leave.toString(), icon: UserMinus, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+    ];
+  }, [activeEmployees, todayRecords]);
+
+  const deptAttendanceData = useMemo(() => {
+    const depts = Array.from(new Set(activeEmployees.map(e => e.department)));
+    return depts.map(dept => {
+      const deptEmps = activeEmployees.filter(e => e.department === dept);
+      const total = deptEmps.length;
+      if (total === 0) return { name: dept, leave: 0, present: 0, absent: 0 };
+      
+      const deptRecords = todayRecords.filter(r => deptEmps.some(e => e.employeeId === r.employeeId));
+      const present = deptRecords.filter(r => r.status === 'Present').length;
+      const leave = deptRecords.filter(r => r.status === 'Leave').length;
+      const absent = total - present - leave;
+      
+      return {
+        name: dept,
+        present: Math.round((present / total) * 100),
+        leave: Math.round((leave / total) * 100),
+        absent: Math.round((Math.max(0, absent) / total) * 100)
+      };
+    });
+  }, [activeEmployees, todayRecords]);
+
+  const recentRecruits = useMemo(() => {
+    return [...activeEmployees]
+      .sort((a, b) => new Date(b.joiningDate).getTime() - new Date(a.joiningDate).getTime())
+      .slice(0, 3);
+  }, [activeEmployees]);
 
   return (
     <AdminLayout>
       <div className="space-y-6">
         {/* Blinking Leave Notification */}
         <AnimatePresence>
-          {showLeaveNotification && (
+          {showLeaveNotification && pendingLeave && (
             <motion.div 
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -64,7 +113,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-amber-800 dark:text-amber-200">New Leave Application</h4>
-                  <p className="text-xs text-amber-600 dark:text-amber-400">Test Candidate has applied for Earned Leave (3 days). Notification sent to HR & Dept Head.</p>
+                  <p className="text-xs text-amber-600 dark:text-amber-400">{pendingLeave.employeeName} has applied for {pendingLeave.type} ({pendingLeave.days} days). Notification sent to HR & Dept Head.</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -79,12 +128,7 @@ export default function Dashboard() {
 
         {/* Top Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            { label: 'Total employee', value: '31', icon: Users, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-            { label: 'Today presents', value: '5', icon: UserCheck, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-            { label: 'Today absents', value: '21', icon: UserX, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-            { label: 'Today leave', value: '5', icon: UserMinus, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-          ].map((stat) => (
+          {stats.map((stat) => (
             <div key={stat.label} className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex justify-between items-center">
               <div>
                 <h3 className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">{stat.label}</h3>
@@ -107,7 +151,7 @@ export default function Dashboard() {
               </div>
               <div className="h-[350px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={attendanceData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <BarChart data={deptAttendanceData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#1e293b' : '#f0f0f0'} />
                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: theme === 'dark' ? '#94a3b8' : '#64748b' }} />
                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: theme === 'dark' ? '#94a3b8' : '#64748b' }} tickFormatter={(val) => `${val}%`} />
@@ -175,24 +219,30 @@ export default function Dashboard() {
                 <h2 className="font-bold text-slate-800 dark:text-white text-sm">Leave Application</h2>
               </div>
               <div className="p-4 space-y-4">
-                {[
-                  { name: 'Honorato Imogene Curry Terry', reason: 'Reason : ' },
-                  { name: 'Amy Aphrodite Zamora Peck', reason: 'Reason : ' },
-                  { name: 'Maisha Lucy Zamora Gonzales', reason: 'Reason : ' },
-                  { name: 'Amy Aphrodite Zamora Peck', reason: 'Reason : hgv' },
-                ].map((app, i) => (
-                  <div key={i} className="flex items-center justify-between gap-3">
+                {recentLeaves.map((app, i) => (
+                  <div key={app.id} className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <img src={`https://picsum.photos/seed/user${i}/40/40`} className="w-8 h-8 rounded-full object-cover" referrerPolicy="no-referrer" />
+                      <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                        {app.employeeName.charAt(0)}
+                      </div>
                       <div className="min-w-0">
-                        <div className="text-[11px] font-bold text-slate-800 dark:text-white truncate">{app.name}</div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{app.reason}</div>
+                        <div className="text-[11px] font-bold text-slate-800 dark:text-white truncate">{app.employeeName}</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate">Reason : {app.reason}</div>
                       </div>
                     </div>
-                    <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded border border-emerald-100 dark:border-emerald-900/30 shrink-0">Approved</span>
+                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded border shrink-0 ${
+                      app.status === 'Approved' ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-900/30' :
+                      app.status === 'Rejected' ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-900/30' :
+                      'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-900/30'
+                    }`}>
+                      {app.status}
+                    </span>
                   </div>
                 ))}
-                <button className="w-full text-center text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-2 hover:underline">See All Request →</button>
+                {recentLeaves.length === 0 && (
+                  <div className="text-center py-4 text-xs text-slate-400 italic">No recent leave applications</div>
+                )}
+                <Link to="/leave" className="block w-full text-center text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-2 hover:underline">See All Request →</Link>
               </div>
             </div>
 
@@ -202,22 +252,21 @@ export default function Dashboard() {
                 <h2 className="font-bold text-slate-800 dark:text-white text-sm">New recruitment</h2>
               </div>
               <div className="p-4 space-y-4">
-                {[
-                  { name: 'Babara Patel', date: '04-09-2025' },
-                  { name: 'Test Candidate', date: '24-06-2025' },
-                  { name: 'Ch. Monalisa Subudhi', date: '03-03-2025' },
-                ].map((rec, i) => (
-                  <div key={i} className="flex items-center justify-between gap-3">
+                {recentRecruits.map((rec, i) => (
+                  <div key={rec.id} className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <img src={`https://picsum.photos/seed/rec${i}/40/40`} className="w-8 h-8 rounded-full object-cover" referrerPolicy="no-referrer" />
+                      <img src={rec.avatar || `https://picsum.photos/seed/rec${i}/40/40`} className="w-8 h-8 rounded-full object-cover" referrerPolicy="no-referrer" />
                       <div>
                         <div className="text-[11px] font-bold text-slate-800 dark:text-white">{rec.name}</div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400">Date : {rec.date}</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400">Date : {rec.joiningDate}</div>
                       </div>
                     </div>
                     <button className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded border border-emerald-100 dark:border-emerald-900/30 shrink-0">Recruit</button>
                   </div>
                 ))}
+                {recentRecruits.length === 0 && (
+                  <div className="text-center py-4 text-xs text-slate-400 italic">No recent recruits</div>
+                )}
                 <button className="w-full text-center text-xs text-slate-500 dark:text-slate-400 font-bold mt-2 hover:underline">See More</button>
               </div>
             </div>

@@ -1,12 +1,21 @@
-import { Link } from 'react-router-dom';
-import { Building2, Menu, X, Sun, Moon, User, Briefcase } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Building2, Menu, X, Sun, Moon, User, Briefcase, LogOut, LayoutDashboard } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const { user, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+    setIsOpen(false);
+  };
 
   const navLinks = [
     { name: 'Home', href: '/' },
@@ -49,26 +58,59 @@ export default function Navbar() {
               </button>
 
               <div className="flex items-center gap-2">
-                <Link
-                  to="/login"
-                  className="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
-                >
-                  <Briefcase className="w-3.5 h-3.5" />
-                  Employer Login
-                </Link>
-                <Link
-                  to="/login"
-                  className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 px-3 py-2 rounded-lg transition-all"
-                >
-                  <User className="w-3.5 h-3.5" />
-                  Employee Login
-                </Link>
-                <Link
-                  to="/register"
-                  className="bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-indigo-700 transition-all shadow-md hover:shadow-indigo-200 dark:shadow-none"
-                >
-                  Register
-                </Link>
+                {isAuthenticated ? (
+                  <>
+                    <Link
+                      to={user?.role === 'admin' ? '/dashboard' : '/employee-portal/dashboard'}
+                      className="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+                    >
+                      <LayoutDashboard className="w-3.5 h-3.5" />
+                      Dashboard
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-1.5 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-2 rounded-lg transition-all"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      Logout
+                    </button>
+                    {user?.avatar && (
+                      <div className="w-8 h-8 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700">
+                        <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/login"
+                      className="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+                    >
+                      <Briefcase className="w-3.5 h-3.5" />
+                      Super Admin
+                    </Link>
+                    <Link
+                      to="/dashboard"
+                      className="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+                    >
+                      <Briefcase className="w-3.5 h-3.5" />
+                      Employer Login
+                    </Link>
+                    <Link
+                      to="/employee-login"
+                      className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 px-3 py-2 rounded-lg transition-all"
+                    >
+                      <User className="w-3.5 h-3.5" />
+                      Employee Login
+                    </Link>
+                    <Link
+                      to="/register"
+                      className="bg-indigo-600 text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-indigo-700 transition-all shadow-md hover:shadow-indigo-200 dark:shadow-none"
+                    >
+                      Register
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -112,29 +154,68 @@ export default function Navbar() {
                 </a>
               ))}
               <div className="pt-4 flex flex-col gap-3 px-3">
-                <Link
-                  to="/login"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center justify-center gap-2 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl"
-                >
-                  <Briefcase className="w-4 h-4" />
-                  Employer Login
-                </Link>
-                <Link
-                  to="/login"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center justify-center gap-2 py-3 text-sm font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/50 rounded-xl"
-                >
-                  <User className="w-4 h-4" />
-                  Employee Login
-                </Link>
-                <Link
-                  to="/register"
-                  onClick={() => setIsOpen(false)}
-                  className="text-center py-3 text-sm font-bold text-white bg-indigo-600 rounded-xl shadow-lg shadow-indigo-200 dark:shadow-none"
-                >
-                  Get Started Free
-                </Link>
+                {isAuthenticated ? (
+                  <>
+                    <div className="flex items-center gap-3 px-3 py-2 border-b border-slate-100 dark:border-slate-800 mb-2">
+                      {user?.avatar && (
+                        <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full" />
+                      )}
+                      <div>
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">{user?.name}</p>
+                        <p className="text-xs text-slate-500 capitalize">{user?.role}</p>
+                      </div>
+                    </div>
+                    <Link
+                      to={user?.role === 'admin' ? '/dashboard' : '/employee-portal/dashboard'}
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center justify-center gap-2 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl"
+                    >
+                      <LayoutDashboard className="w-4 h-4" />
+                      Dashboard
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center justify-center gap-2 py-3 text-sm font-bold text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/30 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/login"
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center justify-center gap-2 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl"
+                    >
+                      <Briefcase className="w-4 h-4" />
+                      Super Admin
+                    </Link>
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center justify-center gap-2 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl"
+                    >
+                      <Briefcase className="w-4 h-4" />
+                      Employer Login
+                    </Link>
+                    <Link
+                      to="/employee-login"
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center justify-center gap-2 py-3 text-sm font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/50 rounded-xl"
+                    >
+                      <User className="w-4 h-4" />
+                      Employee Login
+                    </Link>
+                    <Link
+                      to="/register"
+                      onClick={() => setIsOpen(false)}
+                      className="text-center py-3 text-sm font-bold text-white bg-indigo-600 rounded-xl shadow-lg shadow-indigo-200 dark:shadow-none"
+                    >
+                      Get Started Free
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>

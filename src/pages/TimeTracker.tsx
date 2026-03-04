@@ -1,0 +1,552 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { 
+  Clock, 
+  Monitor, 
+  MousePointer, 
+  Download, 
+  Printer, 
+  Settings, 
+  User, 
+  Play, 
+  Pause, 
+  AlertCircle,
+  Calendar,
+  Filter,
+  Search,
+  CheckCircle2,
+  XCircle,
+  MessageCircle,
+  Edit2,
+  Save,
+  X
+} from 'lucide-react';
+import AdminLayout from '../components/AdminLayout';
+import { useTheme } from '../context/ThemeContext';
+import { useEmployees } from '../context/EmployeeContext';
+import { useAttendance } from '../context/AttendanceContext';
+import { useTimeTracking } from '../context/TimeTrackingContext';
+import { motion, AnimatePresence } from 'motion/react';
+import * as XLSX from 'xlsx';
+
+// Helper to format seconds to HH:MM:SS
+const formatSeconds = (seconds: number) => {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+};
+
+// Mock Data Interfaces
+interface TrackedEmployee {
+  id: string;
+  name: string;
+  department: string;
+  avatar: string;
+  status: 'Online' | 'Idle' | 'Offline';
+  lastActive: string;
+  currentTask: string;
+  workingTime: string; // HH:MM:SS
+  idleTime: string; // HH:MM:SS
+  mouseMoves: number;
+  keyboardClicks: number;
+  screenDelay: string; // ms
+  screenshot: string;
+  isTracked: boolean;
+  phoneNumber?: string;
+  lastAlertSent?: number; // timestamp
+}
+
+interface TimeLog {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  totalHours: string;
+  idleTime: string;
+  efficiency: number;
+  mouseEvents: number;
+  keyboardEvents: number;
+}
+
+export default function TimeTracker() {
+  const { theme } = useTheme();
+  const { employees: contextEmployees } = useEmployees();
+  const { trackingData } = useTimeTracking();
+  const { attendanceRecords } = useAttendance();
+  const isDark = theme === 'dark';
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'settings'>('dashboard');
+  
+  // Settings State
+  const [idleThresholdMinutes, setIdleThresholdMinutes] = useState(5);
+  const [autoWhatsAppAlerts, setAutoWhatsAppAlerts] = useState(false);
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+
+  // Tracked Employees State
+  const [employees, setEmployees] = useState<TrackedEmployee[]>([]);
+
+  // Sync with context employees and tracking data
+  useEffect(() => {
+    const updatedEmployees = contextEmployees
+      .filter(emp => emp.status === 'Active')
+      .map(emp => {
+        const tracking = trackingData[emp.id] || trackingData[emp.employeeId || ''];
+        
+        // Base data from context
+        const baseData = {
+          id: emp.id,
+          name: emp.name,
+          department: emp.department,
+          avatar: emp.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=random`,
+          phoneNumber: emp.mobile,
+        };
+
+        if (tracking) {
+          return {
+            ...baseData,
+            status: tracking.status,
+            lastActive: tracking.status === 'Online' ? 'Just now' : 'Idle',
+            currentTask: tracking.currentTask,
+            workingTime: formatSeconds(tracking.workingTime),
+            idleTime: formatSeconds(tracking.idleTime),
+            mouseMoves: tracking.mouseMoves,
+            keyboardClicks: tracking.keyboardClicks,
+            screenDelay: '12ms',
+            screenshot: tracking.screenshot || `https://picsum.photos/seed/${emp.id}/300/200`,
+            isTracked: true,
+          };
+        } else {
+          return {
+            ...baseData,
+            status: 'Offline' as const,
+            lastActive: 'Never',
+            currentTask: '-',
+            workingTime: '00:00:00',
+            idleTime: '00:00:00',
+            mouseMoves: 0,
+            keyboardClicks: 0,
+            screenDelay: '-',
+            screenshot: '',
+            isTracked: true,
+          };
+        }
+      });
+    
+    setEmployees(updatedEmployees);
+  }, [contextEmployees, trackingData]);
+
+  const logs: TimeLog[] = useMemo(() => {
+    return attendanceRecords.map(record => {
+      const tracking = trackingData[record.employeeId];
+      const realIdleTime = tracking && record.date === new Date().toISOString().split('T')[0]
+        ? formatSeconds(tracking.idleTime)
+        : '00:00:00';
+      
+      const realMouseEvents = tracking && record.date === new Date().toISOString().split('T')[0]
+        ? tracking.mouseMoves
+        : 0;
+      
+      const realKeyboardEvents = tracking && record.date === new Date().toISOString().split('T')[0]
+        ? tracking.keyboardClicks
+        : 0;
+
+      return {
+        id: record.id,
+        employeeId: record.employeeId,
+        employeeName: record.employeeName,
+        date: record.date,
+        startTime: record.loginTime || '-',
+        endTime: record.logoutTime || '-',
+        totalHours: record.workingHours,
+        idleTime: realIdleTime,
+        efficiency: 90, // Mock efficiency for now
+        mouseEvents: realMouseEvents,
+        keyboardEvents: realKeyboardEvents
+      };
+    });
+  }, [attendanceRecords, trackingData]);
+
+  // Report Filters
+  const [reportFilter, setReportFilter] = useState({
+    employee: 'All',
+    startDate: '',
+    endDate: ''
+  });
+
+  // Check for Idle Alert
+  useEffect(() => {
+    if (autoWhatsAppAlerts) {
+      employees.forEach(emp => {
+        if (emp.status === 'Idle' && emp.phoneNumber) {
+          const [h, m] = emp.idleTime.split(':').map(Number);
+          const totalIdleMinutes = h * 60 + m;
+
+          if (totalIdleMinutes >= idleThresholdMinutes) {
+             const now = Date.now();
+             if (!emp.lastAlertSent || (now - emp.lastAlertSent > 10 * 60 * 1000)) {
+                setAlertMessage(`WhatsApp Alert sent to ${emp.name}: "You have been idle for ${totalIdleMinutes} minutes."`);
+                emp.lastAlertSent = now;
+                setTimeout(() => setAlertMessage(null), 5000);
+             }
+          }
+        }
+      });
+    }
+  }, [employees, autoWhatsAppAlerts, idleThresholdMinutes]);
+
+  const handleExportExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(logs);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "TimeLogs");
+    XLSX.writeFile(wb, "TimeTrackerReport.xlsx");
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const toggleTracking = (id: string) => {
+    setEmployees(prev => prev.map(emp => 
+      emp.id === id ? { ...emp, isTracked: !emp.isTracked } : emp
+    ));
+  };
+
+  const filteredLogs = logs.filter(log => {
+    const matchesEmployee = reportFilter.employee === 'All' || log.employeeName === reportFilter.employee;
+    const employeeExists = employees.some(e => e.name === log.employeeName);
+    return matchesEmployee && employeeExists;
+  });
+
+  return (
+    <AdminLayout>
+      <div className="space-y-6 pb-12 relative">
+        {/* Alert Notification */}
+        <AnimatePresence>
+          {alertMessage && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20, x: '-50%' }}
+              animate={{ opacity: 1, y: 0, x: '-50%' }}
+              exit={{ opacity: 0, y: -20, x: '-50%' }}
+              className="fixed top-20 left-1/2 z-50 bg-emerald-600 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2 font-bold text-sm"
+            >
+              <MessageCircle className="w-4 h-4" />
+              {alertMessage}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <Monitor className="w-6 h-6 text-indigo-600" />
+              Head Time Tracker
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-1">Monitor employee activity, screen time, and productivity.</p>
+          </div>
+          <div className="flex gap-2">
+            <div className="bg-white dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700 flex">
+              <button 
+                onClick={() => setActiveTab('dashboard')}
+                className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${activeTab === 'dashboard' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+              >
+                Dashboard
+              </button>
+              <button 
+                onClick={() => setActiveTab('reports')}
+                className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${activeTab === 'reports' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+              >
+                Reports
+              </button>
+              <button 
+                onClick={() => setActiveTab('settings')}
+                className={`px-4 py-2 rounded-md text-sm font-bold transition-all ${activeTab === 'settings' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+              >
+                Settings
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <AnimatePresence mode="wait">
+          {activeTab === 'dashboard' && (
+            <motion.div 
+              key="dashboard"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {employees.filter(e => e.isTracked).map(employee => (
+                <div key={employee.id} className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm overflow-hidden relative`}>
+                  {/* WhatsApp Indicator */}
+                  {employee.phoneNumber && (
+                    <div className="absolute top-4 right-14 z-10" title="WhatsApp Alerts Enabled">
+                       <div className="bg-emerald-100 dark:bg-emerald-900/30 p-1.5 rounded-full">
+                         <MessageCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                       </div>
+                    </div>
+                  )}
+
+                  <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <img src={employee.avatar} alt={employee.name} className="w-10 h-10 rounded-full object-cover" referrerPolicy="no-referrer" />
+                        <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-slate-900 ${
+                          employee.status === 'Online' ? 'bg-emerald-500' : 
+                          employee.status === 'Idle' ? 'bg-amber-500' : 'bg-slate-400'
+                        }`}></div>
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-slate-800 dark:text-white text-sm">{employee.name}</h3>
+                        <p className="text-xs text-slate-500">{employee.department}</p>
+                      </div>
+                    </div>
+                    <div className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
+                      employee.status === 'Online' ? 'bg-emerald-100 text-emerald-700' : 
+                      employee.status === 'Idle' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'
+                    }`}>
+                      {employee.status}
+                    </div>
+                  </div>
+                  
+                  <div className="relative aspect-video bg-slate-100 dark:bg-slate-800 group">
+                    {employee.status !== 'Offline' ? (
+                      <img src={employee.screenshot} alt="Screen" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-400 flex-col gap-2">
+                        <Monitor className="w-8 h-8 opacity-50" />
+                        <span className="text-xs font-medium">No Signal</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <button className="bg-white text-slate-900 px-4 py-2 rounded-full text-xs font-bold hover:bg-slate-100">View Live</button>
+                    </div>
+                  </div>
+
+                  <div className="p-4 space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> Working Time
+                        </p>
+                        <p className="text-lg font-mono font-bold text-indigo-600 dark:text-indigo-400">{employee.workingTime}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" /> Idle Time
+                        </p>
+                        <p className={`text-lg font-mono font-bold ${
+                          parseInt(employee.idleTime.split(':')[1]) >= idleThresholdMinutes ? 'text-red-500' : 'text-amber-600 dark:text-amber-400'
+                        }`}>
+                          {employee.idleTime}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-slate-100 dark:border-slate-800 grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <p className="text-[10px] text-slate-500 mb-1">Mouse</p>
+                        <p className="text-xs font-bold text-slate-800 dark:text-white">{employee.mouseMoves}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-slate-500 mb-1">Keys</p>
+                        <p className="text-xs font-bold text-slate-800 dark:text-white">{employee.keyboardClicks}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-slate-500 mb-1">Delay</p>
+                        <p className="text-xs font-bold text-emerald-600">{employee.screenDelay}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="text-xs text-slate-500 truncate">
+                      <span className="font-bold">Current Task:</span> {employee.currentTask}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          )}
+
+          {activeTab === 'reports' && (
+            <motion.div 
+              key="reports"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-6"
+            >
+              <div className={`p-4 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm flex flex-wrap gap-4 items-end`}>
+                <div>
+                  <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Employee</label>
+                  <select 
+                    value={reportFilter.employee}
+                    onChange={(e) => setReportFilter({...reportFilter, employee: e.target.value})}
+                    className={`border rounded px-3 py-2 text-sm outline-none w-48 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                  >
+                    <option value="All">All Employees</option>
+                    {employees.map(e => <option key={e.id} value={e.name}>{e.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Date Range</label>
+                  <div className="flex items-center gap-2">
+                    <input type="date" className={`border rounded px-3 py-2 text-sm outline-none ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`} />
+                    <span className="text-slate-400">-</span>
+                    <input type="date" className={`border rounded px-3 py-2 text-sm outline-none ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`} />
+                  </div>
+                </div>
+                <div className="flex gap-2 ml-auto">
+                  <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    <Printer className="w-4 h-4" /> Print
+                  </button>
+                  <button onClick={handleExportExcel} className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 transition-colors">
+                    <Download className="w-4 h-4" /> Export Excel
+                  </button>
+                </div>
+              </div>
+
+              <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm overflow-hidden`}>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} border-b border-slate-100 dark:border-slate-800`}>
+                        <th className="px-6 py-4 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Date</th>
+                        <th className="px-6 py-4 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Employee</th>
+                        <th className="px-6 py-4 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Shift</th>
+                        <th className="px-6 py-4 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Total Hours</th>
+                        <th className="px-6 py-4 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Idle Time</th>
+                        <th className="px-6 py-4 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Activity</th>
+                        <th className="px-6 py-4 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Efficiency</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {filteredLogs.map((log) => (
+                        <tr key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                          <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{log.date}</td>
+                          <td className="px-6 py-4 text-sm font-bold text-slate-800 dark:text-white">{log.employeeName}</td>
+                          <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{log.startTime} - {log.endTime}</td>
+                          <td className="px-6 py-4 text-sm font-mono font-bold text-indigo-600 dark:text-indigo-400">{log.totalHours}</td>
+                          <td className="px-6 py-4 text-sm font-mono text-amber-600 dark:text-amber-400">{log.idleTime}</td>
+                          <td className="px-6 py-4 text-sm">
+                            <div className="flex flex-col gap-1 text-xs text-slate-500">
+                              <span className="flex items-center gap-1"><MousePointer className="w-3 h-3" /> {log.mouseEvents}</span>
+                              <span className="flex items-center gap-1"><Monitor className="w-3 h-3" /> {log.keyboardEvents}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm">
+                            <div className="flex items-center gap-2">
+                              <div className="w-16 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                                <div className={`h-full rounded-full ${log.efficiency >= 90 ? 'bg-emerald-500' : log.efficiency >= 70 ? 'bg-indigo-500' : 'bg-amber-500'}`} style={{ width: `${log.efficiency}%` }}></div>
+                              </div>
+                              <span className="font-bold text-slate-700 dark:text-slate-300">{log.efficiency}%</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'settings' && (
+            <motion.div 
+              key="settings"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-6"
+            >
+              {/* WhatsApp & Alert Settings */}
+              <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm overflow-hidden`}>
+                <div className="p-6 border-b border-slate-100 dark:border-slate-800">
+                  <h3 className="font-bold text-lg text-slate-800 dark:text-white flex items-center gap-2">
+                    <MessageCircle className="w-5 h-5 text-emerald-600" />
+                    WhatsApp Alert Settings
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-1">Configure automated alerts for idle time.</p>
+                </div>
+                <div className="p-6 space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-slate-800 dark:text-white">Auto-Send WhatsApp Alerts</h4>
+                      <p className="text-xs text-slate-500">Automatically send a message to employee when idle time exceeds threshold.</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={autoWhatsAppAlerts}
+                        onChange={(e) => setAutoWhatsAppAlerts(e.target.checked)}
+                        className="sr-only peer" 
+                      />
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-600"></div>
+                    </label>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Idle Time Threshold (Minutes)</label>
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="number" 
+                          min="1"
+                          value={idleThresholdMinutes}
+                          onChange={(e) => setIdleThresholdMinutes(parseInt(e.target.value) || 1)}
+                          className={`w-24 px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                        />
+                        <span className="text-sm text-slate-500">minutes</span>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">Alert triggers after this duration of inactivity.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm overflow-hidden`}>
+                <div className="p-6 border-b border-slate-100 dark:border-slate-800">
+                  <h3 className="font-bold text-lg text-slate-800 dark:text-white">Employee Tracking Management</h3>
+                  <p className="text-sm text-slate-500 mt-1">Enable or disable time tracking for specific employees.</p>
+                </div>
+                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {employees.map(employee => (
+                    <div key={employee.id} className="p-4 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                      <div className="flex items-center gap-4">
+                        <img src={employee.avatar} alt={employee.name} className="w-10 h-10 rounded-full object-cover" referrerPolicy="no-referrer" />
+                        <div>
+                          <h4 className="font-bold text-slate-800 dark:text-white">{employee.name}</h4>
+                          <p className="text-xs text-slate-500">{employee.department}</p>
+                          {employee.phoneNumber && (
+                            <p className="text-[10px] text-emerald-600 flex items-center gap-1 mt-0.5">
+                              <MessageCircle className="w-3 h-3" /> {employee.phoneNumber}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className={`px-3 py-1 rounded-full text-xs font-bold ${employee.isTracked ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                          {employee.isTracked ? 'Tracking Enabled' : 'Tracking Disabled'}
+                        </div>
+                        <button 
+                          onClick={() => toggleTracking(employee.id)}
+                          className={`p-2 rounded-lg border transition-colors ${
+                            employee.isTracked 
+                              ? 'border-red-200 text-red-600 hover:bg-red-50' 
+                              : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50'
+                          }`}
+                        >
+                          {employee.isTracked ? <XCircle className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </AdminLayout>
+  );
+}

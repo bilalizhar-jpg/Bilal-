@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search, Download, FileText, Printer, Filter } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
+import { useSettings } from '../../context/SettingsContext';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -27,16 +28,28 @@ const initialPayrolls: CompanyPayrollRecord[] = [
 const departments = ['All', 'Engineering', 'Design', 'Marketing', 'Human Resources', 'Finance'];
 
 export default function CompanyPayroll() {
-  const [payrolls] = useState<CompanyPayrollRecord[]>(initialPayrolls);
+  const [payrolls, setPayrolls] = useState<CompanyPayrollRecord[]>(initialPayrolls);
+  const [filteredPayrolls, setFilteredPayrolls] = useState<CompanyPayrollRecord[]>(initialPayrolls);
   const [startDate, setStartDate] = useState('2026-01-01');
   const [endDate, setEndDate] = useState('2026-02-28');
   const [selectedDepartment, setSelectedDepartment] = useState('All');
   const { theme } = useTheme();
+  const settings = useSettings();
   const isDark = theme === 'dark';
+
+  const handleFind = () => {
+    let result = payrolls;
+    if (selectedDepartment !== 'All') {
+      result = result.filter(p => p.department === selectedDepartment);
+    }
+    // Simple date filtering (assuming generatedDate is YYYY-MM-DD)
+    result = result.filter(p => p.generatedDate >= startDate && p.generatedDate <= endDate);
+    setFilteredPayrolls(result);
+  };
 
   const handleDownload = (format: string) => {
     if (format === 'Excel') {
-      const worksheet = XLSX.utils.json_to_sheet(payrolls.map(p => ({
+      const worksheet = XLSX.utils.json_to_sheet(filteredPayrolls.map(p => ({
         Month: p.month,
         Department: p.department,
         'Total Amount': p.totalAmount,
@@ -54,7 +67,7 @@ export default function CompanyPayroll() {
       doc.text(`Department: ${selectedDepartment}`, 14, 28);
       
       const tableColumn = ["Month", "Department", "Total Amount", "Status", "Generated Date"];
-      const tableRows = payrolls.map(p => [
+      const tableRows = filteredPayrolls.map(p => [
         p.month,
         p.department,
         p.totalAmount.toLocaleString(),
@@ -79,7 +92,10 @@ export default function CompanyPayroll() {
         <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm overflow-hidden`}>
           <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
             <h2 className="font-bold text-slate-800 dark:text-white">Company Payroll Report</h2>
-            <button className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838]">
+            <button 
+              onClick={handleFind}
+              className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838]"
+            >
               <Filter className="w-3.5 h-3.5" />
               Filter
             </button>
@@ -113,7 +129,10 @@ export default function CompanyPayroll() {
                 {departments.map(dep => <option key={dep} value={dep}>{dep}</option>)}
               </select>
             </div>
-            <button className="bg-indigo-600 text-white px-6 py-2 rounded text-sm font-bold hover:bg-indigo-700 h-10">
+            <button 
+              onClick={handleFind}
+              className="bg-indigo-600 text-white px-6 py-2 rounded text-sm font-bold hover:bg-indigo-700 h-10"
+            >
               Find
             </button>
           </div>
@@ -151,11 +170,11 @@ export default function CompanyPayroll() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {payrolls.map((payroll) => (
+                  {filteredPayrolls.map((payroll) => (
                     <tr key={payroll.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                       <td className="px-4 py-3 text-sm font-medium text-slate-800 dark:text-white">{payroll.month}</td>
                       <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{payroll.department}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 font-mono">৳{payroll.totalAmount.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 font-mono">{settings.currency.symbol}{payroll.totalAmount.toLocaleString()}</td>
                       <td className="px-4 py-3 text-sm">
                         <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${
                           payroll.status === 'Paid' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'

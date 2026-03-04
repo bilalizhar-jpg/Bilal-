@@ -135,6 +135,26 @@ export default function PerformanceAppraisalReport() {
     }));
   };
 
+  const updateSectionAField = (id: string, field: keyof RatingItem, value: any) => {
+    setSectionA(prev => prev.map(item => {
+      if (item.id === id) {
+        return { ...item, [field]: value };
+      }
+      return item;
+    }));
+  };
+
+  const removeSectionA = (id: string) => {
+    setSectionA(prev => prev.filter(item => item.id !== id));
+  };
+
+  const addSectionA = () => {
+    setSectionA(prev => [
+      ...prev,
+      { id: Math.random().toString(36).substr(2, 9), criteria: '', rating: 0, score: 0, comments: '', maxScore: 12 }
+    ]);
+  };
+
   const updateSectionB = (id: string, rating: number, comments?: string) => {
     setSectionB(prev => prev.map(item => {
       if (item.id === id) {
@@ -176,7 +196,11 @@ export default function PerformanceAppraisalReport() {
       <div className="space-y-6 pb-12">
         <div className="flex justify-between items-center no-print">
           <div className="flex items-center gap-2">
-            <button className="bg-emerald-600 text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-emerald-700">
+            <button 
+              onClick={addSectionA}
+              className="bg-emerald-600 text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-emerald-700"
+            >
+              <Plus className="w-3.5 h-3.5" />
               Add new action
             </button>
           </div>
@@ -290,7 +314,16 @@ export default function PerformanceAppraisalReport() {
 
           {/* Section A */}
           <div className="space-y-4">
-            <h2 className="text-lg font-bold text-slate-800 dark:text-white uppercase">A ASSESSMENT OF GOALS OBJECTIVES SET DURING THE REVIEW PERIOD</h2>
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-bold text-slate-800 dark:text-white uppercase">A ASSESSMENT OF GOALS OBJECTIVES SET DURING THE REVIEW PERIOD</h2>
+              <button 
+                onClick={addSectionA}
+                className="no-print bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded text-sm font-bold flex items-center gap-1.5 hover:bg-indigo-100 dark:hover:bg-indigo-900/50"
+              >
+                <Plus className="w-4 h-4" />
+                Add KPI
+              </button>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse border border-slate-200 dark:border-slate-800">
                 <thead>
@@ -299,12 +332,21 @@ export default function PerformanceAppraisalReport() {
                     <th className="p-2 border border-slate-200 dark:border-slate-800 text-center">Score Input</th>
                     <th className="p-2 border border-slate-200 dark:border-slate-800 text-center">Max Score</th>
                     <th className="p-2 border border-slate-200 dark:border-slate-800">Comments and examples</th>
+                    <th className="p-2 border border-slate-200 dark:border-slate-800 w-10 text-center no-print">Act</th>
                   </tr>
                 </thead>
                 <tbody>
                   {sectionA.map((item) => (
                     <tr key={item.id} className="text-sm">
-                      <td className="p-2 border border-slate-200 dark:border-slate-800 font-medium">{item.criteria}</td>
+                      <td className="p-2 border border-slate-200 dark:border-slate-800 font-medium">
+                        <input 
+                          type="text"
+                          value={item.criteria}
+                          onChange={(e) => updateSectionAField(item.id, 'criteria', e.target.value)}
+                          className={`w-full bg-transparent border-none outline-none ${isDark ? 'text-white' : 'text-slate-800'}`}
+                          placeholder="Enter KPI criteria"
+                        />
+                      </td>
                       <td className="p-2 border border-slate-200 dark:border-slate-800 text-center">
                         <input 
                           type="number" 
@@ -319,7 +361,12 @@ export default function PerformanceAppraisalReport() {
                         />
                       </td>
                       <td className="p-2 border border-slate-200 dark:border-slate-800 text-center text-slate-500 font-bold">
-                        {item.maxScore || 12}
+                        <input 
+                          type="number"
+                          value={item.maxScore || 12}
+                          onChange={(e) => updateSectionAField(item.id, 'maxScore', parseInt(e.target.value) || 0)}
+                          className={`w-16 text-center bg-transparent border-none outline-none ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
+                        />
                       </td>
                       <td className="p-2 border border-slate-200 dark:border-slate-800">
                         <textarea 
@@ -327,6 +374,14 @@ export default function PerformanceAppraisalReport() {
                           onChange={(e) => updateSectionA(item.id, item.rating, e.target.value)}
                           className={`w-full border-none outline-none bg-transparent resize-none min-h-[40px] ${isDark ? 'text-white' : 'text-slate-800'}`}
                         />
+                      </td>
+                      <td className="p-2 border border-slate-200 dark:border-slate-800 text-center no-print">
+                        <button 
+                          onClick={() => removeSectionA(item.id)}
+                          className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -337,6 +392,7 @@ export default function PerformanceAppraisalReport() {
                       {sectionA.reduce((sum, item) => sum + (item.maxScore || 12), 0)}
                     </td>
                     <td className="p-2 border border-slate-200 dark:border-slate-800"></td>
+                    <td className="p-2 border border-slate-200 dark:border-slate-800 no-print"></td>
                   </tr>
                 </tbody>
               </table>

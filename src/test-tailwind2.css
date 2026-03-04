@@ -1,0 +1,4 @@
+@import "tailwindcss";
+:root {
+  --color-indigo-500: var(--color-emerald-500);
+}

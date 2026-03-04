@@ -1,35 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Building2, 
-  Menu, 
-  Maximize2, 
-  RefreshCw, 
-  Search,
-  ChevronRight,
-  LayoutDashboard,
-  Calendar,
-  Award,
-  Users,
-  UserMinus,
-  CreditCard,
-  Bell,
-  DollarSign,
-  Briefcase,
-  ClipboardList,
-  UserCheck,
-  FileText,
-  Target,
-  Settings,
-  MessageSquare,
-  Plus,
-  Edit,
-  Trash2,
-  X,
-  FileSpreadsheet,
-  FileText as FilePdf,
-  RotateCcw,
-  User
+  Plus, 
+  Edit, 
+  Trash2, 
+  X, 
+  FileSpreadsheet, 
+  FileText as FilePdf, 
+  RotateCcw, 
+  Search
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -134,26 +113,6 @@ export default function DepartmentList() {
     return matchesSearch;
   });
 
-  const menuItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-    { name: 'Attendance', icon: Calendar, hasSub: true, path: '/attendance' },
-    { name: 'Award', icon: Award, hasSub: true, path: '/award' },
-    { name: 'Department', icon: Building2, active: true, hasSub: true, path: '/department' },
-    { name: 'Employee', icon: Users, hasSub: true },
-    { name: 'Leave', icon: UserMinus, hasSub: true },
-    { name: 'Loan', icon: CreditCard, hasSub: true },
-    { name: 'Notice board', icon: Bell, hasSub: true, path: '/notice' },
-    { name: 'Payroll', icon: DollarSign, hasSub: true },
-    { name: 'Procurement', icon: Briefcase, hasSub: true },
-    { name: 'Project management', icon: ClipboardList, hasSub: true },
-    { name: 'Recruitment', icon: UserCheck, hasSub: true },
-    { name: 'Reports', icon: FileText, hasSub: true },
-    { name: 'Reward points', icon: Target, hasSub: true },
-    { name: 'Setup rules', icon: Settings, hasSub: true },
-    { name: 'Settings', icon: Settings, hasSub: true },
-    { name: 'Message', icon: MessageSquare, hasSub: true },
-  ];
-
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -233,43 +192,43 @@ export default function DepartmentList() {
               </table>
             </div>
           </div>
-        </div>
 
       {/* Modal */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCloseModal} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="relative bg-white rounded-lg shadow-xl w-full max-w-lg overflow-hidden">
-              <div className="p-4 border-b border-slate-100 flex justify-between items-center">
-                <h2 className="font-bold text-slate-800">{editingDept ? 'Edit department' : 'Add department'}</h2>
-                <button onClick={handleCloseModal} className="p-1 hover:bg-slate-100 rounded-full"><X className="w-5 h-5 text-slate-400" /></button>
-              </div>
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">Department name <span className="text-red-500">*</span></label>
-                  <input type="text" name="name" required value={formData.name} onChange={handleInputChange} className="w-full border border-slate-200 rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500" placeholder="e.g. Electrical" />
+        <AnimatePresence>
+          {isModalOpen && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCloseModal} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+              <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="relative bg-white rounded-lg shadow-xl w-full max-w-lg overflow-hidden">
+                <div className="p-4 border-b border-slate-100 flex justify-between items-center">
+                  <h2 className="font-bold text-slate-800">{editingDept ? 'Edit department' : 'Add department'}</h2>
+                  <button onClick={handleCloseModal} className="p-1 hover:bg-slate-100 rounded-full"><X className="w-5 h-5 text-slate-400" /></button>
                 </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">Head of Department <span className="text-red-500">*</span></label>
-                  <input type="text" name="head" required value={formData.head} onChange={handleInputChange} className="w-full border border-slate-200 rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500" placeholder="e.g. John Doe" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">Status</label>
-                  <select name="status" value={formData.status} onChange={handleInputChange} className="w-full border border-slate-200 rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500">
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
-                </div>
-                <div className="flex justify-end gap-2 pt-4">
-                  <button type="button" onClick={handleCloseModal} className="px-4 py-2 bg-slate-100 text-slate-600 rounded text-sm font-bold hover:bg-slate-200">Close</button>
-                  <button type="submit" className="px-4 py-2 bg-[#28A745] text-white rounded text-sm font-bold hover:bg-[#218838]">Save</button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Department name <span className="text-red-500">*</span></label>
+                    <input type="text" name="name" required value={formData.name} onChange={handleInputChange} className="w-full border border-slate-200 rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500" placeholder="e.g. Electrical" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Head of Department <span className="text-red-500">*</span></label>
+                    <input type="text" name="head" required value={formData.head} onChange={handleInputChange} className="w-full border border-slate-200 rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500" placeholder="e.g. John Doe" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Status</label>
+                    <select name="status" value={formData.status} onChange={handleInputChange} className="w-full border border-slate-200 rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500">
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
+                    </select>
+                  </div>
+                  <div className="flex justify-end gap-2 pt-4">
+                    <button type="button" onClick={handleCloseModal} className="px-4 py-2 bg-slate-100 text-slate-600 rounded text-sm font-bold hover:bg-slate-200">Close</button>
+                    <button type="submit" className="px-4 py-2 bg-[#28A745] text-white rounded text-sm font-bold hover:bg-[#218838]">Save</button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
     </AdminLayout>
   );
 }

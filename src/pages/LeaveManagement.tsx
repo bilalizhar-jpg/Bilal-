@@ -33,7 +33,12 @@ import {
   Download,
   AlertCircle
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import AdminLayout from '../components/AdminLayout';
+import { useTheme } from '../context/ThemeContext';
+import { useEmployees } from '../context/EmployeeContext';
+import { useLeaves, LeaveRequest } from '../context/LeaveContext';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface WeeklyHoliday {
   id: string;
@@ -55,25 +60,14 @@ interface LeaveType {
   customFields?: { key: string; value: string }[];
 }
 
-interface LeaveApplication {
-  id: string;
-  employeeName: string;
-  type: string;
-  applyDate: string;
-  startDate: string;
-  endDate: string;
-  days: number;
-  status: 'Pending' | 'Approved' | 'Rejected';
-  approvedDate?: string;
-  approvedStart?: string;
-  approvedEnd?: string;
-  approvedDays?: number;
-}
-
 type TabType = 'weekly' | 'holiday' | 'type' | 'approval' | 'report';
 
 export default function LeaveManagement() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const { theme } = useTheme();
+  const { employees } = useEmployees();
+  const { leaveRequests, updateLeaveStatus } = useLeaves();
+  const activeEmployees = employees.filter(e => e.status === 'Active');
+  const isDark = theme === 'dark';
   const [activeTab, setActiveTab] = useState<TabType>('weekly');
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -103,36 +97,16 @@ export default function LeaveManagement() {
     { id: '6', name: 'Annual Leave', days: 22 },
   ]);
 
-  const [applications, setApplications] = useState<LeaveApplication[]>([
-    { id: '1', employeeName: 'Honorato Imogene Curry Terry', type: 'Half', applyDate: '2026-02-26', startDate: '2026-02-26', endDate: '2026-03-17', days: 20, status: 'Approved', approvedDate: '2026-02-26', approvedStart: '2026-02-26', approvedEnd: '2026-03-17', approvedDays: 20 },
-    { id: '2', employeeName: 'Amy Aphrodite Zamora Peck', type: 'Medical Leave', applyDate: '2026-02-25', startDate: '2026-02-25', endDate: '2026-02-26', days: 2, status: 'Approved', approvedDate: '2026-02-25', approvedStart: '2026-02-25', approvedEnd: '2026-02-26', approvedDays: 2 },
-    { id: '3', employeeName: 'Maisha Lucy Zamora Gonzales', type: 'MEDICAL LEAVE', applyDate: '2026-02-23', startDate: '2026-02-23', endDate: '2026-02-25', days: 3, status: 'Approved', approvedDate: '2026-02-23', approvedStart: '2026-02-23', approvedEnd: '2026-02-25', approvedDays: 3 },
-    { id: '4', employeeName: 'Test Candidate', type: 'EARNED LEAVE', applyDate: '2026-02-09', startDate: '2026-02-18', endDate: '2026-02-20', days: 3, status: 'Pending' },
-  ]);
+  const applications = leaveRequests;
+
+  const filteredApplications = applications.filter(app => 
+    activeEmployees.some(e => e.name === app.employeeName || e.id === app.employeeId)
+  );
 
   // Form States
   const [holidayForm, setHolidayForm] = useState<Partial<Holiday>>({ name: '', fromDate: '', toDate: '', totalDays: 0 });
   const [typeForm, setTypeForm] = useState<Partial<LeaveType>>({ name: '', days: 0, customFields: [] });
-
-  const menuItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-    { name: 'Attendance', icon: Calendar, hasSub: true, path: '/attendance' },
-    { name: 'Award', icon: Award, hasSub: true, path: '/award' },
-    { name: 'Department', icon: Building2, hasSub: true, path: '/department' },
-    { name: 'Employee', icon: Users, hasSub: true, path: '/employee' },
-    { name: 'Leave', icon: UserMinus, active: true, hasSub: true, path: '/leave' },
-    { name: 'Loan', icon: CreditCard, hasSub: true },
-    { name: 'Notice board', icon: Bell, hasSub: true, path: '/notice' },
-    { name: 'Payroll', icon: DollarSign, hasSub: true },
-    { name: 'Procurement', icon: Briefcase, hasSub: true },
-    { name: 'Project management', icon: ClipboardList, hasSub: true },
-    { name: 'Recruitment', icon: UserCheck, hasSub: true },
-    { name: 'Reports', icon: FileText, hasSub: true },
-    { name: 'Reward points', icon: Target, hasSub: true },
-    { name: 'Setup rules', icon: Settings, hasSub: true },
-    { name: 'Settings', icon: Settings, hasSub: true },
-    { name: 'Message', icon: MessageSquare, hasSub: true },
-  ];
+  const [approvalForm, setApprovalForm] = useState<Partial<LeaveRequest>>({ status: 'Pending' });
 
   const handleSaveHoliday = (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,85 +130,68 @@ export default function LeaveManagement() {
     setEditingItem(null);
   };
 
+  const handleSaveApproval = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingItem && approvalForm.status) {
+      updateLeaveStatus(editingItem.id, approvalForm.status);
+    }
+    setIsModalOpen(false);
+    setEditingItem(null);
+  };
+
   const handleApprove = (id: string) => {
-    setApplications(prev => prev.map(app => 
-      app.id === id ? { ...app, status: 'Approved', approvedDate: new Date().toISOString().split('T')[0] } : app
-    ));
-    // Notification logic would go here
+    updateLeaveStatus(id, 'Approved');
   };
 
   const handleReject = (id: string) => {
-    setApplications(prev => prev.map(app => 
-      app.id === id ? { ...app, status: 'Rejected' } : app
-    ));
+    updateLeaveStatus(id, 'Rejected');
+  };
+
+  const handleRevert = (id: string) => {
+    updateLeaveStatus(id, 'Pending');
+  };
+
+  const handleDownloadReport = (empName: string) => {
+    const doc = new jsPDF();
+    doc.text(`Leave Report - ${empName}`, 14, 15);
+    
+    const used = applications.filter(a => (a.employeeName === empName || a.employeeId === empName) && a.status === 'Approved').reduce((sum, a) => sum + a.days, 0);
+    const remaining = 30 - used;
+
+    autoTable(doc, {
+      head: [['Employee', 'Total Leave', 'Used', 'Remaining']],
+      body: [
+        [empName, '30', used.toString(), remaining.toString()]
+      ],
+      startY: 20,
+    });
+    
+    doc.save(`leave_report_${empName.replace(/\s+/g, '_')}.pdf`);
+  };
+
+  const handlePrintAllReports = () => {
+    const doc = new jsPDF();
+    doc.text(`All Leave Reports`, 14, 15);
+    
+    const body = activeEmployees.map(emp => {
+      const used = applications.filter(a => (a.employeeName === emp.name || a.employeeId === emp.id) && a.status === 'Approved').reduce((sum, a) => sum + a.days, 0);
+      return [emp.name, '30', used.toString(), (30 - used).toString()];
+    });
+
+    autoTable(doc, {
+      head: [['Employee', 'Total Leave', 'Used', 'Remaining']],
+      body: body,
+      startY: 20,
+    });
+    
+    doc.save(`all_leave_reports.pdf`);
   };
 
   return (
-    <div className="min-h-screen bg-[#F0F2F5] flex">
-      {/* Sidebar */}
-      <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} bg-white border-r border-slate-200 flex flex-col transition-all duration-300 shrink-0`}>
-        <div className="p-4 flex items-center gap-2 border-b border-slate-100 h-16">
-          <div className="bg-indigo-600 p-1.5 rounded-lg shrink-0">
-            <Building2 className="w-6 h-6 text-white" />
-          </div>
-          {isSidebarOpen && <span className="font-display font-bold text-xl tracking-tight text-slate-800">HRM Pro</span>}
-        </div>
-        
-        <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-1 custom-scrollbar">
-          {menuItems.map((item) => (
-            <Link
-              key={item.name}
-              to={item.name === 'Dashboard' ? '/dashboard' : item.name === 'Attendance' ? '/attendance' : item.name === 'Award' ? '/award' : item.name === 'Department' ? '/department' : item.name === 'Employee' ? '/employee' : item.name === 'Leave' ? '/leave' : item.name === 'Loan' ? '/loan' : item.name === 'Notice board' ? '/notice' : '#'}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                item.active 
-                  ? 'bg-[#E8F0FE] text-[#1A73E8]' 
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <item.icon className={`w-5 h-5 ${item.active ? 'text-[#1A73E8]' : 'text-slate-500'}`} />
-                {isSidebarOpen && <span>{item.name}</span>}
-              </div>
-              {isSidebarOpen && item.hasSub && <ChevronRight className="w-4 h-4 text-slate-400" />}
-            </Link>
-          ))}
-        </nav>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-slate-500 hover:bg-slate-100 rounded-md">
-              <Menu className="w-5 h-5" />
-            </button>
-            <button className="flex items-center gap-2 px-3 py-1.5 bg-[#F8F9FA] border border-slate-200 rounded text-xs font-medium text-slate-600 hover:bg-slate-100">
-              <RefreshCw className="w-3.5 h-3.5 text-emerald-500" />
-              Cache clear
-            </button>
-          </div>
-          
-          <div className="flex items-center gap-6">
-            <button className="p-2 text-slate-500 hover:bg-slate-100 rounded-md">
-              <Maximize2 className="w-5 h-5" />
-            </button>
-            <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
-              <div className="text-right">
-                <div className="text-sm font-bold text-slate-800">Admin Admin</div>
-                <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Admin</div>
-              </div>
-              <div className="h-9 w-9 rounded-full bg-slate-200 overflow-hidden border border-slate-300">
-                <img src="https://picsum.photos/seed/admin/100/100" alt="Admin" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
-          {/* Tabs */}
-          <div className="flex items-center gap-2 mb-6">
+    <AdminLayout>
+      <div className="space-y-6">
+        {/* Tabs */}
+        <div className="flex items-center gap-2 mb-6">
             <button 
               onClick={() => setActiveTab('weekly')}
               className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
@@ -316,9 +273,12 @@ export default function LeaveManagement() {
                   </button>
                 )}
                 {activeTab === 'report' && (
-                  <button className="bg-[#17A2B8] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#138496]">
+                  <button 
+                    onClick={handlePrintAllReports}
+                    className="bg-[#17A2B8] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#138496]"
+                  >
                     <Download className="w-3.5 h-3.5" />
-                    Bulk Download
+                    Print as PDF
                   </button>
                 )}
               </div>
@@ -457,20 +417,22 @@ export default function LeaveManagement() {
                         <th className="px-4 py-3 text-[10px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Leave start</th>
                         <th className="px-4 py-3 text-[10px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Leave end</th>
                         <th className="px-4 py-3 text-[10px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Days</th>
+                        <th className="px-4 py-3 text-[10px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Reason</th>
                         <th className="px-4 py-3 text-[10px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Status</th>
                         <th className="px-4 py-3 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {applications.map((app, idx) => (
+                      {filteredApplications.map((app, idx) => (
                         <tr key={app.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">{idx + 1}</td>
                           <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">{app.employeeName}</td>
                           <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">{app.type}</td>
-                          <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">{app.applyDate}</td>
+                          <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">{app.appliedDate}</td>
                           <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">{app.startDate}</td>
                           <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">{app.endDate}</td>
                           <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">{app.days}</td>
+                          <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100 truncate max-w-[150px]" title={app.reason}>{app.reason}</td>
                           <td className="px-4 py-3 text-xs border-r border-slate-100">
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                               app.status === 'Approved' ? 'bg-emerald-50 text-emerald-600' : 
@@ -485,19 +447,38 @@ export default function LeaveManagement() {
                                 <>
                                   <button 
                                     onClick={() => handleApprove(app.id)}
+                                    title="Approve"
                                     className="p-1.5 text-emerald-600 bg-emerald-50 rounded border border-emerald-100 hover:bg-emerald-100"
                                   >
                                     <Check className="w-3.5 h-3.5" />
                                   </button>
                                   <button 
                                     onClick={() => handleReject(app.id)}
+                                    title="Reject"
                                     className="p-1.5 text-red-600 bg-red-50 rounded border border-red-100 hover:bg-red-100"
                                   >
                                     <X className="w-3.5 h-3.5" />
                                   </button>
                                 </>
                               )}
-                              <button className="p-1.5 text-indigo-600 bg-indigo-50 rounded border border-indigo-100 hover:bg-indigo-100">
+                              {(app.status === 'Approved' || app.status === 'Rejected') && (
+                                <button 
+                                  onClick={() => handleRevert(app.id)}
+                                  title="Revert to Pending"
+                                  className="p-1.5 text-amber-600 bg-amber-50 rounded border border-amber-100 hover:bg-amber-100"
+                                >
+                                  <RefreshCw className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                              <button 
+                                onClick={() => {
+                                  setModalType('approval');
+                                  setEditingItem(app);
+                                  setApprovalForm(app);
+                                  setIsModalOpen(true);
+                                }}
+                                className="p-1.5 text-indigo-600 bg-indigo-50 rounded border border-indigo-100 hover:bg-indigo-100"
+                              >
                                 <Edit className="w-3.5 h-3.5" />
                               </button>
                             </div>
@@ -516,6 +497,9 @@ export default function LeaveManagement() {
                       <label className="text-[10px] font-bold text-slate-500 uppercase">Employee</label>
                       <select className="w-full border border-slate-200 rounded px-3 py-1.5 text-sm outline-none bg-white">
                         <option>All Employees</option>
+                        {activeEmployees.map(e => (
+                          <option key={e.id} value={e.name}>{e.name}</option>
+                        ))}
                       </select>
                     </div>
                     <div className="space-y-1">
@@ -553,18 +537,27 @@ export default function LeaveManagement() {
                         </tr>
                       </thead>
                       <tbody>
-                        <tr className="hover:bg-slate-50/50 transition-colors">
-                          <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">1</td>
-                          <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">Babara Patel</td>
-                          <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">30</td>
-                          <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">5</td>
-                          <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">25</td>
-                          <td className="px-4 py-3 text-sm text-slate-600">
-                            <button className="p-1.5 text-indigo-600 bg-indigo-50 rounded border border-indigo-100 hover:bg-indigo-100">
-                              <Download className="w-3.5 h-3.5" />
-                            </button>
-                          </td>
-                        </tr>
+                        {activeEmployees.map((emp, idx) => (
+                          <tr key={emp.id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{idx + 1}</td>
+                            <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{emp.name}</td>
+                            <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">30</td>
+                            <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">
+                              {applications.filter(a => (a.employeeName === emp.name || a.employeeId === emp.id) && a.status === 'Approved').reduce((sum, a) => sum + a.days, 0)}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">
+                              {30 - applications.filter(a => (a.employeeName === emp.name || a.employeeId === emp.id) && a.status === 'Approved').reduce((sum, a) => sum + a.days, 0)}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-slate-600">
+                              <button 
+                                onClick={() => handleDownloadReport(emp.name)}
+                                className="p-1.5 text-indigo-600 bg-indigo-50 rounded border border-indigo-100 hover:bg-indigo-100"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
@@ -572,7 +565,6 @@ export default function LeaveManagement() {
               )}
             </div>
           </div>
-        </div>
 
         {/* Modal */}
         <AnimatePresence>
@@ -593,7 +585,7 @@ export default function LeaveManagement() {
                   </button>
                 </div>
                 
-                <form onSubmit={modalType === 'holiday' ? handleSaveHoliday : handleSaveLeaveType} className="p-6 space-y-4">
+                <form onSubmit={modalType === 'holiday' ? handleSaveHoliday : modalType === 'type' ? handleSaveLeaveType : handleSaveApproval} className="p-6 space-y-4">
                   {modalType === 'holiday' ? (
                     <>
                       <div className="space-y-1.5">
@@ -640,7 +632,7 @@ export default function LeaveManagement() {
                         />
                       </div>
                     </>
-                  ) : (
+                  ) : modalType === 'type' ? (
                     <>
                       <div className="space-y-1.5">
                         <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Leave Type Name</label>
@@ -711,6 +703,48 @@ export default function LeaveManagement() {
                         </div>
                       </div>
                     </>
+                  ) : (
+                    <>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Employee Name</label>
+                        <input 
+                          disabled
+                          type="text" 
+                          value={approvalForm.employeeName || ''}
+                          className="w-full border border-slate-200 bg-slate-50 rounded-lg px-3 py-2 text-sm outline-none"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Leave Type</label>
+                        <input 
+                          disabled
+                          type="text" 
+                          value={approvalForm.type || ''}
+                          className="w-full border border-slate-200 bg-slate-50 rounded-lg px-3 py-2 text-sm outline-none"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Reason</label>
+                        <textarea 
+                          disabled
+                          rows={2}
+                          value={(editingItem as any)?.reason || ''}
+                          className="w-full border border-slate-200 bg-slate-50 rounded-lg px-3 py-2 text-sm outline-none resize-none"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Status</label>
+                        <select 
+                          value={approvalForm.status || 'Pending'}
+                          onChange={(e) => setApprovalForm({...approvalForm, status: e.target.value as any})}
+                          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                        >
+                          <option value="Pending">Pending</option>
+                          <option value="Approved">Approved</option>
+                          <option value="Rejected">Rejected</option>
+                        </select>
+                      </div>
+                    </>
                   )}
 
                   <div className="mt-6 flex justify-end gap-3">
@@ -733,29 +767,7 @@ export default function LeaveManagement() {
             </div>
           )}
         </AnimatePresence>
-
-        {/* Footer */}
-        <footer className="h-12 bg-white border-t border-slate-200 flex items-center justify-between px-6 shrink-0 text-[11px] text-slate-500">
-          <div>© 2026 BDTASK. All Rights Reserved.</div>
-          <div>Designed by: <span className="text-indigo-600 font-bold">Bdtask</span></div>
-        </footer>
-      </main>
-
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #94a3b8;
-        }
-      `}</style>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }

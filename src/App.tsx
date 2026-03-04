@@ -8,6 +8,7 @@ import Navbar from './components/Navbar';
 import LandingPage from './pages/LandingPage';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
+import EmployeeLoginPage from './pages/EmployeeLoginPage';
 import Dashboard from './pages/Dashboard';
 import Attendance from './pages/Attendance';
 import AwardList from './pages/AwardList';
@@ -24,10 +25,15 @@ import SalesTaxFormat from './pages/payroll/SalesTaxFormat';
 import CompanyPayroll from './pages/payroll/CompanyPayroll';
 import PerformanceAppraisalList from './pages/performance/PerformanceAppraisalList';
 import PerformanceAppraisalReport from './pages/performance/PerformanceAppraisalReport';
+import KPIs from './pages/performance/KPIs';
 import ProcurementRequest from './pages/procurement/ProcurementRequest';
+import ProcurementHistory from './pages/procurement/ProcurementHistory';
+import ProcurementSettings from './pages/procurement/ProcurementSettings';
 import AssetManagement from './pages/assets/AssetManagement';
 import ProjectManagement from './pages/project-management/ProjectManagement';
 import CareerPage from './pages/CareerPage';
+import Reports from './pages/Reports';
+import RewardPoints from './pages/RewardPoints';
 import CareerPageSettings from './pages/recruitment/CareerPageSettings';
 import JobPosting from './pages/recruitment/JobPosting';
 import JobsList from './pages/recruitment/JobsList';
@@ -38,7 +44,42 @@ import OfferLetters from './pages/recruitment/OfferLetters';
 import Agreements from './pages/recruitment/Agreements';
 import CustomDesign from './pages/recruitment/CustomDesign';
 import Messages from './pages/messages/Messages';
+import EmailLists from './pages/marketing/EmailLists';
+import Campaigns from './pages/marketing/Campaigns';
+import CreateTemplate from './pages/marketing/CreateTemplate';
+import SendCampaign from './pages/marketing/SendCampaign';
+import CampaignLogs from './pages/marketing/CampaignLogs';
+import RoleManagement from './pages/settings/RoleManagement';
+import SetupRules from './pages/settings/SetupRules';
+import GeneralSettings from './pages/settings/GeneralSettings';
+import InvoiceGenerator from './pages/InvoiceGenerator';
+
+import TimeTracker from './pages/TimeTracker';
+import OrgChart from './pages/OrgChart';
+import CompanyPolicies from './pages/CompanyPolicies';
+import LetterManagement from './pages/letters/LetterManagement';
+import SuperAdminDashboard from './pages/super-admin/Dashboard';
+import CompanyManagement from './pages/super-admin/CompanyManagement';
+import SubscriptionPlans from './pages/super-admin/SubscriptionPlans';
+import SuperAdminInvoiceGenerator from './pages/super-admin/InvoiceGenerator';
+import { SuperAdminProvider } from './context/SuperAdminContext';
+
+// Employee Portal Imports
+import EmployeeDashboard from './pages/employee-portal/Dashboard';
+import EmployeeAttendance from './pages/employee-portal/Attendance';
+import EmployeeLeaves from './pages/employee-portal/Leaves';
+import EmployeePayroll from './pages/employee-portal/Payroll';
+import EmployeeNotices from './pages/employee-portal/Notices';
+import EmployeeProjects from './pages/employee-portal/Projects';
+import EmployeeProcurement from './pages/employee-portal/Procurement';
+import EmployeeRecruitment from './pages/employee-portal/Recruitment';
+import EmployeeMarketing from './pages/employee-portal/Marketing';
+import EmployeeMessages from './pages/employee-portal/Messages';
+import EmployeeCompanyPolicies from './pages/employee-portal/CompanyPolicies';
+
 import { AnimatePresence } from 'motion/react';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function AppContent() {
   const location = useLocation();
@@ -54,36 +95,90 @@ function AppContent() {
             <Route path="/careers" element={<CareerPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/attendance" element={<Attendance />} />
-            <Route path="/award" element={<AwardList />} />
-            <Route path="/department" element={<DepartmentList />} />
-            <Route path="/sub-department" element={<SubDepartmentList />} />
-            <Route path="/employee" element={<EmployeeList />} />
-            <Route path="/leave" element={<LeaveManagement />} />
-            <Route path="/loan" element={<LoanManagement />} />
-            <Route path="/notice" element={<NoticeBoard />} />
-            <Route path="/payroll/salary-advance" element={<SalaryAdvance />} />
-            <Route path="/payroll/salary-generate" element={<SalaryGenerate />} />
-            <Route path="/payroll/manage-salary" element={<ManageSalary />} />
-            <Route path="/payroll/sales-tax" element={<SalesTaxFormat />} />
-            <Route path="/payroll/company-payroll" element={<CompanyPayroll />} />
-            <Route path="/performance/appraisal-list" element={<PerformanceAppraisalList />} />
-            <Route path="/performance/appraisal-report" element={<PerformanceAppraisalReport />} />
-            <Route path="/procurement/request" element={<ProcurementRequest />} />
-            <Route path="/assets/management" element={<AssetManagement />} />
-            <Route path="/project-management" element={<ProjectManagement />} />
-            <Route path="/recruitment/career-page-settings" element={<CareerPageSettings />} />
-            <Route path="/recruitment/job-posting" element={<JobPosting />} />
-            <Route path="/recruitment/jobs-list" element={<JobsList />} />
-            <Route path="/recruitment/jobs/:jobId/candidates" element={<JobCandidates />} />
-            <Route path="/recruitment/search-candidates" element={<SearchCandidate />} />
-            <Route path="/recruitment/bulk-cv-upload" element={<BulkCVUpload />} />
-            <Route path="/recruitment/offer-letters" element={<OfferLetters />} />
-            <Route path="/recruitment/agreements" element={<Agreements />} />
-            <Route path="/recruitment/custom-design" element={<CustomDesign />} />
-            <Route path="/message" element={<Messages />} />
-            <Route path="*" element={<Dashboard />} />
+            <Route path="/employee-login" element={<EmployeeLoginPage />} />
+            
+            {/* Admin Routes */}
+            <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><Dashboard /></ProtectedRoute>} />
+            <Route path="/time-tracker" element={<ProtectedRoute allowedRoles={['admin']}><TimeTracker /></ProtectedRoute>} />
+            <Route path="/org-chart" element={<ProtectedRoute allowedRoles={['admin']}><OrgChart /></ProtectedRoute>} />
+            <Route path="/org-chart/policies" element={<ProtectedRoute allowedRoles={['admin']}><CompanyPolicies /></ProtectedRoute>} />
+            
+            {/* Onboarding Routes */}
+            <Route path="/onboarding/offer-letter" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
+            <Route path="/onboarding/contact-letter" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
+            <Route path="/onboarding/warning-letter" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
+            <Route path="/onboarding/termination-letter" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
+            <Route path="/onboarding/complaint-letter" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
+            <Route path="/onboarding/custom-letter" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
+
+            {/* Offboarding Routes */}
+            <Route path="/offboarding/warning-letter" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
+            <Route path="/offboarding/resignation-letter" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
+            <Route path="/offboarding/termination-letter" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
+            <Route path="/offboarding/complaint-letter" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
+            <Route path="/offboarding/custom-letter" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
+
+            <Route path="/attendance" element={<ProtectedRoute allowedRoles={['admin']}><Attendance /></ProtectedRoute>} />
+            <Route path="/award" element={<ProtectedRoute allowedRoles={['admin']}><AwardList /></ProtectedRoute>} />
+            <Route path="/department" element={<ProtectedRoute allowedRoles={['admin']}><DepartmentList /></ProtectedRoute>} />
+            <Route path="/sub-department" element={<ProtectedRoute allowedRoles={['admin']}><SubDepartmentList /></ProtectedRoute>} />
+            <Route path="/employee" element={<ProtectedRoute allowedRoles={['admin']}><EmployeeList /></ProtectedRoute>} />
+            <Route path="/leave" element={<ProtectedRoute allowedRoles={['admin']}><LeaveManagement /></ProtectedRoute>} />
+            <Route path="/loan" element={<ProtectedRoute allowedRoles={['admin']}><LoanManagement /></ProtectedRoute>} />
+            <Route path="/notice" element={<ProtectedRoute allowedRoles={['admin']}><NoticeBoard /></ProtectedRoute>} />
+            <Route path="/payroll/salary-advance" element={<ProtectedRoute allowedRoles={['admin']}><SalaryAdvance /></ProtectedRoute>} />
+            <Route path="/payroll/salary-generate" element={<ProtectedRoute allowedRoles={['admin']}><SalaryGenerate /></ProtectedRoute>} />
+            <Route path="/payroll/manage-salary" element={<ProtectedRoute allowedRoles={['admin']}><ManageSalary /></ProtectedRoute>} />
+            <Route path="/payroll/sales-tax" element={<ProtectedRoute allowedRoles={['admin']}><SalesTaxFormat /></ProtectedRoute>} />
+            <Route path="/payroll/company-payroll" element={<ProtectedRoute allowedRoles={['admin']}><CompanyPayroll /></ProtectedRoute>} />
+            <Route path="/performance/kpis" element={<ProtectedRoute allowedRoles={['admin']}><KPIs /></ProtectedRoute>} />
+            <Route path="/performance/appraisal-list" element={<ProtectedRoute allowedRoles={['admin']}><PerformanceAppraisalList /></ProtectedRoute>} />
+            <Route path="/performance/appraisal-report" element={<ProtectedRoute allowedRoles={['admin']}><PerformanceAppraisalReport /></ProtectedRoute>} />
+            <Route path="/procurement/request" element={<ProtectedRoute allowedRoles={['admin']}><ProcurementRequest /></ProtectedRoute>} />
+            <Route path="/procurement/history" element={<ProtectedRoute allowedRoles={['admin']}><ProcurementHistory /></ProtectedRoute>} />
+            <Route path="/procurement/settings" element={<ProtectedRoute allowedRoles={['admin']}><ProcurementSettings /></ProtectedRoute>} />
+            <Route path="/assets/management" element={<ProtectedRoute allowedRoles={['admin']}><AssetManagement /></ProtectedRoute>} />
+            <Route path="/project-management" element={<ProtectedRoute allowedRoles={['admin']}><ProjectManagement /></ProtectedRoute>} />
+            <Route path="/reports" element={<ProtectedRoute allowedRoles={['admin']}><Reports /></ProtectedRoute>} />
+            <Route path="/reward-points" element={<ProtectedRoute allowedRoles={['admin']}><RewardPoints /></ProtectedRoute>} />
+            <Route path="/recruitment/career-page-settings" element={<ProtectedRoute allowedRoles={['admin']}><CareerPageSettings /></ProtectedRoute>} />
+            <Route path="/recruitment/job-posting" element={<ProtectedRoute allowedRoles={['admin']}><JobPosting /></ProtectedRoute>} />
+            <Route path="/recruitment/jobs-list" element={<ProtectedRoute allowedRoles={['admin']}><JobsList /></ProtectedRoute>} />
+            <Route path="/recruitment/jobs/:jobId/candidates" element={<ProtectedRoute allowedRoles={['admin']}><JobCandidates /></ProtectedRoute>} />
+            <Route path="/recruitment/search-candidates" element={<ProtectedRoute allowedRoles={['admin']}><SearchCandidate /></ProtectedRoute>} />
+            <Route path="/recruitment/bulk-cv-upload" element={<ProtectedRoute allowedRoles={['admin']}><BulkCVUpload /></ProtectedRoute>} />
+            <Route path="/recruitment/offer-letters" element={<ProtectedRoute allowedRoles={['admin']}><OfferLetters /></ProtectedRoute>} />
+            <Route path="/recruitment/agreements" element={<ProtectedRoute allowedRoles={['admin']}><Agreements /></ProtectedRoute>} />
+            <Route path="/recruitment/custom-design" element={<ProtectedRoute allowedRoles={['admin']}><CustomDesign /></ProtectedRoute>} />
+            <Route path="/message" element={<ProtectedRoute allowedRoles={['admin']}><Messages /></ProtectedRoute>} />
+            <Route path="/marketing/lists" element={<ProtectedRoute allowedRoles={['admin']}><EmailLists /></ProtectedRoute>} />
+            <Route path="/marketing/campaigns" element={<ProtectedRoute allowedRoles={['admin']}><Campaigns /></ProtectedRoute>} />
+            <Route path="/marketing/templates" element={<ProtectedRoute allowedRoles={['admin']}><CreateTemplate /></ProtectedRoute>} />
+            <Route path="/marketing/send-campaign" element={<ProtectedRoute allowedRoles={['admin']}><SendCampaign /></ProtectedRoute>} />
+            <Route path="/marketing/logs" element={<ProtectedRoute allowedRoles={['admin']}><CampaignLogs /></ProtectedRoute>} />
+            <Route path="/role-management" element={<ProtectedRoute allowedRoles={['admin']}><RoleManagement /></ProtectedRoute>} />
+            <Route path="/setup-rules" element={<ProtectedRoute allowedRoles={['admin']}><SetupRules /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute allowedRoles={['admin']}><GeneralSettings /></ProtectedRoute>} />
+            <Route path="/invoice" element={<ProtectedRoute allowedRoles={['admin']}><InvoiceGenerator /></ProtectedRoute>} />
+            <Route path="/super-admin/dashboard" element={<ProtectedRoute allowedRoles={['superadmin']}><SuperAdminDashboard /></ProtectedRoute>} />
+            <Route path="/super-admin/companies" element={<ProtectedRoute allowedRoles={['superadmin']}><CompanyManagement /></ProtectedRoute>} />
+            <Route path="/super-admin/subscription-plans" element={<ProtectedRoute allowedRoles={['superadmin']}><SubscriptionPlans /></ProtectedRoute>} />
+            <Route path="/super-admin/invoice/:companyId" element={<ProtectedRoute allowedRoles={['superadmin']}><SuperAdminInvoiceGenerator /></ProtectedRoute>} />
+
+            {/* Employee Portal Routes */}
+            <Route path="/employee-portal/dashboard" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeDashboard /></ProtectedRoute>} />
+            <Route path="/employee-portal/attendance" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeAttendance /></ProtectedRoute>} />
+            <Route path="/employee-portal/leaves" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeLeaves /></ProtectedRoute>} />
+            <Route path="/employee-portal/payroll/*" element={<ProtectedRoute allowedRoles={['employee']}><EmployeePayroll /></ProtectedRoute>} />
+            <Route path="/employee-portal/notices" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeNotices /></ProtectedRoute>} />
+            <Route path="/employee-portal/projects" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeProjects /></ProtectedRoute>} />
+            <Route path="/employee-portal/procurement" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeProcurement /></ProtectedRoute>} />
+            <Route path="/employee-portal/recruitment" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeRecruitment /></ProtectedRoute>} />
+            <Route path="/employee-portal/marketing" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeMarketing /></ProtectedRoute>} />
+            <Route path="/employee-portal/messages" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeMessages /></ProtectedRoute>} />
+            <Route path="/employee-portal/policies" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeCompanyPolicies /></ProtectedRoute>} />
+
+            <Route path="*" element={<ProtectedRoute allowedRoles={['admin']}><Dashboard /></ProtectedRoute>} />
           </Routes>
         </div>
       </AnimatePresence>
@@ -91,11 +186,33 @@ function AppContent() {
   );
 }
 
+import { EmployeeProvider } from './context/EmployeeContext';
+import { AttendanceProvider } from './context/AttendanceContext';
+import { TimeTrackingProvider } from './context/TimeTrackingContext';
+import { LeaveProvider } from './context/LeaveContext';
+import { PolicyProvider } from './context/PolicyContext';
+import { LetterProvider } from './context/LetterContext';
+
 export default function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <AuthProvider>
+      <SuperAdminProvider>
+        <EmployeeProvider>
+          <AttendanceProvider>
+            <TimeTrackingProvider>
+              <LeaveProvider>
+                <PolicyProvider>
+                  <LetterProvider>
+                    <Router>
+                      <AppContent />
+                    </Router>
+                  </LetterProvider>
+                </PolicyProvider>
+              </LeaveProvider>
+            </TimeTrackingProvider>
+          </AttendanceProvider>
+        </EmployeeProvider>
+      </SuperAdminProvider>
+    </AuthProvider>
   );
 }
-

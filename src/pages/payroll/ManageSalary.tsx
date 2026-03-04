@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Link } from 'react-router-dom';
 import { 
   Search, 
   Download, 
@@ -19,9 +20,12 @@ import {
 } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
+import { useSettings } from '../../context/SettingsContext';
+import { useEmployees } from '../../context/EmployeeContext';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import html2canvas from 'html2canvas';
 
 interface EmployeeSalary {
   id: string;
@@ -55,21 +59,53 @@ const initialSalaries: EmployeeSalary[] = [
 ];
 
 export default function ManageSalary() {
-  const [salaries] = useState<EmployeeSalary[]>(initialSalaries);
+  const [salaries, setSalaries] = useState<EmployeeSalary[]>(initialSalaries);
+  const [filteredSalaries, setFilteredSalaries] = useState<EmployeeSalary[]>(initialSalaries);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState('February 2026');
+  const [selectedMonth, setSelectedMonth] = useState('2024-04');
   const [isPayslipModalOpen, setIsPayslipModalOpen] = useState(false);
   const [selectedSalary, setSelectedSalary] = useState<EmployeeSalary | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const { theme } = useTheme();
+  const settings = useSettings();
+  const { employees } = useEmployees();
+  const activeEmployees = employees.filter(e => e.status === 'Active');
   const isDark = theme === 'dark';
 
   const [payslipRows, setPayslipRows] = useState<PayslipRow[]>([]);
-  const [editableEmployeeInfo, setEditableEmployeeInfo] = useState<EmployeeSalary | null>(null);
+  const [editableEmployeeInfo, setEditableEmployeeInfo] = useState<{label: string, value: string}[]>([]);
+
+  useEffect(() => {
+    let result = salaries;
+    if (selectedMonth) {
+      result = result.filter(s => s.salaryMonth === selectedMonth);
+    }
+    if (searchTerm) {
+      result = result.filter(s => 
+        s.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.staffId.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    // Filter by active employees
+    result = result.filter(s => activeEmployees.some(e => e.name === s.employeeName));
+    
+    setFilteredSalaries(result);
+  }, [salaries, searchTerm, selectedMonth, activeEmployees]);
 
   useEffect(() => {
     if (selectedSalary) {
-      setEditableEmployeeInfo({ ...selectedSalary });
+      setEditableEmployeeInfo([
+        { label: 'Employee name', value: selectedSalary.employeeName },
+        { label: 'Position', value: selectedSalary.position },
+        { label: 'Contact', value: selectedSalary.contact },
+        { label: 'Address', value: selectedSalary.address },
+        { label: 'Total working hours', value: selectedSalary.workingHours.toString() },
+        { label: 'Staff id', value: selectedSalary.staffId },
+        { label: 'Month', value: selectedSalary.salaryMonth },
+        { label: 'Recruitment date', value: selectedSalary.recruitmentDate },
+        { label: 'Worked hours', value: selectedSalary.workedHours.toString() },
+      ]);
       setPayslipRows([
         { id: '1', description: 'Basic salary', amount: 6400, rate: 0, value: 6400, deduction: 0, type: 'earning' },
         { id: '2', description: 'Transport allowance', amount: 470, rate: 0, value: 470, deduction: 0, type: 'earning' },
@@ -105,8 +141,88 @@ export default function ManageSalary() {
   const totalDeductions = payslipRows.filter(r => r.type === 'deduction').reduce((sum, r) => sum + Number(r.deduction || 0), 0);
   const netSalary = totalEarnings - totalDeductions;
 
+  const handleFind = () => {
+    let result = salaries;
+    if (selectedMonth) {
+      result = result.filter(s => s.salaryMonth === selectedMonth);
+    }
+    if (searchTerm) {
+      result = result.filter(s => 
+        s.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.staffId.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    setFilteredSalaries(result);
+  };
+
+  const handleReset = () => {
+    setSelectedMonth('');
+    setSearchTerm('');
+    setFilteredSalaries(salaries);
+  };
+
   const handleDownload = (format: string) => {
-    alert(`Downloading salary list as ${format}`);
+    const dataToExport = filteredSalaries.map((s, idx) => ({
+      'Sl': idx + 1,
+      'Employee Name': s.employeeName,
+      'Salary Month': s.salaryMonth,
+      'Total Salary': s.totalSalary.toFixed(2),
+      'Staff ID': s.staffId,
+      'Position': s.position
+    }));
+
+    if (format === 'Excel' || format === 'CSV') {
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Salaries");
+      XLSX.writeFile(workbook, `Employee_Salaries_${selectedMonth || 'All'}.${format === 'Excel' ? 'xlsx' : 'csv'}`);
+    } else if (format === 'PDF') {
+      const doc = new jsPDF();
+      doc.text("Employee Salaries", 14, 15);
+      (doc as any).autoTable({
+        startY: 20,
+        head: [['Sl', 'Employee Name', 'Salary Month', 'Total Salary', 'Staff ID']],
+        body: filteredSalaries.map((s, idx) => [idx + 1, s.employeeName, s.salaryMonth, s.totalSalary.toFixed(2), s.staffId]),
+      });
+      doc.save(`Employee_Salaries_${selectedMonth || 'All'}.pdf`);
+    } else if (format === 'Copy') {
+      const text = dataToExport.map(row => Object.values(row).join('\t')).join('\n');
+      navigator.clipboard.writeText(text);
+      alert('Copied to clipboard');
+    }
+  };
+
+  const downloadPayslipPDF = async () => {
+    let element = document.getElementById('payslip-content');
+    if (!element) {
+      setIsPayslipModalOpen(true);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      element = document.getElementById('payslip-content');
+    }
+    if (!element) return;
+
+    // Hide buttons for capture
+    const buttons = element.querySelector('.no-print');
+    if (buttons) (buttons as HTMLElement).style.display = 'none';
+
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: isDark ? '#0f172a' : '#ffffff'
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Payslip_${selectedSalary?.employeeName || 'Employee'}.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    } finally {
+      if (buttons) (buttons as HTMLElement).style.display = 'flex';
+    }
   };
 
   const openPayslip = (salary: EmployeeSalary) => {
@@ -133,15 +249,24 @@ export default function ManageSalary() {
       <div className="space-y-6">
         {/* Tabs */}
         <div className="flex items-center gap-2 mb-6">
-          <button className="px-4 py-2 rounded text-sm font-medium bg-[#E9ECEF] dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700">
+          <Link 
+            to="/payroll/salary-advance"
+            className="px-4 py-2 rounded text-sm font-medium bg-[#E9ECEF] dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+          >
             Salary Advance
-          </button>
-          <button className="px-4 py-2 rounded text-sm font-medium bg-[#E9ECEF] dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700">
+          </Link>
+          <Link 
+            to="/payroll/salary-generate"
+            className="px-4 py-2 rounded text-sm font-medium bg-[#E9ECEF] dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+          >
             Salary Generate
-          </button>
-          <button className="px-4 py-2 rounded text-sm font-medium bg-[#28A745] text-white">
+          </Link>
+          <Link 
+            to="/payroll/manage-salary"
+            className="px-4 py-2 rounded text-sm font-medium bg-[#28A745] text-white transition-colors"
+          >
             Manage employee salary
-          </button>
+          </Link>
         </div>
 
         {/* Filter Card */}
@@ -156,16 +281,22 @@ export default function ManageSalary() {
           <div className="p-6 flex items-center gap-4">
             <div className="flex-1 max-w-sm">
               <input 
-                type="text" 
+                type="month" 
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
                 className={`w-full border rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
               />
             </div>
-            <button className="bg-[#28A745] text-white px-6 py-2 rounded text-sm font-bold hover:bg-[#218838]">
+            <button 
+              onClick={handleFind}
+              className="bg-[#28A745] text-white px-6 py-2 rounded text-sm font-bold hover:bg-[#218838]"
+            >
               Find
             </button>
-            <button className="bg-[#DC3545] text-white px-6 py-2 rounded text-sm font-bold hover:bg-[#C82333]">
+            <button 
+              onClick={handleReset}
+              className="bg-[#DC3545] text-white px-6 py-2 rounded text-sm font-bold hover:bg-[#C82333]"
+            >
               Reset
             </button>
             <button 
@@ -225,7 +356,7 @@ export default function ManageSalary() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {salaries.filter(s => s.employeeName.toLowerCase().includes(searchTerm.toLowerCase())).map((salary, idx) => (
+                  {filteredSalaries.map((salary, idx) => (
                     <tr key={salary.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                       <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{idx + 1}</td>
                       <td className="px-4 py-3 text-sm font-medium text-slate-800 dark:text-white">{salary.employeeName}</td>
@@ -240,7 +371,20 @@ export default function ManageSalary() {
                             <Eye className="w-3.5 h-3.5" />
                             Payslip
                           </button>
-                          <button className="bg-[#28A745] text-white px-3 py-1 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838]">
+                          <button 
+                            onClick={() => openPayslip(salary)}
+                            className="bg-blue-500 text-white px-3 py-1 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-blue-600"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                            View Slip
+                          </button>
+                          <button 
+                            onClick={() => {
+                              setSelectedSalary(salary);
+                              downloadPayslipPDF();
+                            }}
+                            className="bg-[#28A745] text-white px-3 py-1 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838]"
+                          >
                             <Download className="w-3.5 h-3.5" />
                             Download pay slip
                           </button>
@@ -289,50 +433,51 @@ export default function ManageSalary() {
                 </div>
 
                 {/* Employee Info Grid */}
-                {editableEmployeeInfo && (
-                  <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-sm border-t border-b border-slate-100 dark:border-slate-800 py-6">
-                    <div className="space-y-3">
-                      <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1 items-center">
-                        <span className="font-bold text-slate-500">Employee name</span>
-                        <input type="text" value={editableEmployeeInfo.employeeName} onChange={(e) => setEditableEmployeeInfo({...editableEmployeeInfo, employeeName: e.target.value})} className="text-right bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-800 dark:text-white" />
+                <div className="border-t border-b border-slate-100 dark:border-slate-800 py-6">
+                  <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-sm">
+                    {editableEmployeeInfo.map((info, idx) => (
+                      <div key={idx} className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1 items-center group">
+                        <input 
+                          type="text" 
+                          value={info.label} 
+                          onChange={(e) => {
+                            const newInfo = [...editableEmployeeInfo];
+                            newInfo[idx].label = e.target.value;
+                            setEditableEmployeeInfo(newInfo);
+                          }} 
+                          className="font-bold text-slate-500 bg-transparent border-none outline-none w-1/2" 
+                        />
+                        <div className="flex items-center gap-2">
+                          <input 
+                            type="text" 
+                            value={info.value} 
+                            onChange={(e) => {
+                              const newInfo = [...editableEmployeeInfo];
+                              newInfo[idx].value = e.target.value;
+                              setEditableEmployeeInfo(newInfo);
+                            }} 
+                            className="text-right bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-800 dark:text-white" 
+                          />
+                          <button 
+                            onClick={() => {
+                              const newInfo = editableEmployeeInfo.filter((_, i) => i !== idx);
+                              setEditableEmployeeInfo(newInfo);
+                            }}
+                            className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity no-print"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1 items-center">
-                        <span className="font-bold text-slate-500">Position</span>
-                        <input type="text" value={editableEmployeeInfo.position} onChange={(e) => setEditableEmployeeInfo({...editableEmployeeInfo, position: e.target.value})} className="text-right bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-800 dark:text-white" />
-                      </div>
-                      <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1 items-center">
-                        <span className="font-bold text-slate-500">Contact</span>
-                        <input type="text" value={editableEmployeeInfo.contact} onChange={(e) => setEditableEmployeeInfo({...editableEmployeeInfo, contact: e.target.value})} className="text-right bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-800 dark:text-white" />
-                      </div>
-                      <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1 items-center">
-                        <span className="font-bold text-slate-500">Address</span>
-                        <input type="text" value={editableEmployeeInfo.address} onChange={(e) => setEditableEmployeeInfo({...editableEmployeeInfo, address: e.target.value})} className="text-right bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-800 dark:text-white" />
-                      </div>
-                      <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1 items-center">
-                        <span className="font-bold text-slate-500">Total working hours</span>
-                        <input type="number" value={editableEmployeeInfo.workingHours} onChange={(e) => setEditableEmployeeInfo({...editableEmployeeInfo, workingHours: Number(e.target.value)})} className="text-right bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-800 dark:text-white w-20" />
-                      </div>
-                      <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1 items-center">
-                        <span className="font-bold text-slate-500">Staff id</span>
-                        <input type="text" value={editableEmployeeInfo.staffId} onChange={(e) => setEditableEmployeeInfo({...editableEmployeeInfo, staffId: e.target.value})} className="text-right bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-800 dark:text-white" />
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1 items-center">
-                        <span className="font-bold text-slate-500">Month</span>
-                        <input type="text" value={editableEmployeeInfo.salaryMonth} onChange={(e) => setEditableEmployeeInfo({...editableEmployeeInfo, salaryMonth: e.target.value})} className="text-right bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-800 dark:text-white" />
-                      </div>
-                      <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1 items-center">
-                        <span className="font-bold text-slate-500">Recruitment date</span>
-                        <input type="date" value={editableEmployeeInfo.recruitmentDate} onChange={(e) => setEditableEmployeeInfo({...editableEmployeeInfo, recruitmentDate: e.target.value})} className="text-right bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-800 dark:text-white" />
-                      </div>
-                      <div className="flex justify-between border-b border-slate-50 dark:border-slate-800/50 pb-1 items-center">
-                        <span className="font-bold text-slate-500">Worked hours</span>
-                        <input type="number" value={editableEmployeeInfo.workedHours} onChange={(e) => setEditableEmployeeInfo({...editableEmployeeInfo, workedHours: Number(e.target.value)})} className="text-right bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-800 dark:text-white w-20" />
-                      </div>
-                    </div>
+                    ))}
                   </div>
-                )}
+                  <button 
+                    onClick={() => setEditableEmployeeInfo([...editableEmployeeInfo, { label: 'New Field', value: '' }])}
+                    className="mt-4 text-indigo-600 hover:text-indigo-800 text-xs font-bold flex items-center gap-1 no-print"
+                  >
+                    <Plus className="w-3 h-3" /> Add Info Field
+                  </button>
+                </div>
 
                 {/* Salary Table */}
                 <div className="overflow-hidden border border-slate-100 dark:border-slate-800 rounded-lg">
@@ -340,10 +485,10 @@ export default function ManageSalary() {
                     <thead>
                       <tr className="bg-amber-50 dark:bg-amber-900/20 border-b border-slate-100 dark:border-slate-800">
                         <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Description</th>
-                        <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Amount (৳)</th>
-                        <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Rate (৳)</th>
-                        <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">#Value (৳)</th>
-                        <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Deduction (৳)</th>
+                        <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Amount ({settings.currency.symbol})</th>
+                        <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Rate ({settings.currency.symbol})</th>
+                        <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">#Value ({settings.currency.symbol})</th>
+                        <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Deduction ({settings.currency.symbol})</th>
                         <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase w-10 no-print"></th>
                       </tr>
                     </thead>
@@ -453,7 +598,7 @@ export default function ManageSalary() {
                     <Printer className="w-4 h-4" />
                     Print
                   </button>
-                  <button className="bg-[#28A745] text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-[#218838]">
+                  <button onClick={downloadPayslipPDF} className="bg-[#28A745] text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-[#218838]">
                     <Download className="w-4 h-4" />
                     Download as pdf
                   </button>

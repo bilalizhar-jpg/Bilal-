@@ -22,10 +22,17 @@ import {
   Settings,
   MessageSquare,
   ChevronDown,
-  Laptop
+  Laptop,
+  ArrowLeft,
+  Home,
+  Clock,
+  GitGraph,
+  Receipt,
+  LogOut
 } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -35,8 +42,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [openMenus, setOpenMenus] = useState<string[]>([]);
   const location = useLocation();
+  const navigate = useNavigate();
   const { theme } = useTheme();
+  const { logout } = useAuth();
   const isDark = theme === 'dark';
+  const isDashboard = location.pathname === '/dashboard';
 
   const toggleMenu = (name: string) => {
     setOpenMenus(prev => 
@@ -44,12 +54,52 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     );
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+    { name: 'Time Tracker', icon: Clock, path: '/time-tracker' },
+    { 
+      name: 'Org Chart', 
+      icon: GitGraph, 
+      hasSub: true,
+      subItems: [
+        { name: 'Organization Chart', path: '/org-chart' },
+        { name: 'Company Policy', path: '/org-chart/policies' }
+      ]
+    },
     { name: 'Attendance', icon: Calendar, path: '/attendance' },
     { name: 'Award', icon: Award, path: '/award' },
     { name: 'Department', icon: Building2, path: '/department' },
     { name: 'Employee', icon: Users, path: '/employee' },
+    {
+      name: 'Onboarding',
+      icon: UserCheck,
+      hasSub: true,
+      subItems: [
+        { name: 'Offer Letter', path: '/onboarding/offer-letter' },
+        { name: 'Contact Letter', path: '/onboarding/contact-letter' },
+        { name: 'Warning Letter', path: '/onboarding/warning-letter' },
+        { name: 'Termination Letter', path: '/onboarding/termination-letter' },
+        { name: 'Complaint Letter', path: '/onboarding/complaint-letter' },
+        { name: 'Custom Letter', path: '/onboarding/custom-letter' },
+      ]
+    },
+    {
+      name: 'Offboarding',
+      icon: UserMinus,
+      hasSub: true,
+      subItems: [
+        { name: 'Warning Letter', path: '/offboarding/warning-letter' },
+        { name: 'Resignation Letter', path: '/offboarding/resignation-letter' },
+        { name: 'Termination Letter', path: '/offboarding/termination-letter' },
+        { name: 'Complaint Letter', path: '/offboarding/complaint-letter' },
+        { name: 'Custom Letter', path: '/offboarding/custom-letter' },
+      ]
+    },
     { name: 'Leave', icon: UserMinus, path: '/leave' },
     { name: 'Loan', icon: CreditCard, path: '/loan' },
     { name: 'Notice board', icon: Bell, path: '/notice' },
@@ -66,22 +116,18 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       ]
     },
     {
+      name: 'Invoice',
+      icon: Receipt,
+      path: '/invoice'
+    },
+    {
       name: 'Performance',
       icon: Target,
       hasSub: true,
       subItems: [
+        { name: 'KPI Templates', path: '/performance/kpis' },
         { name: 'Appraisal List', path: '/performance/appraisal-list' },
         { name: 'Appraisal Report', path: '/performance/appraisal-report' }
-      ]
-    },
-    {
-      name: 'Procurement',
-      icon: Briefcase,
-      hasSub: true,
-      subItems: [
-        { name: 'Item Request', path: '/procurement/request' },
-        { name: 'Request History', path: '/procurement/history' },
-        { name: 'Procurement Settings', path: '/procurement/settings' }
       ]
     },
     {
@@ -110,11 +156,60 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         { name: 'Custom Design', path: '/recruitment/custom-design' }
       ]
     },
+    {
+      name: 'Marketing',
+      icon: MessageSquare,
+      hasSub: true,
+      subItems: [
+        { name: 'Email Database', path: '/marketing/lists' },
+        { name: 'Campaigns', path: '/marketing/campaigns' },
+        { name: 'Templates', path: '/marketing/templates' },
+        { name: 'Campaign Logs', path: '/marketing/logs' }
+      ]
+    },
     { name: 'Reports', icon: FileText, path: '/reports' },
     { name: 'Reward points', icon: Target, path: '/reward-points' },
     { name: 'Setup rules', icon: Settings, path: '/setup-rules' },
-    { name: 'Settings', icon: Settings, path: '/settings' },
+    {
+      name: 'Settings',
+      icon: Settings,
+      hasSub: true,
+      subItems: [
+        { name: 'General Settings', path: '/settings' },
+        { name: 'Roles & Permissions', path: '/settings/roles' }
+      ]
+    },
     { name: 'Message', icon: MessageSquare, path: '/message' },
+    {
+      name: 'Supply chain management (Coming soon)',
+      icon: Briefcase,
+      path: '#'
+    },
+    {
+      name: 'Procurement (Coming Soon)',
+      icon: Briefcase,
+      hasSub: true,
+      subItems: [
+        { name: 'Item Request', path: '/procurement/request' },
+        { name: 'Request History', path: '/procurement/history' },
+        { name: 'Procurement Settings', path: '/procurement/settings' }
+      ]
+    },
+    {
+      name: 'Accounts (Coming Soon)',
+      icon: FileText,
+      path: '#'
+    },
+    {
+      name: 'CRM (Coming Soon)',
+      icon: Users,
+      path: '#'
+    },
+    {
+      name: 'Purchase Dep (Coming soon)',
+      icon: Briefcase,
+      path: '#'
+    },
   ];
 
   return (
@@ -197,6 +292,18 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               </div>
             );
           })}
+
+          <button
+            onClick={handleLogout}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors mt-4 border-t ${
+              isDark 
+                ? 'text-red-400 hover:bg-red-500/10 border-slate-800' 
+                : 'text-red-600 hover:bg-red-50 border-slate-100'
+            }`}
+          >
+            <LogOut className="w-5 h-5" />
+            {isSidebarOpen && <span>Log out</span>}
+          </button>
         </nav>
       </aside>
 
@@ -235,6 +342,32 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+          {!isDashboard && (
+            <div className="mb-6 flex items-center gap-3 no-print">
+              <button
+                onClick={() => navigate(-1)}
+                className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                  isDark 
+                    ? 'text-slate-300 bg-slate-800 border-slate-700 hover:bg-slate-700' 
+                    : 'text-slate-600 bg-white border-slate-200 hover:bg-slate-50'
+                } border shadow-sm`}
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back
+              </button>
+              <Link
+                to="/dashboard"
+                className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                  isDark 
+                    ? 'text-slate-300 bg-slate-800 border-slate-700 hover:bg-slate-700' 
+                    : 'text-slate-600 bg-white border-slate-200 hover:bg-slate-50'
+                } border shadow-sm`}
+              >
+                <Home className="w-4 h-4" />
+                Dashboard
+              </Link>
+            </div>
+          )}
           {children}
         </div>
 

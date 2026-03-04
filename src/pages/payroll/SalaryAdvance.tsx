@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Link } from 'react-router-dom';
 import { 
   Plus, 
   Search, 
@@ -13,6 +14,8 @@ import {
 } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
+import { useSettings } from '../../context/SettingsContext';
+import * as XLSX from 'xlsx';
 
 interface SalaryAdvanceRecord {
   id: string;
@@ -42,9 +45,11 @@ export default function SalaryAdvance() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const { theme } = useTheme();
+  const settings = useSettings();
   const isDark = theme === 'dark';
 
   const [formData, setFormData] = useState({
+    id: '',
     employee: '',
     amount: '',
     salaryMonth: '',
@@ -54,22 +59,64 @@ export default function SalaryAdvance() {
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
-    const newRecord: SalaryAdvanceRecord = {
-      id: Math.random().toString(36).substr(2, 9),
-      employeeName: formData.employee,
-      amount: parseFloat(formData.amount),
-      releaseAmount: 0,
-      salaryMonth: formData.salaryMonth,
-      status: formData.isActive as 'Active' | 'Inactive',
-      approved: formData.approved
-    };
-    setRecords([newRecord, ...records]);
+    if (formData.id) {
+      setRecords(records.map(r => r.id === formData.id ? {
+        ...r,
+        employeeName: formData.employee,
+        amount: parseFloat(formData.amount),
+        salaryMonth: formData.salaryMonth,
+        status: formData.isActive as 'Active' | 'Inactive',
+        approved: formData.approved
+      } : r));
+    } else {
+      const newRecord: SalaryAdvanceRecord = {
+        id: Math.random().toString(36).substr(2, 9),
+        employeeName: formData.employee,
+        amount: parseFloat(formData.amount),
+        releaseAmount: 0,
+        salaryMonth: formData.salaryMonth,
+        status: formData.isActive as 'Active' | 'Inactive',
+        approved: formData.approved
+      };
+      setRecords([newRecord, ...records]);
+    }
     setIsModalOpen(false);
-    setFormData({ employee: '', amount: '', salaryMonth: '', isActive: 'Active', approved: false });
+    setFormData({ id: '', employee: '', amount: '', salaryMonth: '', isActive: 'Active', approved: false });
+  };
+
+  const handleEdit = (record: SalaryAdvanceRecord) => {
+    setFormData({
+      id: record.id,
+      employee: record.employeeName,
+      amount: record.amount.toString(),
+      salaryMonth: record.salaryMonth,
+      isActive: record.status,
+      approved: record.approved
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('Are you sure you want to delete this record?')) {
+      setRecords(records.filter(r => r.id !== id));
+    }
   };
 
   const handleDownload = (format: 'CSV' | 'Excel') => {
-    alert(`Downloading Salary Advance list in ${format} format...`);
+    const dataToExport = records.map((r, idx) => ({
+      'Sl': idx + 1,
+      'Employee Name': r.employeeName,
+      'Amount': r.amount,
+      'Release Amount': r.releaseAmount,
+      'Salary Month': r.salaryMonth,
+      'Approved': r.approved ? 'Yes' : 'No',
+      'Status': r.status
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Salary Advances");
+    XLSX.writeFile(workbook, `Salary_Advances.${format === 'Excel' ? 'xlsx' : 'csv'}`);
   };
 
   return (
@@ -77,15 +124,24 @@ export default function SalaryAdvance() {
       <div className="space-y-6">
         {/* Tabs */}
         <div className="flex items-center gap-2 mb-6">
-          <button className="px-4 py-2 rounded text-sm font-medium bg-[#28A745] text-white">
+          <Link 
+            to="/payroll/salary-advance"
+            className="px-4 py-2 rounded text-sm font-medium bg-[#28A745] text-white transition-colors"
+          >
             Salary Advance
-          </button>
-          <button className="px-4 py-2 rounded text-sm font-medium bg-[#E9ECEF] dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700">
+          </Link>
+          <Link 
+            to="/payroll/salary-generate"
+            className="px-4 py-2 rounded text-sm font-medium bg-[#E9ECEF] dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+          >
             Salary Generate
-          </button>
-          <button className="px-4 py-2 rounded text-sm font-medium bg-[#E9ECEF] dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700">
+          </Link>
+          <Link 
+            to="/payroll/manage-salary"
+            className="px-4 py-2 rounded text-sm font-medium bg-[#E9ECEF] dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+          >
             Manage employee salary
-          </button>
+          </Link>
         </div>
 
         {/* Main Card */}
@@ -93,7 +149,10 @@ export default function SalaryAdvance() {
           <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
             <h2 className="font-bold text-slate-800 dark:text-white">Salary advanced list</h2>
             <button 
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => {
+                setFormData({ id: '', employee: '', amount: '', salaryMonth: '', isActive: 'Active', approved: false });
+                setIsModalOpen(true);
+              }}
               className="bg-[#28A745] text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-[#218838]"
             >
               <Plus className="w-4 h-4" />
@@ -147,8 +206,8 @@ export default function SalaryAdvance() {
                   <tr className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} border-b border-slate-100 dark:border-slate-800`}>
                     <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Sl</th>
                     <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Employee name</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Amount</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Release amount</th>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Amount ({settings.currency.symbol})</th>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Release amount ({settings.currency.symbol})</th>
                     <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Salary month</th>
                     <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Approved</th>
                     <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Status</th>
@@ -179,10 +238,10 @@ export default function SalaryAdvance() {
                       </td>
                       <td className="px-4 py-3 text-sm">
                         <div className="flex gap-2">
-                          <button className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded border border-indigo-100">
+                          <button onClick={() => handleEdit(record)} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded border border-indigo-100">
                             <Edit className="w-3.5 h-3.5" />
                           </button>
-                          <button className="p-1.5 text-red-600 hover:bg-red-50 rounded border border-red-100">
+                          <button onClick={() => handleDelete(record.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded border border-red-100">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
@@ -218,7 +277,7 @@ export default function SalaryAdvance() {
               className={`rounded-xl shadow-xl w-full max-w-lg overflow-hidden ${isDark ? 'bg-slate-900' : 'bg-white'}`}
             >
               <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                <h3 className="font-bold text-slate-800 dark:text-white">Add salary advance</h3>
+                <h3 className="font-bold text-slate-800 dark:text-white">{formData.id ? 'Edit salary advance' : 'Add salary advance'}</h3>
                 <button onClick={() => setIsModalOpen(false)} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full">
                   <X className="w-5 h-5 text-slate-500" />
                 </button>

@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
+import { useSettings } from '../../context/SettingsContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
@@ -64,6 +65,7 @@ interface Sale {
 
 export default function ProjectManagement() {
   const { theme } = useTheme();
+  const settings = useSettings();
   const isDark = theme === 'dark';
   const [activeTab, setActiveTab] = useState<'projects' | 'tasks' | 'sales'>('projects');
 
@@ -373,9 +375,9 @@ export default function ProjectManagement() {
                       <tr className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} border-b border-slate-100 dark:border-slate-800`}>
                         <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Seller Name</th>
                         <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Product</th>
-                        <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Sale Amount ($)</th>
+                        <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Sale Amount ({settings.currency.symbol})</th>
                         <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Comm. %</th>
-                        <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Comm. Amount ($)</th>
+                        <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Comm. Amount ({settings.currency.symbol})</th>
                         <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Pay via Payroll</th>
                         <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase text-right">Action</th>
                       </tr>

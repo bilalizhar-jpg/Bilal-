@@ -31,6 +31,8 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import AdminLayout from '../components/AdminLayout';
+import { useTheme } from '../context/ThemeContext';
 
 interface SubDepartment {
   id: number;
@@ -42,7 +44,8 @@ interface SubDepartment {
 }
 
 export default function SubDepartmentList() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubDept, setEditingSubDept] = useState<SubDepartment | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -134,88 +137,10 @@ export default function SubDepartmentList() {
     return matchesSearch;
   });
 
-  const menuItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-    { name: 'Attendance', icon: Calendar, hasSub: true, path: '/attendance' },
-    { name: 'Award', icon: Award, hasSub: true, path: '/award' },
-    { name: 'Department', icon: Building2, active: true, hasSub: true, path: '/department' },
-    { name: 'Employee', icon: Users, hasSub: true },
-    { name: 'Leave', icon: UserMinus, hasSub: true },
-    { name: 'Loan', icon: CreditCard, hasSub: true },
-    { name: 'Notice board', icon: Bell, hasSub: true, path: '/notice' },
-    { name: 'Payroll', icon: DollarSign, hasSub: true },
-    { name: 'Procurement', icon: Briefcase, hasSub: true },
-    { name: 'Project management', icon: ClipboardList, hasSub: true },
-    { name: 'Recruitment', icon: UserCheck, hasSub: true },
-    { name: 'Reports', icon: FileText, hasSub: true },
-    { name: 'Reward points', icon: Target, hasSub: true },
-    { name: 'Setup rules', icon: Settings, hasSub: true },
-    { name: 'Settings', icon: Settings, hasSub: true },
-    { name: 'Message', icon: MessageSquare, hasSub: true },
-  ];
-
   return (
-    <div className="min-h-screen bg-[#F0F2F5] flex">
-      {/* Sidebar */}
-      <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} bg-white border-r border-slate-200 flex flex-col transition-all duration-300 shrink-0`}>
-        <div className="p-4 flex items-center gap-2 border-b border-slate-100 h-16">
-          <div className="bg-indigo-600 p-1.5 rounded-lg shrink-0">
-            <Building2 className="w-6 h-6 text-white" />
-          </div>
-          {isSidebarOpen && <span className="font-display font-bold text-xl tracking-tight text-slate-800">HRM Pro</span>}
-        </div>
-        
-        <nav className="flex-1 overflow-y-auto px-2 py-4 space-y-1 custom-scrollbar">
-          {menuItems.map((item) => (
-            <Link
-              key={item.name}
-              to={item.path || '#'}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                item.active 
-                  ? 'bg-[#E8F0FE] text-[#1A73E8]' 
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <item.icon className={`w-5 h-5 ${item.active ? 'text-[#1A73E8]' : 'text-slate-500'}`} />
-                {isSidebarOpen && <span>{item.name}</span>}
-              </div>
-              {isSidebarOpen && item.hasSub && <ChevronRight className="w-4 h-4 text-slate-400" />}
-            </Link>
-          ))}
-        </nav>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-slate-500 hover:bg-slate-100 rounded-md">
-              <Menu className="w-5 h-5" />
-            </button>
-            <button className="flex items-center gap-2 px-3 py-1.5 bg-[#F8F9FA] border border-slate-200 rounded text-xs font-medium text-slate-600">
-              <RefreshCw className="w-3.5 h-3.5 text-emerald-500" />
-              Cache clear
-            </button>
-          </div>
-          <div className="flex items-center gap-6">
-            <button className="p-2 text-slate-500 hover:bg-slate-100 rounded-md"><Maximize2 className="w-5 h-5" /></button>
-            <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
-              <div className="text-right">
-                <div className="text-sm font-bold text-slate-800">Admin Admin</div>
-                <div className="text-[10px] text-slate-500 uppercase font-bold">Admin</div>
-              </div>
-              <div className="h-9 w-9 rounded-full bg-slate-200 overflow-hidden border border-slate-300">
-                <img src="https://picsum.photos/seed/admin/100/100" alt="Admin" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
-          <div className="flex justify-between items-center">
+    <AdminLayout>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
             <h1 className="text-xl font-bold text-slate-800">Sub department list</h1>
             <div className="flex gap-2">
               <Link to="/department" className="bg-slate-200 text-slate-700 px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-slate-300 transition-colors">
@@ -291,12 +216,10 @@ export default function SubDepartmentList() {
               </table>
             </div>
           </div>
-        </div>
-      </main>
-
-      {/* Modal */}
-      <AnimatePresence>
-        {isModalOpen && (
+        
+        {/* Modal */}
+        <AnimatePresence>
+          {isModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCloseModal} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
             <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="relative bg-white rounded-lg shadow-xl w-full max-w-lg overflow-hidden">
@@ -334,12 +257,7 @@ export default function SubDepartmentList() {
           </div>
         )}
       </AnimatePresence>
-
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-      `}</style>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }
