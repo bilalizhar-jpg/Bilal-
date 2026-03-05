@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 
 export interface AttendanceRecord {
   id: string;
+  companyId: string;
   employeeId: string;
   employeeName: string;
   date: string;
@@ -17,7 +18,7 @@ export interface AttendanceRecord {
 
 interface AttendanceContextType {
   attendanceRecords: AttendanceRecord[];
-  addLog: (employeeId: string, employeeName: string, action: string, location: string, time: string, date: string, newState: 'not_checked_in' | 'checked_in' | 'on_break' | 'checked_out') => void;
+  addLog: (companyId: string, employeeId: string, employeeName: string, action: string, location: string, time: string, date: string, newState: 'not_checked_in' | 'checked_in' | 'on_break' | 'checked_out') => void;
   getEmployeeTodayRecord: (employeeId: string, date: string) => AttendanceRecord | undefined;
 }
 
