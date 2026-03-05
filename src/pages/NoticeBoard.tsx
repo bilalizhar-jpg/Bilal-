@@ -9,6 +9,7 @@ import {
   Upload
 } from 'lucide-react';
 import AdminLayout from '../components/AdminLayout';
+import { useCompanyData } from '../context/CompanyDataContext';
 
 interface Notice {
   id: string;
@@ -20,17 +21,11 @@ interface Notice {
 }
 
 export default function NoticeBoard() {
+  const { notices, addEntity, updateEntity, deleteEntity } = useCompanyData();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNotice, setEditingNotice] = useState<Notice | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-
-  const [notices, setNotices] = useState<Notice[]>([
-    { id: '1', type: 'Govt special', description: 'Eid', date: '2026-01-31', by: 'sfsdf' },
-    { id: '2', type: 'Test Warning', description: 'Warning for all', date: '2025-04-20', by: 'Admin' },
-    { id: '3', type: 'General Meeting', description: 'Meeting with nurses at 10 hrs', date: '2025-04-06', by: 'HR' },
-    { id: '4', type: 'Policy', description: 'dededed', date: '2025-01-16', by: 'admin' },
-  ]);
 
   const [formData, setFormData] = useState<Partial<Notice>>({
     type: '',
@@ -39,16 +34,12 @@ export default function NoticeBoard() {
     by: 'Admin'
   });
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingNotice) {
-      setNotices(prev => prev.map(n => n.id === editingNotice.id ? { ...n, ...formData } as Notice : n));
+      await updateEntity('notices', editingNotice.id, formData);
     } else {
-      const newNotice = {
-        ...formData,
-        id: Math.random().toString(36).substr(2, 9),
-      } as Notice;
-      setNotices(prev => [...prev, newNotice]);
+      await addEntity('notices', formData);
     }
     setIsModalOpen(false);
     setEditingNotice(null);
@@ -58,9 +49,9 @@ export default function NoticeBoard() {
     setDeleteConfirmId(id);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteConfirmId) {
-      setNotices(prev => prev.filter(n => n.id !== deleteConfirmId));
+      await deleteEntity('notices', deleteConfirmId);
       setDeleteConfirmId(null);
     }
   };
@@ -133,16 +124,16 @@ export default function NoticeBoard() {
                 {filteredNotices.map((notice, idx) => (
                   <tr key={notice.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{idx + 1}</td>
-                    <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800 font-medium">{notice.type}</td>
-                    <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{notice.description}</td>
-                    <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{notice.date}</td>
-                    <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{notice.by}</td>
+                    <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800 font-medium">{(notice as any).type}</td>
+                    <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{(notice as any).description}</td>
+                    <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{(notice as any).date}</td>
+                    <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{(notice as any).by}</td>
                     <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400">
                       <div className="flex gap-1">
                         <button 
                           onClick={() => {
-                            setEditingNotice(notice);
-                            setFormData(notice);
+                            setEditingNotice(notice as any);
+                            setFormData(notice as any);
                             setIsModalOpen(true);
                           }}
                           className="p-1.5 text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 rounded border border-indigo-100 dark:border-indigo-800 hover:bg-indigo-100"

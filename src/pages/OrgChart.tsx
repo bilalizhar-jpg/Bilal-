@@ -52,6 +52,7 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import AdminLayout from '../components/AdminLayout';
 import { useTheme } from '../context/ThemeContext';
+import { useCompanyData } from '../context/CompanyDataContext';
 import { RectangleNode, DiamondNode, CircleNode, ParallelogramNode, CylinderNode, DocumentNode, TextNode } from '../components/org-chart/CustomNodes';
 
 const nodeTypes = {
@@ -77,6 +78,7 @@ let id = 0;
 const getId = () => `dndnode_${id++}`;
 
 interface SavedTemplate {
+  id?: string;
   name: string;
   date: string;
   flow: {
@@ -93,12 +95,12 @@ const OrgChartContent = () => {
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const { orgChartTemplates, addEntity, deleteEntity } = useCompanyData();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   
   // Template Management State
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
-  const [templates, setTemplates] = useState<SavedTemplate[]>([]);
   const [newTemplateName, setNewTemplateName] = useState('');
 
   useOnSelectionChange({
@@ -106,18 +108,6 @@ const OrgChartContent = () => {
       setSelectedNode(nodes.length === 1 ? nodes[0] : null);
     },
   });
-
-  // Load templates from localStorage on mount
-  useEffect(() => {
-    const savedTemplates = localStorage.getItem('orgChartTemplates');
-    if (savedTemplates) {
-      try {
-        setTemplates(JSON.parse(savedTemplates));
-      } catch (e) {
-        console.error('Failed to parse templates', e);
-      }
-    }
-  }, []);
 
   // History for Undo/Redo
   const [history, setHistory] = useState<{ nodes: Node[], edges: Edge[] }[]>([{ nodes: initialNodes, edges: [] }]);
@@ -397,7 +387,7 @@ const OrgChartContent = () => {
   };
 
   // Template Actions
-  const handleSaveTemplate = () => {
+  const handleSaveTemplate = async () => {
     if (!newTemplateName.trim()) {
       alert('Please enter a template name');
       return;
@@ -405,15 +395,13 @@ const OrgChartContent = () => {
     
     if (reactFlowInstance) {
       const flow = reactFlowInstance.toObject();
-      const newTemplate: SavedTemplate = {
+      const newTemplate = {
         name: newTemplateName,
         date: new Date().toLocaleString(),
         flow
       };
       
-      const updatedTemplates = [...templates, newTemplate];
-      setTemplates(updatedTemplates);
-      localStorage.setItem('orgChartTemplates', JSON.stringify(updatedTemplates));
+      await addEntity('orgChartTemplates', newTemplate);
       setNewTemplateName('');
     }
   };
@@ -427,10 +415,8 @@ const OrgChartContent = () => {
     }
   };
 
-  const handleDeleteTemplate = (index: number) => {
-    const updatedTemplates = templates.filter((_, i) => i !== index);
-    setTemplates(updatedTemplates);
-    localStorage.setItem('orgChartTemplates', JSON.stringify(updatedTemplates));
+  const handleDeleteTemplate = async (id: string) => {
+    await deleteEntity('orgChartTemplates', id);
   };
 
   return (
@@ -680,11 +666,11 @@ const OrgChartContent = () => {
             <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
               <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Your Templates</h3>
               <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
-                {templates.length === 0 ? (
+                {orgChartTemplates.length === 0 ? (
                   <p className="text-sm text-slate-500 italic text-center py-4">No saved templates yet.</p>
                 ) : (
-                  templates.map((template, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-900 transition-colors">
+                  orgChartTemplates.map((template: any) => (
+                    <div key={template.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-900 transition-colors">
                       <div>
                         <p className="font-medium text-slate-800 dark:text-white text-sm">{template.name}</p>
                         <p className="text-xs text-slate-500">{template.date}</p>
@@ -698,7 +684,7 @@ const OrgChartContent = () => {
                           <Upload className="w-4 h-4" />
                         </button>
                         <button 
-                          onClick={() => handleDeleteTemplate(index)}
+                          onClick={() => handleDeleteTemplate(template.id)}
                           className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"
                           title="Delete Template"
                         >

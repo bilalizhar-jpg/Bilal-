@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import AdminLayout from '../components/AdminLayout';
 import { 
   Plus, 
@@ -10,10 +10,13 @@ import {
   FileText, 
   Settings,
   MoreHorizontal,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Clock,
+  Search
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
+import { useInvoices, Invoice } from '../context/InvoiceContext';
 
 type InvoiceType = 'simple' | 'tax';
 
@@ -22,7 +25,7 @@ interface InvoiceItem {
   description: string;
   quantity: number;
   rate: number;
-  tax?: number; // percentage
+  taxable?: boolean; // percentage
   amount: number;
   [key: string]: any; // Allow custom fields
 }
@@ -34,6 +37,7 @@ interface CustomField {
 }
 
 interface InvoiceData {
+  id?: string;
   companyName: string;
   companyAddress: string;
   companyPhone: string;
@@ -91,8 +95,8 @@ const initialInvoiceData: InvoiceData = {
   poNumber: '',
   
   items: [
-    { id: '1', description: 'Service or Product 1', quantity: 1, rate: 100, amount: 100 },
-    { id: '2', description: 'Service or Product 2', quantity: 2, rate: 50, amount: 100 },
+    { id: '1', description: 'Service or Product 1', quantity: 1, rate: 100, amount: 100, taxable: true },
+    { id: '2', description: 'Service or Product 2', quantity: 2, rate: 50, amount: 100, taxable: true },
   ],
   
   notes: 'Thank you for your business!',
@@ -105,30 +109,11 @@ const initialInvoiceData: InvoiceData = {
   discount: 0,
 };
 
-const presets: Record<string, InvoiceData> = {
-  'Standard': initialInvoiceData,
-  'Consulting': {
-    ...initialInvoiceData,
-    companyName: 'Tech Consulting Inc.',
-    items: [
-      { id: '1', description: 'Consulting Services - Week 1', quantity: 40, rate: 150, amount: 6000, taxable: true },
-      { id: '2', description: 'Project Management', quantity: 10, rate: 150, amount: 1500, taxable: true },
-    ]
-  },
-  'Product': {
-    ...initialInvoiceData,
-    companyName: 'Gadget Store',
-    items: [
-      { id: '1', description: 'Wireless Headphones', quantity: 2, rate: 199.99, amount: 399.98, taxable: true },
-      { id: '2', description: 'Shipping', quantity: 1, rate: 15, amount: 15, taxable: false },
-    ]
-  }
-};
-
 export default function InvoiceGenerator() {
+  const { invoices, addInvoice, updateInvoice, deleteInvoice } = useInvoices();
   const [activeTab, setActiveTab] = useState<InvoiceType>('simple');
   const [data, setData] = useState<InvoiceData>(initialInvoiceData);
-  const [templates, setTemplates] = useState<Record<string, InvoiceData>>({});
+  const [showSaved, setShowSaved] = useState(false);
   const invoiceRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -231,17 +216,32 @@ export default function InvoiceGenerator() {
     }
   };
 
-  const saveTemplate = () => {
-    const name = prompt('Enter template name:');
-    if (name) {
-      setTemplates(prev => ({ ...prev, [name]: data }));
-      alert('Template saved!');
+  const saveInvoice = async () => {
+    try {
+      if (data.id) {
+        await updateInvoice(data.id, data as any);
+        alert('Invoice updated successfully!');
+      } else {
+        const id = await addInvoice(data as any);
+        setData(prev => ({ ...prev, id }));
+        alert('Invoice saved successfully!');
+      }
+    } catch (error) {
+      alert('Error saving invoice');
     }
   };
 
-  const loadTemplate = (name: string) => {
-    if (templates[name]) {
-      setData(templates[name]);
+  const loadInvoice = (invoice: any) => {
+    setData(invoice);
+    setShowSaved(false);
+  };
+
+  const handleDeleteInvoice = async (id: string) => {
+    if (confirm('Are you sure you want to delete this invoice?')) {
+      await deleteInvoice(id);
+      if (data.id === id) {
+        setData(initialInvoiceData);
+      }
     }
   };
 
@@ -319,6 +319,14 @@ export default function InvoiceGenerator() {
             </div>
 
             <button 
+              onClick={() => setShowSaved(!showSaved)}
+              className={`px-3 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 flex items-center gap-2 ${showSaved ? 'bg-slate-100' : 'bg-white'}`}
+            >
+              <Clock className="w-4 h-4" />
+              History
+            </button>
+
+            <button 
               onClick={() => fileInputRef.current?.click()}
               className="px-3 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 flex items-center gap-2"
             >
@@ -334,7 +342,7 @@ export default function InvoiceGenerator() {
             />
             
             <button 
-              onClick={saveTemplate}
+              onClick={saveInvoice}
               className="px-3 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
@@ -359,30 +367,62 @@ export default function InvoiceGenerator() {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 bg-slate-100 p-1 rounded-lg w-fit">
-          <button
-            onClick={() => setActiveTab('simple')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-              activeTab === 'simple' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            Simple Invoice
-          </button>
-          <button
-            onClick={() => setActiveTab('tax')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-              activeTab === 'tax' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            Sales Tax Invoice
-          </button>
-        </div>
-
-        {/* Invoice Editor */}
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Main Invoice Canvas */}
-          <div className="flex-1 bg-white shadow-lg rounded-xl overflow-hidden border border-slate-200">
+          {/* Saved Invoices Sidebar */}
+          {showSaved && (
+            <div className="w-full lg:w-64 bg-white rounded-xl shadow-sm border border-slate-200 p-4 h-fit">
+              <h3 className="font-bold text-slate-800 mb-4">Saved Invoices</h3>
+              <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                {invoices.length === 0 ? (
+                  <p className="text-sm text-slate-500">No saved invoices</p>
+                ) : (
+                  invoices.map(inv => (
+                    <div key={inv.id} className="p-3 rounded-lg border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50 transition-all group relative">
+                      <div 
+                        onClick={() => loadInvoice(inv)}
+                        className="cursor-pointer"
+                      >
+                        <p className="font-medium text-sm text-slate-800">{inv.invoiceNumber}</p>
+                        <p className="text-xs text-slate-500">{inv.billToName || 'No Client'}</p>
+                        <p className="text-xs text-slate-400 mt-1">{inv.date}</p>
+                      </div>
+                      <button 
+                        onClick={() => handleDeleteInvoice(inv.id)}
+                        className="absolute top-2 right-2 p-1 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Main Content */}
+          <div className="flex-1 space-y-6">
+            {/* Tabs */}
+            <div className="flex gap-1 bg-slate-100 p-1 rounded-lg w-fit">
+              <button
+                onClick={() => setActiveTab('simple')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                  activeTab === 'simple' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                Simple Invoice
+              </button>
+              <button
+                onClick={() => setActiveTab('tax')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                  activeTab === 'tax' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                Sales Tax Invoice
+              </button>
+            </div>
+
+            {/* Invoice Editor */}
+            <div className="bg-white shadow-lg rounded-xl overflow-hidden border border-slate-200">
             <div ref={invoiceRef} className={`p-8 md:p-12 min-h-[1000px] bg-white text-slate-800 ${design.font}`}>
               
               {/* Header Section */}
@@ -664,7 +704,7 @@ export default function InvoiceGenerator() {
                   </tbody>
                 </table>
                 <button 
-                  onClick={addItem}
+                  onClick={() => addItem()}
                   className="mt-4 flex items-center gap-2 text-sm font-bold px-4"
                   style={{ color: design.color }}
                 >
@@ -759,6 +799,7 @@ export default function InvoiceGenerator() {
           </div>
         </div>
       </div>
+    </div>
     </AdminLayout>
   );
 }

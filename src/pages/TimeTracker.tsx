@@ -72,7 +72,7 @@ interface TimeLog {
 
 export default function TimeTracker() {
   const { theme } = useTheme();
-  const { employees: contextEmployees } = useEmployees();
+  const { employees: contextEmployees, updateEmployee } = useEmployees();
   const { trackingData } = useTimeTracking();
   const { attendanceRecords } = useAttendance();
   const isDark = theme === 'dark';

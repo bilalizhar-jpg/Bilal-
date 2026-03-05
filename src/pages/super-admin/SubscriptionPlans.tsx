@@ -4,7 +4,7 @@ import { useSuperAdmin, ALL_MENU_ITEMS } from '../../context/SuperAdminContext';
 import { Search } from 'lucide-react';
 
 export default function SubscriptionPlans() {
-  const { companies, toggleMenuAccess, updateCompany } = useSuperAdmin();
+  const { companies, toggleMenuAccess, updateCompany, updateCompanyStatus } = useSuperAdmin();
   const [search, setSearch] = useState('');
 
   const filteredCompanies = companies.filter(c => 
@@ -49,7 +49,10 @@ export default function SubscriptionPlans() {
                 </td>
                 <td className="py-3 text-center">
                   <button 
-                    onClick={() => updateCompany({ ...company, isActive: !company.isActive })}
+                    onClick={() => {
+                      const newStatus = company.isActive ? 'inactive' : 'active';
+                      updateCompanyStatus(company.id, newStatus);
+                    }}
                     className={`px-3 py-1 rounded font-bold text-xs ${company.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}
                   >
                     {company.isActive ? 'Active' : 'Hold'}

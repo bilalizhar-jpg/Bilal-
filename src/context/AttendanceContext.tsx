@@ -1,4 +1,17 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { 
+  collection, 
+  onSnapshot, 
+  doc, 
+  setDoc, 
+  updateDoc, 
+  query,
+  where,
+  getDoc
+} from 'firebase/firestore';
+import { db } from '../firebase';
+import { useAuth } from './AuthContext';
+import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 
 export interface AttendanceRecord {
   id: string;
@@ -33,32 +46,30 @@ export const useAttendance = () => {
 };
 
 export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
-  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>(() => {
-    const saved = localStorage.getItem('attendanceRecords');
-    if (saved) {
-      return JSON.parse(saved);
-    }
-    return [
-      {
-        id: '1',
-        employeeId: '000031',
-        employeeName: 'Babara Patel',
-        date: new Date().toISOString().split('T')[0],
-        loginTime: '09:00 AM',
-        logoutTime: '06:00 PM',
-        workingHours: '9h 0m',
-        status: 'Present',
-        logs: [],
-        currentState: 'checked_out'
-      }
-    ];
-  });
+  const { user } = useAuth();
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    localStorage.setItem('attendanceRecords', JSON.stringify(attendanceRecords));
-  }, [attendanceRecords]);
+    if (!user) {
+      setAttendanceRecords([]);
+      setLoading(false);
+      return;
+    }
 
-  const addLog = (employeeId: string, employeeName: string, action: string, location: string, time: string, date: string, newState: 'not_checked_in' | 'checked_in' | 'on_break' | 'checked_out') => {
+    const q = query(collection(db, 'attendance'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const recordsData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as AttendanceRecord));
+      setAttendanceRecords(recordsData);
+      setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'attendance');
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  const addLog = async (companyId: string, employeeId: string, employeeName: string, action: string, location: string, time: string, date: string, newState: 'not_checked_in' | 'checked_in' | 'on_break' | 'checked_out') => {
     const parseTime = (t: string) => {
       const [timeStr, modifier] = t.split(' ');
       let [hours, minutes] = timeStr.split(':').map(Number);
@@ -67,57 +78,67 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
       return hours * 60 + minutes;
     };
 
-    setAttendanceRecords(prev => {
-      const existingRecordIndex = prev.findIndex(r => r.employeeId === employeeId && r.date === date);
-      
-      if (existingRecordIndex >= 0) {
-        const updatedRecords = [...prev];
-        const record = { ...updatedRecords[existingRecordIndex] };
-        
-        record.logs = [{ time, action, location }, ...record.logs];
-        record.currentState = newState;
-        
-        if (action === 'Checked In') {
-          if (!record.loginTime) {
-            record.loginTime = time;
-          }
-          record.status = 'Present';
-          record.logoutTime = null;
-          record.lastCheckInMins = parseTime(time);
-        } else if (action === 'Checked Out') {
-          record.logoutTime = time;
-          const checkInMins = record.lastCheckInMins || parseTime(record.loginTime || time);
-          const checkOutMins = parseTime(time);
-          const sessionMins = checkOutMins - checkInMins;
-          
-          if (sessionMins > 0) {
-            record.totalMinutes = (record.totalMinutes || 0) + sessionMins;
-            const h = Math.floor(record.totalMinutes / 60);
-            const m = record.totalMinutes % 60;
-            record.workingHours = `${h}h ${m}m`;
-          }
+    const recordId = `${employeeId}_${date}`;
+    const docRef = doc(db, 'attendance', recordId);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const record = docSnap.data() as AttendanceRecord;
+      const updatedLogs = [{ time, action, location }, ...record.logs];
+      const updates: any = {
+        logs: updatedLogs,
+        currentState: newState
+      };
+
+      if (action === 'Checked In') {
+        if (!record.loginTime) {
+          updates.loginTime = time;
         }
+        updates.status = 'Present';
+        updates.logoutTime = null;
+        updates.lastCheckInMins = parseTime(time);
+      } else if (action === 'Checked Out') {
+        updates.logoutTime = time;
+        const checkInMins = record.lastCheckInMins || parseTime(record.loginTime || time);
+        const checkOutMins = parseTime(time);
+        const sessionMins = checkOutMins - checkInMins;
         
-        updatedRecords[existingRecordIndex] = record;
-        return updatedRecords;
-      } else {
-        const newRecord: AttendanceRecord = {
-          id: Math.random().toString(36).substr(2, 9),
-          employeeId,
-          employeeName,
-          date,
-          loginTime: action === 'Checked In' ? time : null,
-          logoutTime: action === 'Checked Out' ? time : null,
-          workingHours: '0h 0m',
-          totalMinutes: 0,
-          lastCheckInMins: action === 'Checked In' ? parseTime(time) : undefined,
-          status: 'Present',
-          logs: [{ time, action, location }],
-          currentState: newState
-        };
-        return [...prev, newRecord];
+        if (sessionMins > 0) {
+          const totalMinutes = (record.totalMinutes || 0) + sessionMins;
+          const h = Math.floor(totalMinutes / 60);
+          const m = totalMinutes % 60;
+          updates.totalMinutes = totalMinutes;
+          updates.workingHours = `${h}h ${m}m`;
+        }
       }
-    });
+
+      try {
+        await updateDoc(docRef, updates);
+      } catch (error) {
+        console.error("Error updating attendance log:", error);
+      }
+    } else {
+      const newRecord: AttendanceRecord = {
+        id: recordId,
+        companyId,
+        employeeId,
+        employeeName,
+        date,
+        loginTime: action === 'Checked In' ? time : null,
+        logoutTime: action === 'Checked Out' ? time : null,
+        workingHours: '0h 0m',
+        totalMinutes: 0,
+        lastCheckInMins: action === 'Checked In' ? parseTime(time) : undefined,
+        status: 'Present',
+        logs: [{ time, action, location }],
+        currentState: newState
+      };
+      try {
+        await setDoc(docRef, newRecord);
+      } catch (error) {
+        console.error("Error creating attendance log:", error);
+      }
+    }
   };
 
   const getEmployeeTodayRecord = (employeeId: string, date: string) => {

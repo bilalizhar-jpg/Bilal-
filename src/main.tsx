@@ -4,13 +4,16 @@ import App from './App.tsx';
 import './index.css';
 import { ThemeProvider } from './context/ThemeContext';
 import { SettingsProvider } from './context/SettingsContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ThemeProvider>
-      <SettingsProvider>
-        <App />
-      </SettingsProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <SettingsProvider>
+          <App />
+        </SettingsProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   </StrictMode>,
 );

@@ -36,10 +36,12 @@ import {
 } from 'lucide-react';
 import AdminLayout from '../components/AdminLayout';
 import { useTheme } from '../context/ThemeContext';
+import { useCompanyData } from '../context/CompanyDataContext';
 import * as XLSX from 'xlsx';
 
 interface Loan {
   id: string;
+  companyId: string;
   employeeName: string;
   permittedBy: string;
   loanNo: string;
@@ -61,6 +63,7 @@ type TabType = 'loan-list' | 'disburse-report' | 'employee-wise';
 export default function LoanManagement() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const { loans, addEntity, updateEntity, deleteEntity } = useCompanyData();
   const [activeTab, setActiveTab] = useState<TabType>('loan-list');
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -68,13 +71,6 @@ export default function LoanManagement() {
   const [showFilters, setShowFilters] = useState(false);
   const [filterEmployee, setFilterEmployee] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
-
-  const [loans, setLoans] = useState<Loan[]>([
-    { id: '1', employeeName: 'Maisha Lucy Zamora Gonzales', permittedBy: 'Jerome Grace Willis Terry', loanNo: '000115', amount: 48000, interestRate: 0, installmentPeriod: 1000, installmentCleared: 0, repaymentAmount: 48000, approvedDate: '2026-01-28', repaymentFrom: '2026-01-14', status: 'Active', approvalStatus: 'Approved', autoReminder: true, notifyEmployee: false },
-    { id: '2', employeeName: 'Honorato Imogene Curry Terry', permittedBy: 'Ora Caryn Garcia Cardenas', loanNo: '000114', amount: 1, interestRate: 20, installmentPeriod: 6, installmentCleared: 0, repaymentAmount: 1, approvedDate: '2026-01-21', repaymentFrom: '2026-06-21', status: 'Active', approvalStatus: 'Approved', autoReminder: false, notifyEmployee: false },
-    { id: '3', employeeName: 'Jonathan Ibrahim Shekh', permittedBy: 'Nell Mohona Lacey Byers Lewis', loanNo: '000113', amount: 50000, interestRate: 5, installmentPeriod: 12, installmentCleared: 6, repaymentAmount: 52500, approvedDate: '2025-12-27', repaymentFrom: '2026-12-30', status: 'Active', approvalStatus: 'Approved', autoReminder: true, notifyEmployee: false },
-    { id: '4', employeeName: 'Maisha Lucy Zamora Gonzales', permittedBy: 'Arnika Paula Roach Mcmillan', loanNo: '000112', amount: 10000, interestRate: 0, installmentPeriod: 1, installmentCleared: 0, repaymentAmount: 10000, approvedDate: '2025-12-05', repaymentFrom: '2025-12-06', status: 'Active', approvalStatus: 'Approved', autoReminder: false, notifyEmployee: false },
-  ]);
 
   const [formData, setFormData] = useState<Partial<Loan>>({
     employeeName: '',
@@ -90,10 +86,10 @@ export default function LoanManagement() {
     notifyEmployee: false
   });
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingLoan) {
-      setLoans(prev => prev.map(l => l.id === editingLoan.id ? { ...l, ...formData } as Loan : l));
+      await updateEntity('loans', editingLoan.id, formData);
       if (formData.approvalStatus === 'Approved' && editingLoan.approvalStatus !== 'Approved') {
         alert(`Notification sent to Accounts Department and CEO: Loan for ${formData.employeeName} has been approved.`);
         if (formData.notifyEmployee) {
@@ -103,12 +99,11 @@ export default function LoanManagement() {
     } else {
       const newLoan = {
         ...formData,
-        id: Math.random().toString(36).substr(2, 9),
         loanNo: `000${Math.floor(Math.random() * 900) + 100}`,
         installmentCleared: 0,
         repaymentAmount: (formData.amount || 0) * (1 + (formData.interestRate || 0) / 100)
-      } as Loan;
-      setLoans(prev => [...prev, newLoan]);
+      };
+      await addEntity('loans', newLoan);
       if (formData.approvalStatus === 'Approved') {
         alert(`Notification sent to Accounts Department and CEO: Loan for ${formData.employeeName} has been approved.`);
         if (formData.notifyEmployee) {
@@ -120,13 +115,13 @@ export default function LoanManagement() {
     setEditingLoan(null);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this loan record?')) {
-      setLoans(prev => prev.filter(l => l.id !== id));
+      await deleteEntity('loans', id);
     }
   };
 
-  const filteredLoans = loans.filter(l => {
+  const filteredLoans = (loans as Loan[]).filter(l => {
     const matchesSearch = l.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) || l.loanNo.includes(searchTerm);
     const matchesEmployee = !filterEmployee || l.employeeName === filterEmployee;
     const matchesStatus = !filterStatus || l.status === filterStatus;

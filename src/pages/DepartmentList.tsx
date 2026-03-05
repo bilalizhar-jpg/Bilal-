@@ -13,9 +13,10 @@ import {
 import { Link } from 'react-router-dom';
 
 import AdminLayout from '../components/AdminLayout';
+import { useCompanyData } from '../context/CompanyDataContext';
 
 interface Department {
-  id: number;
+  id: string;
   name: string;
   head: string;
   status: 'Active' | 'Inactive';
@@ -24,16 +25,11 @@ interface Department {
 }
 
 export default function DepartmentList() {
+  const { departments, addEntity, updateEntity, deleteEntity } = useCompanyData();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDept, setEditingDept] = useState<Department | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentTime, setCurrentTime] = useState(Date.now());
-
-  const [departments, setDepartments] = useState<Department[]>([
-    { id: 1, name: 'Electrical', head: 'John Doe', status: 'Active' },
-    { id: 2, name: 'Production', head: 'Jane Smith', status: 'Active' },
-    { id: 3, name: 'Human Resources', head: 'Mike Wilson', status: 'Active' },
-  ]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -75,30 +71,22 @@ export default function DepartmentList() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingDept) {
-      setDepartments(departments.map(d => d.id === editingDept.id ? { ...d, ...formData } : d));
+      await updateEntity('departments', editingDept.id, formData);
     } else {
-      const newDept: Department = {
-        id: Math.max(0, ...departments.map(d => d.id)) + 1,
-        ...formData
-      };
-      setDepartments([...departments, newDept]);
+      await addEntity('departments', formData);
     }
     handleCloseModal();
   };
 
-  const handleDelete = (id: number) => {
-    setDepartments(departments.map(d => 
-      d.id === id ? { ...d, isDeleted: true, deletedAt: Date.now() } : d
-    ));
+  const handleDelete = async (id: string) => {
+    await updateEntity('departments', id, { isDeleted: true, deletedAt: Date.now() });
   };
 
-  const handleRecover = (id: number) => {
-    setDepartments(departments.map(d => 
-      d.id === id ? { ...d, isDeleted: false, deletedAt: undefined } : d
-    ));
+  const handleRecover = async (id: string) => {
+    await updateEntity('departments', id, { isDeleted: false, deletedAt: null });
   };
 
   const filteredDepartments = departments.filter(d => {
@@ -162,20 +150,20 @@ export default function DepartmentList() {
                     <tr key={dept.id} className={`transition-colors ${dept.isDeleted ? 'bg-red-50/50' : 'hover:bg-slate-50/50'}`}>
                       <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{index + 1}</td>
                       <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">
-                        {dept.name}
+                        {(dept as any).name}
                         {dept.isDeleted && <span className="ml-2 text-[10px] font-bold text-red-600 uppercase tracking-wider">(Deleted)</span>}
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{dept.head}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{(dept as any).head}</td>
                       <td className="px-4 py-3 text-sm border-r border-slate-100">
-                        <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase ${dept.status === 'Active' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
-                          {dept.status}
+                        <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase ${(dept as any).status === 'Active' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
+                          {(dept as any).status}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm">
                         <div className="flex items-center gap-2">
                           {!dept.isDeleted ? (
                             <>
-                              <button onClick={() => handleOpenModal(dept)} className="p-1.5 text-emerald-600 bg-emerald-50 rounded border border-emerald-100 hover:bg-emerald-100"><Edit className="w-3.5 h-3.5" /></button>
+                              <button onClick={() => handleOpenModal(dept as any)} className="p-1.5 text-emerald-600 bg-emerald-50 rounded border border-emerald-100 hover:bg-emerald-100"><Edit className="w-3.5 h-3.5" /></button>
                               <button onClick={() => handleDelete(dept.id)} className="p-1.5 text-red-600 bg-red-50 rounded border border-red-100 hover:bg-red-100"><Trash2 className="w-3.5 h-3.5" /></button>
                             </>
                           ) : (

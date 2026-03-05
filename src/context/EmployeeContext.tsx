@@ -1,5 +1,18 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { 
+  collection, 
+  onSnapshot, 
+  doc, 
+  setDoc, 
+  updateDoc, 
+  deleteDoc, 
+  query,
+  where,
+  writeBatch
+} from 'firebase/firestore';
+import { db } from '../firebase';
+import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 
 export interface CustomField {
   key: string;
@@ -33,6 +46,8 @@ export interface Employee {
   modeOfPayment?: string;
   username?: string;
   password?: string;
+  rewardPoints?: number;
+  isTracked?: boolean;
 }
 
 interface EmployeeContextType {
@@ -63,66 +78,95 @@ const generateCredentials = (name: string, employeeId: string) => {
 
 export const EmployeeProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
-  const [allEmployees, setAllEmployees] = useState<Employee[]>(() => {
-    const saved = localStorage.getItem('employees');
-    if (saved) {
-      return JSON.parse(saved);
-    }
-    return [];
-  });
+  const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(collection(db, 'employees'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const employeesData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Employee));
+      setAllEmployees(employeesData);
+      setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'employees');
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Filter employees by companyId
   const employees = allEmployees.filter(emp => emp.companyId === user?.companyId);
 
-  // Save to localStorage whenever allEmployees change
-  React.useEffect(() => {
-    localStorage.setItem('employees', JSON.stringify(allEmployees));
-  }, [allEmployees]);
-
-  const addEmployee = (employee: Omit<Employee, 'companyId'>) => {
+  const addEmployee = async (employee: Omit<Employee, 'companyId'>) => {
     if (!user?.companyId) return;
     const { username, password } = generateCredentials(employee.name, employee.employeeId);
+    const id = employee.id || Date.now().toString();
     const newEmployee: Employee = {
       ...employee,
+      id,
       companyId: user.companyId,
       username: employee.username || username,
       password: employee.password || password
     };
-    setAllEmployees((prev) => [...prev, newEmployee]);
+    
+    try {
+      await setDoc(doc(db, 'employees', id), newEmployee);
+    } catch (error) {
+      console.error("Error adding employee:", error);
+    }
   };
 
-  const addEmployees = (newEmployees: Omit<Employee, 'companyId'>[]) => {
+  const addEmployees = async (newEmployees: Omit<Employee, 'companyId'>[]) => {
     if (!user?.companyId) return;
-    const employeesWithCredentials = newEmployees.map(emp => {
+    const batch = writeBatch(db);
+    
+    newEmployees.forEach(emp => {
       const { username, password } = generateCredentials(emp.name, emp.employeeId);
-      return {
+      const id = emp.id || Math.random().toString(36).substr(2, 9);
+      const employeeData: Employee = {
         ...emp,
+        id,
         companyId: user.companyId!,
         username: emp.username || username,
         password: emp.password || password
       };
+      const ref = doc(db, 'employees', id);
+      batch.set(ref, employeeData);
     });
-    setAllEmployees((prev) => [...prev, ...employeesWithCredentials]);
+
+    try {
+      await batch.commit();
+    } catch (error) {
+      console.error("Error adding multiple employees:", error);
+    }
   };
 
-  const updateEmployee = (id: string, updatedFields: Partial<Employee>) => {
-    setAllEmployees((prev) =>
-      prev.map((emp) => (emp.id === id ? { ...emp, ...updatedFields } : emp))
-    );
+  const updateEmployee = async (id: string, updatedFields: Partial<Employee>) => {
+    try {
+      await updateDoc(doc(db, 'employees', id), updatedFields as any);
+    } catch (error) {
+      console.error("Error updating employee:", error);
+    }
   };
 
-  const deleteEmployee = (id: string) => {
-    setAllEmployees((prev) => prev.filter((emp) => emp.id !== id));
+  const deleteEmployee = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'employees', id));
+    } catch (error) {
+      console.error("Error deleting employee:", error);
+    }
   };
 
-  const regenerateCredentials = (id: string) => {
-    setAllEmployees((prev) => prev.map(emp => {
-      if (emp.id === id) {
-        const { username, password } = generateCredentials(emp.name, emp.employeeId);
-        return { ...emp, username, password };
-      }
-      return emp;
-    }));
+  const regenerateCredentials = async (id: string) => {
+    const emp = allEmployees.find(e => e.id === id);
+    if (!emp) return;
+
+    const { username, password } = generateCredentials(emp.name, emp.employeeId);
+    try {
+      await updateDoc(doc(db, 'employees', id), { username, password });
+    } catch (error) {
+      console.error("Error regenerating credentials:", error);
+    }
   };
 
   const validateEmployee = (username: string, password: string) => {

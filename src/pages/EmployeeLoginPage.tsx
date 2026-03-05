@@ -57,7 +57,8 @@ export default function EmployeeLoginPage() {
         name: employee.name,
         role: 'employee',
         employeeId: employee.employeeId,
-        avatar: employee.avatar
+        avatar: employee.avatar,
+        companyId: employee.companyId
       });
       
       const from = location.state?.from?.pathname || '/employee-portal/dashboard';

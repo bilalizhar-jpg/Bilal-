@@ -51,8 +51,11 @@ export default function GeneralSettings() {
     setMessage(null);
 
     try {
-      await updateCompany(user.companyId, formData);
-      setMessage({ type: 'success', text: 'Company details updated successfully!' });
+      const currentCompany = companies.find(c => c.id === user.companyId);
+      if (currentCompany) {
+        await updateCompany({ ...currentCompany, ...formData });
+        setMessage({ type: 'success', text: 'Company details updated successfully!' });
+      }
     } catch (error) {
       setMessage({ type: 'error', text: 'Failed to update company details.' });
     } finally {

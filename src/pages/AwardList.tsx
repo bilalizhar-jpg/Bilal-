@@ -11,9 +11,10 @@ import {
 import * as XLSX from 'xlsx';
 import AdminLayout from '../components/AdminLayout';
 import { useEmployees } from '../context/EmployeeContext';
+import { useCompanyData } from '../context/CompanyDataContext';
 
 interface Award {
-  id: number;
+  id: string;
   awardName: string;
   description: string;
   giftItem: string;
@@ -24,18 +25,13 @@ interface Award {
 
 export default function AwardList() {
   const { employees } = useEmployees();
+  const { awards, addEntity, updateEntity, deleteEntity } = useCompanyData();
   const activeEmployees = employees.filter(e => e.status === 'Active');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAward, setEditingAward] = useState<Award | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
-  const [awards, setAwards] = useState<Award[]>([
-    { id: 1, awardName: 'xyz', description: 'xyz', giftItem: 'xyz', date: '2026-02-04', employeeName: 'Scarlet Melvin Reese Rogers', awardBy: 'x-xyz' },
-    { id: 2, awardName: 'xyz', description: 'xyz', giftItem: 'xyz', date: '2026-02-04', employeeName: 'Scarlet Melvin Reese Rogers', awardBy: 'x-xyz' },
-    { id: 3, awardName: 'Employee of the month', description: 'Watch', giftItem: '1', date: '2025-09-18', employeeName: 'Honorato Imogene Curry Terry', awardBy: 'usamaDev' },
-  ]);
-
   const [formData, setFormData] = useState({
     awardName: '',
     description: '',
@@ -108,24 +104,19 @@ export default function AwardList() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingAward) {
-      setAwards(awards.map(a => a.id === editingAward.id ? { ...a, ...formData } : a));
+      await updateEntity('awards', editingAward.id, formData);
     } else {
-      const newId = awards.length > 0 ? Math.max(...awards.map(a => a.id)) + 1 : 1;
-      const newAward = {
-        id: newId,
-        ...formData
-      };
-      setAwards([...awards, newAward]);
+      await addEntity('awards', formData);
     }
     handleCloseModal();
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this award?')) {
-      setAwards(awards.filter(a => a.id !== id));
+      await deleteEntity('awards', id);
     }
   };
 
@@ -203,16 +194,16 @@ export default function AwardList() {
                 {filteredAwards.map((award, index) => (
                   <tr key={award.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{index + 1}</td>
-                    <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{award.awardName}</td>
-                    <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{award.description}</td>
-                    <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{award.giftItem}</td>
-                    <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{award.date}</td>
-                    <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{award.employeeName}</td>
-                    <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{award.awardBy}</td>
+                    <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{(award as any).awardName}</td>
+                    <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{(award as any).description}</td>
+                    <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{(award as any).giftItem}</td>
+                    <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{(award as any).date}</td>
+                    <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{(award as any).employeeName}</td>
+                    <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{(award as any).awardBy}</td>
                     <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
                       <div className="flex items-center gap-2">
                         <button 
-                          onClick={() => handleOpenModal(award)}
+                          onClick={() => handleOpenModal(award as any)}
                           className="p-1.5 text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 rounded border border-emerald-100 dark:border-emerald-800 hover:bg-emerald-100 transition-colors"
                         >
                           <Edit className="w-3.5 h-3.5" />

@@ -23,6 +23,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useEmployees } from '../context/EmployeeContext';
+import { useSuperAdmin } from '../context/SuperAdminContext';
 
 interface EmployeeLayoutProps {
   children: React.ReactNode;
@@ -36,11 +37,16 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
   const { theme } = useTheme();
   const { user, logout } = useAuth();
   const { employees } = useEmployees();
+  const { companies } = useSuperAdmin();
   const isDark = theme === 'dark';
   const isDashboard = location.pathname === '/employee-portal/dashboard';
 
   // Find the full employee details based on the logged-in user
   const currentEmployee = employees.find(emp => emp.id === user?.id);
+  
+  // Find the company to check for blocked menus
+  const company = companies.find(c => c.id === user?.companyId);
+  const blockedMenus = company?.blockedMenus || [];
 
   const toggleMenu = (name: string) => {
     setOpenMenus(prev => 
@@ -76,15 +82,28 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
     { name: 'Messages', icon: MessageSquare, path: '/employee-portal/messages' },
   ];
 
+  const filteredMenuItems = menuItems.filter(item => {
+    let checkName = item.name;
+    if (item.name === 'Daily Attendance') checkName = 'Attendance';
+    if (item.name === 'Company Policies') checkName = 'Org Chart'; // Policies are usually under Org Chart/Policies
+    if (item.name === 'Messages') checkName = 'Message';
+    
+    return !blockedMenus.includes(checkName);
+  });
+
   return (
     <div className={`min-h-screen flex ${isDark ? 'bg-slate-950 text-white' : 'bg-[#F0F2F5] text-slate-900'}`}>
       {/* Sidebar */}
       <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} border-r flex flex-col transition-all duration-300 shrink-0 z-30`}>
         <div className={`p-4 flex items-center gap-2 border-b ${isDark ? 'border-slate-800' : 'border-slate-100'} h-16`}>
-          <div className="bg-emerald-600 p-1.5 rounded-lg shrink-0">
-            <Building2 className="w-6 h-6 text-white" />
+          <div className="bg-emerald-600 p-1.5 rounded-lg shrink-0 overflow-hidden w-9 h-9 flex items-center justify-center">
+             {company?.logo ? (
+               <img src={company.logo} alt="Logo" className="w-full h-full object-cover" />
+             ) : (
+               <Building2 className="w-6 h-6 text-white" />
+             )}
           </div>
-          {isSidebarOpen && <span className={`font-display font-bold text-xl tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>Employee Portal</span>}
+          {isSidebarOpen && <span className={`font-display font-bold text-xl tracking-tight truncate ${isDark ? 'text-white' : 'text-slate-800'}`}>{company?.name || 'Employee Portal'}</span>}
         </div>
         
         <div className="p-4">
@@ -100,7 +119,7 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
 
         <nav className="flex-1 overflow-y-auto py-4 custom-scrollbar">
           <ul className="space-y-1 px-3">
-            {menuItems.map((item) => {
+            {filteredMenuItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path || (item.hasSub && item.subItems?.some(sub => location.pathname === sub.path));
               const isOpen = openMenus.includes(item.name);

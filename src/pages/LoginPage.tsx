@@ -9,7 +9,7 @@ import { useSuperAdmin } from '../context/SuperAdminContext';
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isAuthenticated, user } = useAuth();
+  const { login, isAuthenticated, user, signInWithGoogle } = useAuth();
   const { employees } = useEmployees();
   const { companies } = useSuperAdmin();
   const [isLoading, setIsLoading] = useState(false);
@@ -38,6 +38,12 @@ export default function LoginPage() {
       [e.target.name]: e.target.value
     });
     setError('');
+  };
+
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    await signInWithGoogle();
+    setIsLoading(false);
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -98,7 +104,8 @@ export default function LoginPage() {
         name: employee.name,
         role: 'employee',
         employeeId: employee.employeeId,
-        avatar: employee.avatar
+        avatar: employee.avatar,
+        companyId: employee.companyId
       });
       
       const from = location.state?.from?.pathname || '/employee-portal/dashboard';
@@ -232,6 +239,28 @@ export default function LoginPage() {
               </button>
             </div>
           </form>
+
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-slate-500">Or continue with</span>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <button
+                onClick={handleGoogleLogin}
+                disabled={isLoading}
+                className="w-full flex justify-center items-center gap-3 py-3 px-4 border border-slate-200 rounded-lg shadow-sm text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-all"
+              >
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+                Super Admin Login
+              </button>
+            </div>
+          </div>
         </div>
       </motion.div>
     </div>

@@ -239,7 +239,7 @@ export default function CreateTemplate() {
                     <div className="text-center py-4">
                       <input 
                         type="text" 
-                        value={block.content}
+                        value={block.content as string}
                         onChange={(e) => handleBlockEdit(block.id, e.target.value)}
                         className="inline-block bg-slate-600 text-white text-3xl font-bold py-3 px-8 rounded-md text-center border-none focus:ring-2 focus:ring-indigo-500 outline-none"
                       />
@@ -248,7 +248,7 @@ export default function CreateTemplate() {
                   {block.type === 'title' && (
                     <input 
                       type="text" 
-                      value={block.content}
+                      value={block.content as string}
                       onChange={(e) => handleBlockEdit(block.id, e.target.value)}
                       className="w-full text-2xl font-bold text-center text-slate-800 dark:text-white bg-transparent border-none focus:ring-2 focus:ring-indigo-500 p-2 outline-none rounded"
                     />
@@ -256,7 +256,7 @@ export default function CreateTemplate() {
                   {block.type === 'image' && (
                     <div className="relative bg-slate-100 dark:bg-slate-800 p-8 flex justify-center items-center min-h-[200px]">
                       {block.content ? (
-                        <img src={block.content} alt="Block" className="max-w-full h-auto rounded" />
+                        <img src={block.content as string} alt="Block" className="max-w-full h-auto rounded" />
                       ) : (
                         <div className="relative">
                           <ImageIcon className="w-24 h-24 text-slate-400" strokeWidth={1} />
@@ -271,7 +271,7 @@ export default function CreateTemplate() {
                   )}
                   {block.type === 'columns' && (
                     <div className="grid grid-cols-2 gap-4">
-                      {block.content.map((col: any, i: number) => (
+                      {(block.content as any[]).map((col: any) => (
                         <div key={col.id} className="relative bg-slate-100 dark:bg-slate-800 p-8 flex justify-center items-center min-h-[200px]">
                           {col.content ? (
                             <img src={col.content} alt="Col" className="max-w-full h-auto rounded" />
@@ -289,7 +289,7 @@ export default function CreateTemplate() {
                   )}
                   {block.type === 'text' && (
                     <textarea 
-                      value={block.content}
+                      value={block.content as string}
                       onChange={(e) => handleBlockEdit(block.id, e.target.value)}
                       rows={3}
                       className="w-full text-slate-600 dark:text-slate-300 bg-transparent border-none focus:ring-2 focus:ring-indigo-500 p-2 outline-none resize-none text-center rounded"
@@ -299,7 +299,7 @@ export default function CreateTemplate() {
                     <div className="text-center py-4">
                       <input 
                         type="text" 
-                        value={block.content}
+                        value={block.content as string}
                         onChange={(e) => handleBlockEdit(block.id, e.target.value)}
                         className="inline-block px-8 py-3 bg-slate-900 text-white rounded-md font-medium text-center border-none focus:ring-2 focus:ring-indigo-500 outline-none min-w-[200px]"
                       />
@@ -307,17 +307,17 @@ export default function CreateTemplate() {
                   )}
                   {block.type === 'footer' && (
                     <div className="bg-slate-100 dark:bg-slate-800/50 p-8 text-center text-xs text-slate-500 dark:text-slate-400 mt-8">
-                      <p className="font-bold text-slate-700 dark:text-slate-300 text-sm mb-1">{block.content.company}</p>
-                      <p>{block.content.address}</p>
+                      <p className="font-bold text-slate-700 dark:text-slate-300 text-sm mb-1">{(block.content as any).company}</p>
+                      <p>{(block.content as any).address}</p>
                       <p className="mt-4">
-                        This email was sent to <span className="border border-slate-300 px-1 rounded bg-white dark:bg-slate-800">{block.content.email}</span>
+                        This email was sent to <span className="border border-slate-300 px-1 rounded bg-white dark:bg-slate-800">{(block.content as any).email}</span>
                       </p>
                       <p>You've received this email because you've subscribed to our newsletter.</p>
                     </div>
                   )}
                   {['video', 'dynamic', 'social', 'html', 'product', 'navigation', 'spacer'].includes(block.type) && (
                     <div className="bg-slate-100 dark:bg-slate-800 p-8 text-center text-slate-500 dark:text-slate-400 border border-dashed border-slate-300 dark:border-slate-600 rounded">
-                      [{block.type.toUpperCase()} BLOCK] - {block.content}
+                      [{block.type.toUpperCase()} BLOCK] - {block.content as string}
                     </div>
                   )}
                 </div>
@@ -377,17 +377,17 @@ export default function CreateTemplate() {
                     {block.type === 'logo' && (
                       <div className="text-center py-4">
                         <div className="inline-block bg-slate-600 text-white text-3xl font-bold py-3 px-8 rounded-md">
-                          {block.content}
+                          {block.content as string}
                         </div>
                       </div>
                     )}
                     {block.type === 'title' && (
-                      <h1 className="text-2xl font-bold text-center text-slate-800 dark:text-white">{block.content}</h1>
+                      <h1 className="text-2xl font-bold text-center text-slate-800 dark:text-white">{block.content as string}</h1>
                     )}
                     {block.type === 'image' && (
                       <div className="flex justify-center">
                         {block.content ? (
-                          <img src={block.content} alt="Block" className="max-w-full h-auto rounded" />
+                          <img src={block.content as string} alt="Block" className="max-w-full h-auto rounded" />
                         ) : (
                           <div className="bg-slate-100 dark:bg-slate-800 w-full h-48 flex items-center justify-center text-slate-400">Image Placeholder</div>
                         )}
@@ -395,7 +395,7 @@ export default function CreateTemplate() {
                     )}
                     {block.type === 'columns' && (
                       <div className="grid grid-cols-2 gap-4">
-                        {block.content.map((col: any) => (
+                        {(block.content as any[]).map((col: any) => (
                           <div key={col.id} className="flex justify-center">
                             {col.content ? (
                               <img src={col.content} alt="Col" className="max-w-full h-auto rounded" />
@@ -412,28 +412,28 @@ export default function CreateTemplate() {
                       </div>
                     )}
                     {block.type === 'text' && (
-                      <p className="text-slate-600 dark:text-slate-300 text-center whitespace-pre-wrap">{block.content}</p>
+                      <p className="text-slate-600 dark:text-slate-300 text-center whitespace-pre-wrap">{block.content as string}</p>
                     )}
                     {block.type === 'button' && (
                       <div className="text-center py-4">
-                        <a href={block.url || '#'} className="inline-block px-8 py-3 bg-slate-900 text-white rounded-md font-medium text-center">
-                          {block.content}
+                        <a href={(block as any).url || '#'} className="inline-block px-8 py-3 bg-slate-900 text-white rounded-md font-medium text-center">
+                          {block.content as string}
                         </a>
                       </div>
                     )}
                     {block.type === 'footer' && (
                       <div className="bg-slate-100 dark:bg-slate-800/50 p-8 text-center text-xs text-slate-500 dark:text-slate-400 mt-8">
-                        <p className="font-bold text-slate-700 dark:text-slate-300 text-sm mb-1">{block.content.company}</p>
-                        <p>{block.content.address}</p>
+                        <p className="font-bold text-slate-700 dark:text-slate-300 text-sm mb-1">{(block.content as any).company}</p>
+                        <p>{(block.content as any).address}</p>
                         <p className="mt-4">
-                          This email was sent to <span className="border border-slate-300 px-1 rounded bg-white dark:bg-slate-800">{block.content.email}</span>
+                          This email was sent to <span className="border border-slate-300 px-1 rounded bg-white dark:bg-slate-800">{(block.content as any).email}</span>
                         </p>
                         <p>You've received this email because you've subscribed to our newsletter.</p>
                       </div>
                     )}
                     {['video', 'dynamic', 'social', 'html', 'product', 'navigation', 'spacer'].includes(block.type) && (
                       <div className="bg-slate-100 dark:bg-slate-800 p-8 text-center text-slate-500 dark:text-slate-400 border border-dashed border-slate-300 dark:border-slate-600 rounded">
-                        [{block.type.toUpperCase()} BLOCK] - {block.content}
+                        [{block.type.toUpperCase()} BLOCK] - {block.content as string}
                       </div>
                     )}
                   </div>

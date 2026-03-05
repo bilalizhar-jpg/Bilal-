@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // PUBLIC READ COLLECTIONS
+    // These collections must be publicly readable because the application uses 
+    // a custom authentication system (client-side check) for Company Admins and Employees,
+    // meaning they are NOT authenticated in Firebase Auth when accessing this data.
+    
+    match /companies/{companyId} {
+      allow read: if true;
+      allow create: if true; // Public for registration
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated();
+    }
+
+    match /employees/{employeeId} {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated();
+    }
+
+    match /invoices/{invoiceId} {
+      allow read: if true; // Needed for Company Admin (custom auth)
+      allow create: if true; // Public for registration
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated();
+    }
+
+    // Collections used by Company Admin/Employee (Custom Auth)
+    match /letters/{document=**} { allow read: if true; allow write: if true; }
+    match /letterTemplates/{document=**} { allow read: if true; allow write: if true; }
+    match /leaves/{document=**} { allow read: if true; allow write: if true; }
+    match /attendance/{document=**} { allow read: if true; allow write: if true; }
+    match /policies/{document=**} { allow read: if true; allow write: if true; }
+    match /timeTracking/{document=**} { allow read: if true; allow write: if true; }
+    
+    // Company Data Collections
+    match /awards/{document=**} { allow read: if true; allow write: if true; }
+    match /departments/{document=**} { allow read: if true; allow write: if true; }
+    match /subDepartments/{document=**} { allow read: if true; allow write: if true; }
+    match /notices/{document=**} { allow read: if true; allow write: if true; }
+    match /projects/{document=**} { allow read: if true; allow write: if true; }
+    match /assets/{document=**} { allow read: if true; allow write: if true; }
+    match /tasks/{document=**} { allow read: if true; allow write: if true; }
+    match /sales/{document=**} { allow read: if true; allow write: if true; }
+
+    // Users (Super Admin) - Keep restricted
+    match /users/{userId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

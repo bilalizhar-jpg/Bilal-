@@ -1,16 +1,33 @@
 import React, { useState } from 'react';
 import SuperAdminLayout from '../../components/SuperAdminLayout';
-import { useSuperAdmin, Company } from '../../context/SuperAdminContext';
-import { Trash2, Plus, Edit2, Save, X, Upload } from 'lucide-react';
+import { useSuperAdmin, Company, ALL_MENU_ITEMS } from '../../context/SuperAdminContext';
+import { Trash2, Plus, Edit2, Save, X, Upload, Shield, Check, X as XIcon } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 export default function CompanyManagement() {
-  const { companies, addCompany, deleteCompany, updateCompany } = useSuperAdmin();
+  const { companies, addCompany, deleteCompany, updateCompany, toggleMenuAccess, updateCompanyStatus, error } = useSuperAdmin();
   const [newCompany, setNewCompany] = useState({ 
     name: '', email: '', mobile: '', subscriptionPlan: 'Basic', uniqueCode: '',
     logo: '', subsidiary: '', headOffice: '', factoryLocation: ''
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Company | null>(null);
+  const [accessModalOpen, setAccessModalOpen] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+
+  // Sync editForm with latest company data if it changes while editing
+  React.useEffect(() => {
+    if (editingId && editForm) {
+      const latestCompany = companies.find(c => c.id === editingId);
+      if (latestCompany && (latestCompany.status !== editForm.status || latestCompany.isActive !== editForm.isActive)) {
+        setEditForm({
+          ...editForm,
+          status: latestCompany.status,
+          isActive: latestCompany.isActive
+        });
+      }
+    }
+  }, [companies, editingId, editForm]);
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,9 +66,21 @@ export default function CompanyManagement() {
     }
   };
 
+  const openAccessModal = (company: Company) => {
+    setSelectedCompany(company);
+    setAccessModalOpen(true);
+  };
+
   return (
     <SuperAdminLayout>
       <h1 className="text-2xl font-bold mb-6">Company Management</h1>
+      
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+          <strong className="font-bold">Error: </strong>
+          <span className="block sm:inline">{error}</span>
+        </div>
+      )}
       
       <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mb-8">
         <h2 className="text-lg font-bold mb-4">Register New Company</h2>
@@ -88,7 +117,8 @@ export default function CompanyManagement() {
                 <th className="pb-3">Name</th>
                 <th className="pb-3">Unique Code</th>
                 <th className="pb-3">Admin Credentials</th>
-                <th className="pb-3">Access</th>
+                <th className="pb-3 text-center">Status</th>
+                <th className="pb-3 text-center">Menu Access</th>
                 <th className="pb-3">Action</th>
               </tr>
             </thead>
@@ -106,11 +136,20 @@ export default function CompanyManagement() {
                       </td>
                       <td className="py-3 text-center">
                         <button 
-                          onClick={() => updateCompany({ ...company, isActive: !company.isActive })}
+                          onClick={() => {
+                            const newStatus = company.isActive ? 'inactive' : 'active';
+                            updateCompanyStatus(company.id, newStatus);
+                            if (editForm && editingId === company.id) {
+                              setEditForm({ ...editForm, status: newStatus, isActive: newStatus === 'active' });
+                            }
+                          }}
                           className={`px-3 py-1 rounded font-bold text-xs ${company.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}
                         >
                           {company.isActive ? 'Active' : 'Hold'}
                         </button>
+                      </td>
+                      <td className="py-3 text-center">
+                         <span className="text-xs text-slate-400">Save to edit access</span>
                       </td>
                       <td className="py-3 flex gap-2">
                         <button onClick={saveEdit} className="text-emerald-500 hover:text-emerald-700"><Save className="w-5 h-5" /></button>
@@ -128,10 +167,21 @@ export default function CompanyManagement() {
                       </td>
                       <td className="py-3 text-center">
                         <button 
-                          onClick={() => updateCompany({ ...company, isActive: !company.isActive })}
+                          onClick={() => {
+                            const newStatus = company.isActive ? 'inactive' : 'active';
+                            updateCompanyStatus(company.id, newStatus);
+                          }}
                           className={`px-3 py-1 rounded font-bold text-xs ${company.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}
                         >
                           {company.isActive ? 'Active' : 'Hold'}
+                        </button>
+                      </td>
+                      <td className="py-3 text-center">
+                        <button 
+                          onClick={() => openAccessModal(company)}
+                          className="px-3 py-1 rounded bg-indigo-100 text-indigo-700 font-bold text-xs hover:bg-indigo-200 flex items-center gap-1 mx-auto"
+                        >
+                          <Shield className="w-3 h-3" /> Manage Access
                         </button>
                       </td>
                       <td className="py-3 flex gap-2">
@@ -146,6 +196,77 @@ export default function CompanyManagement() {
           </table>
         </div>
       </div>
+
+      {/* Access Management Modal */}
+      <AnimatePresence>
+        {accessModalOpen && selectedCompany && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+            >
+              <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">All Menu Access Control</h2>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Manage menu visibility for <span className="font-bold text-indigo-600">{selectedCompany.name}</span></p>
+                </div>
+                <button onClick={() => setAccessModalOpen(false)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors">
+                  <XIcon className="w-6 h-6 text-slate-500" />
+                </button>
+              </div>
+              
+              <div className="p-6 overflow-y-auto custom-scrollbar">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {ALL_MENU_ITEMS.map((menu) => {
+                    const isAllowed = !selectedCompany.blockedMenus.includes(menu);
+                    return (
+                      <div 
+                        key={menu}
+                        onClick={() => toggleMenuAccess(selectedCompany.id, menu)}
+                        className={`
+                          cursor-pointer p-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-between
+                          ${isAllowed 
+                            ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' 
+                            : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300'
+                          }
+                        `}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`
+                            w-5 h-5 rounded flex items-center justify-center border
+                            ${isAllowed ? 'bg-emerald-500 border-emerald-500' : 'bg-white border-slate-300'}
+                          `}>
+                            {isAllowed && <Check className="w-3 h-3 text-white" />}
+                          </div>
+                          <span className={`font-medium ${isAllowed ? 'text-emerald-900 dark:text-emerald-100' : 'text-slate-600 dark:text-slate-300'}`}>
+                            {menu}
+                          </span>
+                        </div>
+                        {isAllowed ? (
+                          <span className="text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-1 rounded-full">Allowed</span>
+                        ) : (
+                          <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-full">Blocked</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="p-6 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 flex justify-end">
+                <button 
+                  onClick={() => setAccessModalOpen(false)}
+                  className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors shadow-sm"
+                >
+                  Done
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </SuperAdminLayout>
   );
 }

@@ -1,4 +1,15 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
+import { 
+  collection, 
+  onSnapshot, 
+  doc, 
+  setDoc, 
+  updateDoc, 
+  query
+} from 'firebase/firestore';
+import { db } from '../firebase';
+import { useAuth } from './AuthContext';
+import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 
 export interface TrackingData {
   employeeId: string;
@@ -31,54 +42,88 @@ export const useTimeTracking = () => {
 };
 
 export const TimeTrackingProvider = ({ children }: { children: ReactNode }) => {
-  const [trackingData, setTrackingData] = useState<Record<string, TrackingData>>(() => {
-    const saved = localStorage.getItem('timeTrackingData');
-    return saved ? JSON.parse(saved) : {};
-  });
+  const { user } = useAuth();
+  const [trackingData, setTrackingData] = useState<Record<string, TrackingData>>({});
+  const lastUpdateRef = useRef<Record<string, number>>({});
 
   useEffect(() => {
-    localStorage.setItem('timeTrackingData', JSON.stringify(trackingData));
-  }, [trackingData]);
+    if (!user) {
+      setTrackingData({});
+      return;
+    }
 
-  const updateTracking = (employeeId: string, data: Partial<TrackingData>) => {
-    setTrackingData(prev => ({
-      ...prev,
-      [employeeId]: {
-        ...prev[employeeId],
-        ...data,
-        lastActive: data.status === 'Online' ? Date.now() : (prev[employeeId]?.lastActive || Date.now())
-      }
-    }));
-  };
-
-  const startTracking = (employeeId: string, employeeName: string) => {
-    setTrackingData(prev => ({
-      ...prev,
-      [employeeId]: prev[employeeId] || {
-        employeeId,
-        employeeName,
-        status: 'Online',
-        workingTime: 0,
-        idleTime: 0,
-        mouseMoves: 0,
-        keyboardClicks: 0,
-        lastActive: Date.now(),
-        currentTask: 'General Work'
-      }
-    }));
-  };
-
-  const stopTracking = (employeeId: string) => {
-    setTrackingData(prev => {
-      if (!prev[employeeId]) return prev;
-      return {
-        ...prev,
-        [employeeId]: {
-          ...prev[employeeId],
-          status: 'Offline'
-        }
-      };
+    const q = query(collection(db, 'timeTracking'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data: Record<string, TrackingData> = {};
+      snapshot.docs.forEach(doc => {
+        data[doc.id] = doc.data() as TrackingData;
+      });
+      setTrackingData(data);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'timeTracking');
     });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  const updateTracking = async (employeeId: string, data: Partial<TrackingData>) => {
+    const updatedData = {
+      ...trackingData[employeeId],
+      ...data,
+      lastActive: data.status === 'Online' ? Date.now() : (trackingData[employeeId]?.lastActive || Date.now())
+    };
+
+    // Update local state immediately
+    setTrackingData(prev => ({ ...prev, [employeeId]: updatedData as TrackingData }));
+
+    // Throttle Firestore updates (every 10 seconds or on status change)
+    const now = Date.now();
+    const lastUpdate = lastUpdateRef.current[employeeId] || 0;
+    const statusChanged = data.status && data.status !== trackingData[employeeId]?.status;
+
+    if (statusChanged || now - lastUpdate > 10000) {
+      lastUpdateRef.current[employeeId] = now;
+      try {
+        await setDoc(doc(db, 'timeTracking', employeeId), updatedData);
+      } catch (error) {
+        console.error("Error updating time tracking:", error);
+      }
+    }
+  };
+
+  const startTracking = async (employeeId: string, employeeName: string) => {
+    const newData: TrackingData = trackingData[employeeId] || {
+      employeeId,
+      employeeName,
+      status: 'Online',
+      workingTime: 0,
+      idleTime: 0,
+      mouseMoves: 0,
+      keyboardClicks: 0,
+      lastActive: Date.now(),
+      currentTask: 'General Work'
+    };
+    
+    setTrackingData(prev => ({ ...prev, [employeeId]: newData }));
+    try {
+      await setDoc(doc(db, 'timeTracking', employeeId), newData);
+    } catch (error) {
+      console.error("Error starting tracking:", error);
+    }
+  };
+
+  const stopTracking = async (employeeId: string) => {
+    if (!trackingData[employeeId]) return;
+    const updatedData: TrackingData = {
+      ...trackingData[employeeId],
+      status: 'Offline'
+    };
+    setTrackingData(prev => ({ ...prev, [employeeId]: updatedData }));
+    try {
+      await setDoc(doc(db, 'timeTracking', employeeId), updatedData);
+    } catch (error) {
+      console.error("Error stopping tracking:", error);
+    }
   };
 
   // Global timer to increment working/idle time for active employees

@@ -25,6 +25,7 @@ import {
 import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
 import { useSettings } from '../../context/SettingsContext';
+import { useCompanyData } from '../../context/CompanyDataContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
@@ -66,60 +67,27 @@ interface Sale {
 export default function ProjectManagement() {
   const { theme } = useTheme();
   const settings = useSettings();
+  const { projects, tasks, sales, addEntity, updateEntity, deleteEntity } = useCompanyData();
   const isDark = theme === 'dark';
   const [activeTab, setActiveTab] = useState<'projects' | 'tasks' | 'sales'>('projects');
-
-  // Projects State
-  const [projects, setProjects] = useState<Project[]>([
-    { 
-      id: 'p1', 
-      companyName: 'TechCorp Solutions', 
-      hrPersonDetails: 'Sarah Miller (hr@techcorp.com)', 
-      contactPersonDetails: 'Mike Ross (+1 555-0123)', 
-      projectType: 'Software Development', 
-      duration: '6 Months', 
-      startDate: '2024-03-01', 
-      endDate: '2024-09-01', 
-      timeline: 'Phase 1: Planning, Phase 2: Dev', 
-      assignedTo: 'Engineering Team A',
-      status: 'In Progress'
-    }
-  ]);
-
-  // Tasks State
-  const [tasks, setTasks] = useState<Task[]>([
-    { id: 't1', projectId: 'p1', title: 'Initial Client Meeting', description: 'Discuss project requirements and scope.', assignee: 'John Doe', priority: 'High', status: 'Done' },
-    { id: 't2', projectId: 'p1', title: 'Architecture Design', description: 'Create system architecture diagrams.', assignee: 'Jane Smith', priority: 'High', status: 'In Progress' },
-    { id: 't3', projectId: 'p1', title: 'Setup Dev Environment', description: 'Configure servers and CI/CD pipelines.', assignee: 'Bob Wilson', priority: 'Medium', status: 'To Do' },
-  ]);
-
-  // Sales State
-  const [sales, setSales] = useState<Sale[]>([
-    { id: 's1', sellerName: 'Alice Green', productName: 'Enterprise ERP', saleAmount: 50000, commissionPercentage: 5, commissionAmount: 2500, payViaPayroll: true, date: '2024-02-25' }
-  ]);
 
   const [isAddingProject, setIsAddingProject] = useState(false);
   const [newProject, setNewProject] = useState<Partial<Project>>({
     companyName: '', hrPersonDetails: '', contactPersonDetails: '', projectType: '', duration: '', startDate: '', endDate: '', timeline: '', assignedTo: '', status: 'Onboarding'
   });
 
-  const handleAddProject = () => {
-    const project: Project = {
-      id: Math.random().toString(36).substr(2, 9),
-      ...newProject as Project
-    };
-    setProjects([...projects, project]);
+  const handleAddProject = async () => {
+    await addEntity('projects', newProject);
     setIsAddingProject(false);
     setNewProject({ companyName: '', hrPersonDetails: '', contactPersonDetails: '', projectType: '', duration: '', startDate: '', endDate: '', timeline: '', assignedTo: '', status: 'Onboarding' });
   };
 
-  const updateTaskStatus = (taskId: string, newStatus: Task['status']) => {
-    setTasks(tasks.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
+  const updateTaskStatus = async (taskId: string, newStatus: Task['status']) => {
+    await updateEntity('tasks', taskId, { status: newStatus });
   };
 
-  const addSale = () => {
-    const newSale: Sale = {
-      id: Math.random().toString(36).substr(2, 9),
+  const addSale = async () => {
+    const newSale = {
       sellerName: 'New Seller',
       productName: '',
       saleAmount: 0,
@@ -128,30 +96,28 @@ export default function ProjectManagement() {
       payViaPayroll: true,
       date: new Date().toISOString().split('T')[0]
     };
-    setSales([...sales, newSale]);
+    await addEntity('sales', newSale);
   };
 
-  const updateSale = (id: string, field: keyof Sale, value: any) => {
-    setSales(sales.map(s => {
-      if (s.id === id) {
-        const updatedSale = { ...s, [field]: value };
-        if (field === 'saleAmount' || field === 'commissionPercentage') {
-          updatedSale.commissionAmount = (updatedSale.saleAmount * updatedSale.commissionPercentage) / 100;
-        }
-        return updatedSale;
-      }
-      return s;
-    }));
+  const updateSale = async (id: string, field: keyof Sale, value: any) => {
+    const sale = sales.find(s => s.id === id);
+    if (!sale) return;
+
+    const updatedSale = { ...sale, [field]: value };
+    if (field === 'saleAmount' || field === 'commissionPercentage') {
+      updatedSale.commissionAmount = (updatedSale.saleAmount * updatedSale.commissionPercentage) / 100;
+    }
+    await updateEntity('sales', id, updatedSale);
   };
 
-  const onDragEnd = (result: DropResult) => {
+  const onDragEnd = async (result: DropResult) => {
     if (!result.destination) return;
     
     const { source, destination, draggableId } = result;
     
     if (source.droppableId !== destination.droppableId) {
       const newStatus = destination.droppableId as Task['status'];
-      setTasks(tasks.map(t => t.id === draggableId ? { ...t, status: newStatus } : t));
+      await updateEntity('tasks', draggableId, { status: newStatus });
     }
   };
 
@@ -163,16 +129,16 @@ export default function ProjectManagement() {
     setIsTaskModalOpen(true);
   };
 
-  const handleDeleteTask = (taskId: string) => {
-    setTasks(tasks.filter(t => t.id !== taskId));
+  const handleDeleteTask = async (taskId: string) => {
+    await deleteEntity('tasks', taskId);
   };
 
-  const handleSaveTask = () => {
+  const handleSaveTask = async () => {
     if (editingTask) {
-      if (tasks.find(t => t.id === editingTask.id)) {
-        setTasks(tasks.map(t => t.id === editingTask.id ? editingTask : t));
+      if (editingTask.id && tasks.find(t => t.id === editingTask.id)) {
+        await updateEntity('tasks', editingTask.id, editingTask);
       } else {
-        setTasks([...tasks, editingTask]);
+        await addEntity('tasks', editingTask);
       }
       setIsTaskModalOpen(false);
       setEditingTask(null);
@@ -181,7 +147,7 @@ export default function ProjectManagement() {
 
   const handleCreateTask = () => {
     setEditingTask({
-      id: Math.random().toString(36).substr(2, 9),
+      id: '',
       projectId: projects[0]?.id || '',
       title: 'New Task',
       description: '',
@@ -436,7 +402,7 @@ export default function ProjectManagement() {
                           </td>
                           <td className="px-4 py-3 text-sm text-right">
                             <button 
-                              onClick={() => setSales(sales.filter(s => s.id !== sale.id))}
+                              onClick={() => deleteEntity('sales', sale.id)}
                               className="p-1.5 text-red-500 hover:bg-red-50 rounded"
                             >
                               <Trash2 className="w-4 h-4" />

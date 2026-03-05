@@ -2,18 +2,17 @@ import { useState, ChangeEvent, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Building2, Upload, ArrowLeft, CheckCircle2 } from 'lucide-react';
-import { useSuperAdmin } from '../context/SuperAdminContext';
+import { db } from '../firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { Company, Invoice } from '../context/SuperAdminContext';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const { addCompany } = useSuperAdmin();
   const [isLoading, setIsLoading] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     companyName: '',
-    userName: '',
-    password: '',
     officialEmail: '',
     officialMobile: '',
     companyAddress: '',
@@ -27,6 +26,10 @@ export default function RegisterPage() {
   const handleLogoChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 1024 * 1024) { // 1MB limit
+        alert("Logo file size must be less than 1MB.");
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         setLogoPreview(reader.result as string);
@@ -39,25 +42,61 @@ export default function RegisterPage() {
     e.preventDefault();
     setIsLoading(true);
     
-    // Add company to SuperAdminContext
-    addCompany({
-      name: formData.companyName,
-      email: formData.officialEmail,
-      mobile: formData.officialMobile,
-      subscriptionPlan: 'Basic',
-      uniqueCode: Math.random().toString(36).substring(2, 9).toUpperCase(),
-      logo: logoPreview || '',
-      headOffice: formData.companyAddress,
-      adminUsername: formData.userName,
-      adminPassword: formData.password,
-    });
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsLoading(false);
-    // Redirect to Employer Dashboard
-    navigate('/dashboard');
+    try {
+      const companyId = Date.now().toString();
+      
+      // Auto-generate credentials
+      const generatedUsername = formData.companyName.replace(/\s+/g, '').toLowerCase() + Math.floor(1000 + Math.random() * 9000);
+      const generatedPassword = Math.random().toString(36).slice(-8);
+      const generatedUniqueCode = Math.random().toString(36).substring(2, 9).toUpperCase();
+
+      const newCompany: Company = {
+        id: companyId,
+        name: formData.companyName,
+        email: formData.officialEmail,
+        mobile: formData.officialMobile,
+        subscriptionPlan: 'Basic',
+        uniqueCode: generatedUniqueCode,
+        logo: logoPreview || '',
+        headOffice: formData.companyAddress,
+        adminUsername: generatedUsername,
+        adminPassword: generatedPassword,
+        status: 'inactive', // Pending approval
+        blockedMenus: [],
+        isActive: false, // Pending approval
+      };
+
+      await setDoc(doc(db, 'companies', companyId), newCompany);
+      
+      // Auto-generate invoice (optional for pending companies, but keeping it for consistency)
+      const plan = 'Basic';
+      const rate = 100;
+      const invoiceId = Date.now().toString() + '_inv';
+      const newInvoice: Invoice = {
+        id: invoiceId,
+        companyId: companyId,
+        invoiceNumber: 'INV-' + Math.floor(100000 + Math.random() * 900000),
+        date: new Date().toISOString().split('T')[0],
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        items: [
+          { id: '1', description: `Subscription Fee - ${plan}`, quantity: 1, rate: rate, amount: rate }
+        ],
+        total: rate,
+        status: 'unpaid',
+        template: 'basic',
+        notes: 'Thank you for your business!',
+        terms: 'Payment due within 30 days.'
+      };
+      await setDoc(doc(db, 'invoices', invoiceId), newInvoice);
+      
+      setIsLoading(false);
+      alert("Registration submitted successfully! Your account is pending approval by Super Admin.");
+      navigate('/login');
+    } catch (err) {
+      console.error("Registration failed:", err);
+      setIsLoading(false);
+      alert("Registration failed. Please try again. " + (err instanceof Error ? err.message : String(err)));
+    }
   };
 
   return (
@@ -103,44 +142,6 @@ export default function RegisterPage() {
                     onChange={handleInputChange}
                     className="block w-full rounded-lg border-slate-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2.5 border"
                     placeholder="Acme Corp"
-                  />
-                </div>
-              </div>
-
-              {/* User Name */}
-              <div>
-                <label htmlFor="userName" className="block text-sm font-medium text-slate-700">
-                  Admin User Name
-                </label>
-                <div className="mt-1">
-                  <input
-                    id="userName"
-                    name="userName"
-                    type="text"
-                    required
-                    value={formData.userName}
-                    onChange={handleInputChange}
-                    className="block w-full rounded-lg border-slate-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2.5 border"
-                    placeholder="johndoe"
-                  />
-                </div>
-              </div>
-
-              {/* Password */}
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-slate-700">
-                  Password
-                </label>
-                <div className="mt-1">
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    required
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    className="block w-full rounded-lg border-slate-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2.5 border"
-                    placeholder="••••••••"
                   />
                 </div>
               </div>

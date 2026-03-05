@@ -1,0 +1,361 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A system user (admin, superadmin, or employee)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "employee", "superadmin"] },
+        "avatar": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "lastLogin": { "type": "string" }
+      },
+      "required": ["id", "email", "role"]
+    },
+    "Company": {
+      "title": "Company",
+      "description": "A registered company in the system",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "website": { "type": "string" },
+        "phone": { "type": "string" },
+        "address": { "type": "string" },
+        "logo": { "type": "string" },
+        "adminUsername": { "type": "string" },
+        "adminPassword": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "blockedMenus": { "type": "array", "items": { "type": "string" } },
+        "subscriptionPlan": { "type": "string", "enum": ["Basic", "Pro", "Enterprise"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "adminUsername", "adminPassword"]
+    },
+    "Employee": {
+      "title": "Employee",
+      "description": "An employee belonging to a company",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "employeeId": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "mobile": { "type": "string" },
+        "dob": { "type": "string" },
+        "designation": { "type": "string" },
+        "joiningDate": { "type": "string" },
+        "status": { "type": "string", "enum": ["Active", "Inactive", "Terminated", "Resigned"] },
+        "bloodGroup": { "type": "string" },
+        "nationalId": { "type": "string" },
+        "department": { "type": "string" },
+        "employeeType": { "type": "string" },
+        "country": { "type": "string" },
+        "gender": { "type": "string" },
+        "maritalStatus": { "type": "string" },
+        "avatar": { "type": "string" },
+        "salary": { "type": "number" },
+        "taxDeduction": { "type": "number" },
+        "bankName": { "type": "string" },
+        "bankAccountNo": { "type": "string" },
+        "modeOfPayment": { "type": "string" },
+        "username": { "type": "string" },
+        "password": { "type": "string" }
+      },
+      "required": ["id", "companyId", "employeeId", "name"]
+    },
+    "Holiday": {
+      "title": "Holiday",
+      "description": "A public or company holiday",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "fromDate": { "type": "string" },
+        "toDate": { "type": "string" },
+        "totalDays": { "type": "number" }
+      },
+      "required": ["id", "name", "fromDate", "toDate"]
+    },
+    "WeeklyHoliday": {
+      "title": "Weekly Holiday",
+      "description": "Weekly recurring holidays",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "days": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["id", "days"]
+    },
+    "LeaveType": {
+      "title": "Leave Type",
+      "description": "Type of leave available to employees",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "days": { "type": "number" },
+        "customFields": { 
+          "type": "array", 
+          "items": { 
+            "type": "object",
+            "properties": {
+              "key": { "type": "string" },
+              "value": { "type": "string" }
+            }
+          } 
+        }
+      },
+      "required": ["id", "name", "days"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "An invoice generated for a company",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "invoiceNumber": { "type": "string" },
+        "date": { "type": "string" },
+        "dueDate": { "type": "string" },
+        "status": { "type": "string", "enum": ["Paid", "Unpaid", "Overdue"] },
+        "totalAmount": { "type": "number" },
+        "items": { "type": "array" },
+        "notes": { "type": "string" },
+        "terms": { "type": "string" }
+      },
+      "required": ["id", "companyId", "invoiceNumber"]
+    },
+    "AttendanceRecord": {
+      "title": "AttendanceRecord",
+      "description": "Daily attendance log for an employee",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "employeeId": { "type": "string" },
+        "employeeName": { "type": "string" },
+        "date": { "type": "string" },
+        "loginTime": { "type": "string" },
+        "logoutTime": { "type": "string" },
+        "workingHours": { "type": "string" },
+        "totalMinutes": { "type": "number" },
+        "status": { "type": "string" },
+        "logs": { "type": "array" },
+        "currentState": { "type": "string" }
+      },
+      "required": ["id", "companyId", "employeeId", "date"]
+    },
+    "LeaveRequest": {
+      "title": "LeaveRequest",
+      "description": "A leave request submitted by an employee",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "employeeId": { "type": "string" },
+        "employeeName": { "type": "string" },
+        "type": { "type": "string" },
+        "startDate": { "type": "string" },
+        "endDate": { "type": "string" },
+        "days": { "type": "number" },
+        "reason": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] },
+        "appliedDate": { "type": "string" }
+      },
+      "required": ["id", "companyId", "employeeId", "status"]
+    },
+    "Award": {
+      "title": "Award",
+      "description": "An award given to an employee",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "awardName": { "type": "string" },
+        "description": { "type": "string" },
+        "giftItem": { "type": "string" },
+        "date": { "type": "string" },
+        "employeeName": { "type": "string" },
+        "awardBy": { "type": "string" }
+      },
+      "required": ["id", "companyId", "awardName", "employeeName"]
+    },
+    "Department": {
+      "title": "Department",
+      "description": "A department within a company",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "name": { "type": "string" },
+        "head": { "type": "string" }
+      },
+      "required": ["id", "companyId", "name"]
+    },
+    "SubDepartment": {
+      "title": "SubDepartment",
+      "description": "A sub-department within a department",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "name": { "type": "string" },
+        "parentDept": { "type": "string" },
+        "status": { "type": "string", "enum": ["Active", "Inactive"] }
+      },
+      "required": ["id", "companyId", "name", "parentDept"]
+    },
+    "Notice": {
+      "title": "Notice",
+      "description": "A notice posted on the board",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "date": { "type": "string" },
+        "postedBy": { "type": "string" }
+      },
+      "required": ["id", "companyId", "title"]
+    },
+    "Project": {
+      "title": "Project",
+      "description": "A project managed by the company",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string" },
+        "deadline": { "type": "string" },
+        "team": { "type": "array" }
+      },
+      "required": ["id", "companyId", "name"]
+    },
+    "Asset": {
+      "title": "Asset",
+      "description": "A company asset",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "serialNumber": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "companyId", "name"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "A task within a project",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "projectId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "assignee": { "type": "string" },
+        "priority": { "type": "string", "enum": ["Low", "Medium", "High"] },
+        "status": { "type": "string", "enum": ["To Do", "In Progress", "Review", "Done"] }
+      },
+      "required": ["id", "companyId", "projectId", "title"]
+    },
+    "Sale": {
+      "title": "Sale",
+      "description": "A sale record for commission tracking",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "sellerName": { "type": "string" },
+        "productName": { "type": "string" },
+        "saleAmount": { "type": "number" },
+        "commissionPercentage": { "type": "number" },
+        "commissionAmount": { "type": "number" },
+        "payViaPayroll": { "type": "boolean" },
+        "date": { "type": "string" }
+      },
+      "required": ["id", "companyId", "sellerName", "saleAmount"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of system users"
+    },
+    "/companies/{companyId}": {
+      "schema": "Company",
+      "description": "Collection of registered companies"
+    },
+    "/employees/{employeeId}": {
+      "schema": "Employee",
+      "description": "Collection of all employees across all companies"
+    },
+    "/holidays/{holidayId}": {
+      "schema": "Holiday",
+      "description": "Collection of holidays"
+    },
+    "/weeklyHolidays/{configId}": {
+      "schema": "WeeklyHoliday",
+      "description": "Configuration for weekly holidays"
+    },
+    "/leaveTypes/{typeId}": {
+      "schema": "LeaveType",
+      "description": "Collection of leave types"
+    },
+    "/invoices/{invoiceId}": {
+      "schema": "Invoice",
+      "description": "Collection of all invoices"
+    },
+    "/attendance/{recordId}": {
+      "schema": "AttendanceRecord",
+      "description": "Collection of attendance records"
+    },
+    "/leaves/{requestId}": {
+      "schema": "LeaveRequest",
+      "description": "Collection of leave requests"
+    },
+    "/awards/{awardId}": {
+      "schema": "Award",
+      "description": "Collection of awards"
+    },
+    "/departments/{deptId}": {
+      "schema": "Department",
+      "description": "Collection of departments"
+    },
+    "/subDepartments/{subDeptId}": {
+      "schema": "SubDepartment",
+      "description": "Collection of sub-departments"
+    },
+    "/notices/{noticeId}": {
+      "schema": "Notice",
+      "description": "Collection of notices"
+    },
+    "/projects/{projectId}": {
+      "schema": "Project",
+      "description": "Collection of projects"
+    },
+    "/assets/{assetId}": {
+      "schema": "Asset",
+      "description": "Collection of assets"
+    },
+    "/tasks/{taskId}": {
+      "schema": "Task",
+      "description": "Collection of tasks"
+    },
+    "/sales/{saleId}": {
+      "schema": "Sale",
+      "description": "Collection of sales"
+    }
+  }
+}

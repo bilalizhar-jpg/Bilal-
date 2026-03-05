@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
+import { useCompanyData } from '../../context/CompanyDataContext';
 
 interface Asset {
   id: string;
@@ -27,30 +28,34 @@ interface Asset {
   status: 'In Use' | 'In Stock' | 'Under Repair' | 'Retired';
 }
 
-const initialAssets: Asset[] = [
-  { id: '1', assetType: 'Computer', assetName: 'MacBook Pro 16"', serialNumber: 'MBP-2024-001', assignedTo: 'John Doe', assignedDate: '2024-01-15', status: 'In Use' },
-  { id: '2', assetType: 'Headphone', assetName: 'Sony WH-1000XM5', serialNumber: 'SNY-H-042', assignedTo: 'Jane Smith', assignedDate: '2024-02-10', status: 'In Use' },
-  { id: '3', assetType: 'Mobile', assetName: 'iPhone 15 Pro', serialNumber: 'IPH-15P-992', assignedTo: 'Robert Johnson', assignedDate: '2024-03-05', status: 'In Use' },
-  { id: '4', assetType: 'SIM', assetName: 'Corporate SIM - AT&T', serialNumber: 'SIM-ATT-442', assignedTo: 'Robert Johnson', assignedDate: '2024-03-05', status: 'In Use' },
-  { id: '5', assetType: 'Computer', assetName: 'Dell XPS 15', serialNumber: 'DEL-XPS-112', assignedTo: '', assignedDate: '', status: 'In Stock' },
-];
-
 export default function AssetManagement() {
   const { theme } = useTheme();
+  const { assets, addEntity, updateEntity, deleteEntity } = useCompanyData();
   const isDark = theme === 'dark';
   const [searchTerm, setSearchTerm] = useState('');
-  const [assets, setAssets] = useState<Asset[]>(initialAssets);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this asset record?')) {
-      setAssets(assets.filter(a => a.id !== id));
+      await deleteEntity('assets', id);
     }
   };
 
-  const handleUpdate = (id: string, field: keyof Asset, value: string) => {
-    setAssets(assets.map(a => a.id === id ? { ...a, [field]: value } : a));
+  const handleUpdate = async (id: string, field: keyof Asset, value: string) => {
+    await updateEntity('assets', id, { [field]: value });
+  };
+
+  const handleAddNew = async () => {
+    const newAsset = {
+      assetType: 'Other',
+      assetName: 'New Asset',
+      serialNumber: '',
+      assignedTo: '',
+      assignedDate: '',
+      status: 'In Stock'
+    };
+    await addEntity('assets', newAsset);
   };
 
   const getAssetIcon = (type: string) => {
@@ -70,7 +75,7 @@ export default function AssetManagement() {
           <h2 className="text-xl font-bold text-slate-800 dark:text-white">Company Asset Management</h2>
           <div className="flex gap-2">
             <button 
-              onClick={() => setIsAddingNew(true)}
+              onClick={handleAddNew}
               className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-indigo-700"
             >
               <Plus className="w-4 h-4" />

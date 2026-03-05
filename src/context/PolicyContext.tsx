@@ -1,4 +1,14 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { 
+  collection, 
+  onSnapshot, 
+  doc, 
+  setDoc, 
+  deleteDoc,
+  query
+} from 'firebase/firestore';
+import { db } from '../firebase';
+import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 
 export interface CompanyPolicy {
   id: string;
@@ -27,38 +37,55 @@ export const usePolicies = () => {
   return context;
 };
 
+import { useAuth } from './AuthContext';
+
+// ... imports
+
 export const PolicyProvider = ({ children }: { children: ReactNode }) => {
-  const [policies, setPolicies] = useState<CompanyPolicy[]>(() => {
-    const saved = localStorage.getItem('companyPolicies');
-    if (saved) return JSON.parse(saved);
-    return [
-      {
-        id: '1',
-        location: 'Head Office',
-        title: 'Office Tour Agreement March 2026',
-        description: 'Office Tour Agreement',
-        methodType: 'create',
-        content: 'This is the official office tour agreement for March 2026. All employees must adhere to the guidelines specified herein.',
-        dateAdded: '2026-03-01'
-      }
-    ];
-  });
+  const { user } = useAuth();
+  const [policies, setPolicies] = useState<CompanyPolicy[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    localStorage.setItem('companyPolicies', JSON.stringify(policies));
-  }, [policies]);
+    if (!user) {
+      setPolicies([]);
+      setLoading(false);
+      return;
+    }
 
-  const addPolicy = (policy: Omit<CompanyPolicy, 'id' | 'dateAdded'>) => {
+    const q = query(collection(db, 'policies'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const policiesData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as CompanyPolicy));
+      setPolicies(policiesData);
+      setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'policies');
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  const addPolicy = async (policy: Omit<CompanyPolicy, 'id' | 'dateAdded'>) => {
+    const id = Math.random().toString(36).substr(2, 9);
     const newPolicy: CompanyPolicy = {
       ...policy,
-      id: Math.random().toString(36).substr(2, 9),
+      id,
       dateAdded: new Date().toISOString().split('T')[0]
     };
-    setPolicies(prev => [newPolicy, ...prev]);
+    
+    try {
+      await setDoc(doc(db, 'policies', id), newPolicy);
+    } catch (error) {
+      console.error("Error adding policy:", error);
+    }
   };
 
-  const deletePolicy = (id: string) => {
-    setPolicies(prev => prev.filter(p => p.id !== id));
+  const deletePolicy = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'policies', id));
+    } catch (error) {
+      console.error("Error deleting policy:", error);
+    }
   };
 
   return (

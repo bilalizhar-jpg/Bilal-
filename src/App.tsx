@@ -78,12 +78,36 @@ import EmployeeMessages from './pages/employee-portal/Messages';
 import EmployeeCompanyPolicies from './pages/employee-portal/CompanyPolicies';
 
 import { AnimatePresence } from 'motion/react';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import { db } from './firebase';
+import { doc, getDocFromServer } from 'firebase/firestore';
+
+async function testConnection() {
+  try {
+    await getDocFromServer(doc(db, 'test', 'connection'));
+    console.log("Firestore connection successful");
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('the client is offline')) {
+      console.error("Please check your Firebase configuration. The client is offline.");
+    }
+  }
+}
+
+testConnection();
 
 function AppContent() {
   const location = useLocation();
+  const { isFirebaseReady } = useAuth();
   const isAuthPage = location.pathname !== '/' && location.pathname !== '/careers';
+
+  if (!isFirebaseReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -192,27 +216,30 @@ import { TimeTrackingProvider } from './context/TimeTrackingContext';
 import { LeaveProvider } from './context/LeaveContext';
 import { PolicyProvider } from './context/PolicyContext';
 import { LetterProvider } from './context/LetterContext';
+import { CompanyDataProvider } from './context/CompanyDataContext';
 
 export default function App() {
   return (
-    <SuperAdminProvider>
-      <AuthProvider>
+    <AuthProvider>
+      <SuperAdminProvider>
         <EmployeeProvider>
           <AttendanceProvider>
             <TimeTrackingProvider>
               <LeaveProvider>
                 <PolicyProvider>
                   <LetterProvider>
-                    <Router>
-                      <AppContent />
-                    </Router>
+                    <CompanyDataProvider>
+                      <Router>
+                        <AppContent />
+                      </Router>
+                    </CompanyDataProvider>
                   </LetterProvider>
                 </PolicyProvider>
               </LeaveProvider>
             </TimeTrackingProvider>
           </AttendanceProvider>
         </EmployeeProvider>
-      </AuthProvider>
-    </SuperAdminProvider>
+      </SuperAdminProvider>
+    </AuthProvider>
   );
 }

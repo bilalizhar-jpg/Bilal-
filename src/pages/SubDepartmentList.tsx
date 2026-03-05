@@ -33,9 +33,10 @@ import {
 import { Link } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import { useTheme } from '../context/ThemeContext';
+import { useCompanyData } from '../context/CompanyDataContext';
 
 interface SubDepartment {
-  id: number;
+  id: string;
   name: string;
   parentDept: string;
   status: 'Active' | 'Inactive';
@@ -45,19 +46,12 @@ interface SubDepartment {
 
 export default function SubDepartmentList() {
   const { theme } = useTheme();
+  const { subDepartments, departments, addEntity, updateEntity, deleteEntity } = useCompanyData();
   const isDark = theme === 'dark';
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubDept, setEditingSubDept] = useState<SubDepartment | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentTime, setCurrentTime] = useState(Date.now());
-
-  const [subDepartments, setSubDepartments] = useState<SubDepartment[]>([
-    { id: 1, name: 'HR', parentDept: 'Electrical', status: 'Active' },
-    { id: 2, name: 'Accounts', parentDept: 'Electrical', status: 'Active' },
-    { id: 3, name: 'Finance', parentDept: 'Production', status: 'Active' },
-    { id: 4, name: 'Sales', parentDept: 'Production', status: 'Active' },
-    { id: 5, name: 'Angelica Goff', parentDept: 'Electrical', status: 'Active' },
-  ]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -99,30 +93,22 @@ export default function SubDepartmentList() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingSubDept) {
-      setSubDepartments(subDepartments.map(s => s.id === editingSubDept.id ? { ...s, ...formData } : s));
+      await updateEntity('subDepartments', editingSubDept.id, formData);
     } else {
-      const newSubDept: SubDepartment = {
-        id: Math.max(0, ...subDepartments.map(s => s.id)) + 1,
-        ...formData
-      };
-      setSubDepartments([...subDepartments, newSubDept]);
+      await addEntity('subDepartments', formData);
     }
     handleCloseModal();
   };
 
-  const handleDelete = (id: number) => {
-    setSubDepartments(subDepartments.map(s => 
-      s.id === id ? { ...s, isDeleted: true, deletedAt: Date.now() } : s
-    ));
+  const handleDelete = async (id: string) => {
+    await updateEntity('subDepartments', id, { isDeleted: true, deletedAt: Date.now() });
   };
 
-  const handleRecover = (id: number) => {
-    setSubDepartments(subDepartments.map(s => 
-      s.id === id ? { ...s, isDeleted: false, deletedAt: undefined } : s
-    ));
+  const handleRecover = async (id: string) => {
+    await updateEntity('subDepartments', id, { isDeleted: false, deletedAt: null });
   };
 
   const filteredSubDepartments = subDepartments.filter(s => {
@@ -186,20 +172,20 @@ export default function SubDepartmentList() {
                     <tr key={sub.id} className={`transition-colors ${sub.isDeleted ? 'bg-red-50/50' : 'hover:bg-slate-50/50'}`}>
                       <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{index + 1}</td>
                       <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">
-                        {sub.name}
+                        {(sub as any).name}
                         {sub.isDeleted && <span className="ml-2 text-[10px] font-bold text-red-600 uppercase tracking-wider">(Deleted)</span>}
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{sub.parentDept}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{(sub as any).parentDept}</td>
                       <td className="px-4 py-3 text-sm border-r border-slate-100">
-                        <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase ${sub.status === 'Active' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
-                          {sub.status}
+                        <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase ${(sub as any).status === 'Active' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
+                          {(sub as any).status}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm">
                         <div className="flex items-center gap-2">
                           {!sub.isDeleted ? (
                             <>
-                              <button onClick={() => handleOpenModal(sub)} className="p-1.5 text-emerald-600 bg-emerald-50 rounded border border-emerald-100 hover:bg-emerald-100"><Edit className="w-3.5 h-3.5" /></button>
+                              <button onClick={() => handleOpenModal(sub as any)} className="p-1.5 text-emerald-600 bg-emerald-50 rounded border border-emerald-100 hover:bg-emerald-100"><Edit className="w-3.5 h-3.5" /></button>
                               <button onClick={() => handleDelete(sub.id)} className="p-1.5 text-red-600 bg-red-50 rounded border border-red-100 hover:bg-red-100"><Trash2 className="w-3.5 h-3.5" /></button>
                             </>
                           ) : (
@@ -236,9 +222,9 @@ export default function SubDepartmentList() {
                   <label className="block text-sm font-bold text-slate-700 mb-1">Department name <span className="text-red-500">*</span></label>
                   <select name="parentDept" required value={formData.parentDept} onChange={handleInputChange} className="w-full border border-slate-200 rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500">
                     <option value="">Select Department</option>
-                    <option value="Electrical">Electrical</option>
-                    <option value="Production">Production</option>
-                    <option value="Human Resources">Human Resources</option>
+                    {departments.map(dept => (
+                      <option key={dept.id} value={dept.name}>{dept.name}</option>
+                    ))}
                   </select>
                 </div>
                 <div>

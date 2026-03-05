@@ -1,4 +1,15 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { 
+  collection, 
+  onSnapshot, 
+  doc, 
+  setDoc, 
+  updateDoc,
+  deleteDoc,
+  query
+} from 'firebase/firestore';
+import { db } from '../firebase';
+import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 
 export interface Letter {
   id: string;
@@ -39,59 +50,95 @@ export const useLetters = () => {
   return context;
 };
 
+import { useAuth } from './AuthContext'; // Import useAuth
+
+// ... imports
+
 export const LetterProvider = ({ children }: { children: ReactNode }) => {
-  const [letters, setLetters] = useState<Letter[]>(() => {
-    const saved = localStorage.getItem('letters');
-    if (saved) return JSON.parse(saved);
-    return [];
-  });
-
-  const [templates, setTemplates] = useState<LetterTemplate[]>(() => {
-    const saved = localStorage.getItem('letterTemplates');
-    if (saved) return JSON.parse(saved);
-    return [
-      {
-        id: '1',
-        name: 'Standard Warning Letter',
-        content: 'Dear [Employee Name],\n\nThis letter serves as a formal warning regarding [Reason].\n\nPlease ensure this does not happen again.\n\nSincerely,\nHR Department'
-      }
-    ];
-  });
+  const { user } = useAuth(); // Get user
+  const [letters, setLetters] = useState<Letter[]>([]);
+  const [templates, setTemplates] = useState<LetterTemplate[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    localStorage.setItem('letters', JSON.stringify(letters));
-  }, [letters]);
+    if (!user) {
+      setLetters([]);
+      setTemplates([]);
+      setLoading(false);
+      return;
+    }
 
-  useEffect(() => {
-    localStorage.setItem('letterTemplates', JSON.stringify(templates));
-  }, [templates]);
+    const qLetters = query(collection(db, 'letters'));
+    const unsubscribeLetters = onSnapshot(qLetters, (snapshot) => {
+      const lettersData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Letter));
+      setLetters(lettersData);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'letters');
+    });
 
-  const addLetter = (letter: Omit<Letter, 'id'>) => {
+    const qTemplates = query(collection(db, 'letterTemplates'));
+    const unsubscribeTemplates = onSnapshot(qTemplates, (snapshot) => {
+      const templatesData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as LetterTemplate));
+      setTemplates(templatesData);
+      setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'letterTemplates');
+    });
+
+    return () => {
+      unsubscribeLetters();
+      unsubscribeTemplates();
+    };
+  }, [user]); // Depend on user
+
+  const addLetter = async (letter: Omit<Letter, 'id'>) => {
+    const id = Math.random().toString(36).substr(2, 9);
     const newLetter: Letter = {
       ...letter,
-      id: Math.random().toString(36).substr(2, 9),
+      id,
     };
-    setLetters(prev => [newLetter, ...prev]);
+    try {
+      await setDoc(doc(db, 'letters', id), newLetter);
+    } catch (error) {
+      console.error("Error adding letter:", error);
+    }
   };
 
-  const updateLetterStatus = (id: string, status: 'Saved' | 'Sent') => {
-    setLetters(prev => prev.map(l => l.id === id ? { ...l, status } : l));
+  const updateLetterStatus = async (id: string, status: 'Saved' | 'Sent') => {
+    try {
+      await updateDoc(doc(db, 'letters', id), { status });
+    } catch (error) {
+      console.error("Error updating letter status:", error);
+    }
   };
 
-  const deleteLetter = (id: string) => {
-    setLetters(prev => prev.filter(l => l.id !== id));
+  const deleteLetter = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'letters', id));
+    } catch (error) {
+      console.error("Error deleting letter:", error);
+    }
   };
 
-  const addTemplate = (template: Omit<LetterTemplate, 'id'>) => {
+  const addTemplate = async (template: Omit<LetterTemplate, 'id'>) => {
+    const id = Math.random().toString(36).substr(2, 9);
     const newTemplate: LetterTemplate = {
       ...template,
-      id: Math.random().toString(36).substr(2, 9),
+      id,
     };
-    setTemplates(prev => [...prev, newTemplate]);
+    try {
+      await setDoc(doc(db, 'letterTemplates', id), newTemplate);
+    } catch (error) {
+      console.error("Error adding template:", error);
+    }
   };
 
-  const deleteTemplate = (id: string) => {
-    setTemplates(prev => prev.filter(t => t.id !== id));
+  const deleteTemplate = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'letterTemplates', id));
+    } catch (error) {
+      console.error("Error deleting template:", error);
+    }
   };
 
   return (

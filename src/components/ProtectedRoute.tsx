@@ -19,6 +19,11 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
   }
 
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
+    // Special case: Super Admin can access Admin routes if impersonating a company
+    if (user.role === 'superadmin' && allowedRoles.includes('admin') && user.companyId) {
+      return <>{children}</>;
+    }
+
     // Redirect to appropriate dashboard if role doesn't match
     if (user.role === 'superadmin') {
       return <Navigate to="/super-admin/dashboard" replace />;

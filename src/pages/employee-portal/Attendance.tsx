@@ -198,7 +198,7 @@ export default function EmployeeAttendance() {
       stopTracking(empId);
     }
 
-    addLog(empId, user.name, actionStr, locStr, timeStr, todayDate, newState);
+    addLog(user.companyId || '', empId, user.name, actionStr, locStr, timeStr, todayDate, newState);
   };
 
   return (

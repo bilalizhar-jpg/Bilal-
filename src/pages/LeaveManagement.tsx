@@ -65,37 +65,33 @@ type TabType = 'weekly' | 'holiday' | 'type' | 'approval' | 'report';
 export default function LeaveManagement() {
   const { theme } = useTheme();
   const { employees } = useEmployees();
-  const { leaveRequests, updateLeaveStatus } = useLeaves();
+  const { 
+    leaveRequests, 
+    updateLeaveStatus,
+    holidays,
+    weeklyHolidays,
+    leaveTypes,
+    addHoliday,
+    updateHoliday,
+    deleteHoliday,
+    updateWeeklyHoliday,
+    addLeaveType,
+    updateLeaveType,
+    deleteLeaveType
+  } = useLeaves();
   const activeEmployees = employees.filter(e => e.status === 'Active');
   const isDark = theme === 'dark';
   const [activeTab, setActiveTab] = useState<TabType>('weekly');
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState<'holiday' | 'type' | 'approval'>('holiday');
+  const [modalType, setModalType] = useState<'holiday' | 'type' | 'approval' | 'weekly'>('holiday');
   const [editingItem, setEditingItem] = useState<any>(null);
 
-  // Data States
-  const [weeklyHolidays, setWeeklyHolidays] = useState<WeeklyHoliday>({
-    id: '1',
-    days: ['Sunday', 'Monday', 'Wednesday', 'Friday']
-  });
-
-  const [holidays, setHolidays] = useState<Holiday[]>([
-    { id: '1', name: 'Eid Vacation', fromDate: '2025-09-22', toDate: '2025-09-23', totalDays: 2 },
-    { id: '2', name: 'GOOD FRIDAY', fromDate: '2025-04-18', toDate: '2025-04-18', totalDays: 1 },
-    { id: '3', name: 'Vacation', fromDate: '2025-04-19', toDate: '2025-04-20', totalDays: 2 },
-    { id: '4', name: 'Eid', fromDate: '2025-04-01', toDate: '2025-04-05', totalDays: 5 },
-    { id: '5', name: 'Diwali', fromDate: '2024-11-11', toDate: '2024-11-14', totalDays: 4 },
-  ]);
-
-  const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([
-    { id: '1', name: 'Recreational Leave', days: 30 },
-    { id: '2', name: 'Half', days: 1 },
-    { id: '3', name: 'Medical Leave', days: 6 },
-    { id: '4', name: 'MEDICAL LEAVE', days: 12 },
-    { id: '5', name: 'EARNED LEAVE', days: 10 },
-    { id: '6', name: 'Annual Leave', days: 22 },
-  ]);
+  // Form States
+  const [holidayForm, setHolidayForm] = useState<Partial<Holiday>>({ name: '', fromDate: '', toDate: '', totalDays: 0 });
+  const [typeForm, setTypeForm] = useState<Partial<LeaveType>>({ name: '', days: 0, customFields: [] });
+  const [approvalForm, setApprovalForm] = useState<Partial<LeaveRequest>>({ status: 'Pending' });
+  const [weeklyForm, setWeeklyForm] = useState<string[]>([]);
 
   const applications = leaveRequests;
 
@@ -103,17 +99,12 @@ export default function LeaveManagement() {
     activeEmployees.some(e => e.name === app.employeeName || e.id === app.employeeId)
   );
 
-  // Form States
-  const [holidayForm, setHolidayForm] = useState<Partial<Holiday>>({ name: '', fromDate: '', toDate: '', totalDays: 0 });
-  const [typeForm, setTypeForm] = useState<Partial<LeaveType>>({ name: '', days: 0, customFields: [] });
-  const [approvalForm, setApprovalForm] = useState<Partial<LeaveRequest>>({ status: 'Pending' });
-
   const handleSaveHoliday = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingItem) {
-      setHolidays(prev => prev.map(h => h.id === editingItem.id ? { ...h, ...holidayForm } as Holiday : h));
+      updateHoliday(editingItem.id, holidayForm);
     } else {
-      setHolidays(prev => [...prev, { ...holidayForm, id: Math.random().toString(36).substr(2, 9) } as Holiday]);
+      addHoliday(holidayForm as Omit<Holiday, 'id'>);
     }
     setIsModalOpen(false);
     setEditingItem(null);
@@ -122,12 +113,18 @@ export default function LeaveManagement() {
   const handleSaveLeaveType = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingItem) {
-      setLeaveTypes(prev => prev.map(t => t.id === editingItem.id ? { ...t, ...typeForm } as LeaveType : t));
+      updateLeaveType(editingItem.id, typeForm);
     } else {
-      setLeaveTypes(prev => [...prev, { ...typeForm, id: Math.random().toString(36).substr(2, 9) } as LeaveType]);
+      addLeaveType(typeForm as Omit<LeaveType, 'id'>);
     }
     setIsModalOpen(false);
     setEditingItem(null);
+  };
+
+  const handleSaveWeeklyHoliday = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateWeeklyHoliday(weeklyForm);
+    setIsModalOpen(false);
   };
 
   const handleSaveApproval = (e: React.FormEvent) => {
@@ -299,9 +296,16 @@ export default function LeaveManagement() {
                     <tbody>
                       <tr className="hover:bg-slate-50/50 transition-colors">
                         <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">1</td>
-                        <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{weeklyHolidays.days.join(', ')}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{weeklyHolidays?.days.join(', ') || 'None'}</td>
                         <td className="px-4 py-3 text-sm text-slate-600">
-                          <button className="p-1.5 text-indigo-600 bg-indigo-50 rounded border border-indigo-100 hover:bg-indigo-100">
+                          <button 
+                            onClick={() => {
+                              setModalType('weekly');
+                              setWeeklyForm(weeklyHolidays?.days || []);
+                              setIsModalOpen(true);
+                            }}
+                            className="p-1.5 text-indigo-600 bg-indigo-50 rounded border border-indigo-100 hover:bg-indigo-100"
+                          >
                             <Edit className="w-3.5 h-3.5" />
                           </button>
                         </td>
@@ -346,7 +350,7 @@ export default function LeaveManagement() {
                                 <Edit className="w-3.5 h-3.5" />
                               </button>
                               <button 
-                                onClick={() => setHolidays(prev => prev.filter(item => item.id !== h.id))}
+                                onClick={() => deleteHoliday(h.id)}
                                 className="p-1.5 text-red-600 bg-red-50 rounded border border-red-100 hover:bg-red-100"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -391,7 +395,7 @@ export default function LeaveManagement() {
                                 <Edit className="w-3.5 h-3.5" />
                               </button>
                               <button 
-                                onClick={() => setLeaveTypes(prev => prev.filter(item => item.id !== t.id))}
+                                onClick={() => deleteLeaveType(t.id)}
                                 className="p-1.5 text-red-600 bg-red-50 rounded border border-red-100 hover:bg-red-100"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -585,8 +589,36 @@ export default function LeaveManagement() {
                   </button>
                 </div>
                 
-                <form onSubmit={modalType === 'holiday' ? handleSaveHoliday : modalType === 'type' ? handleSaveLeaveType : handleSaveApproval} className="p-6 space-y-4">
-                  {modalType === 'holiday' ? (
+                <form onSubmit={
+                  modalType === 'holiday' ? handleSaveHoliday : 
+                  modalType === 'type' ? handleSaveLeaveType : 
+                  modalType === 'weekly' ? handleSaveWeeklyHoliday :
+                  handleSaveApproval
+                } className="p-6 space-y-4">
+                  {modalType === 'weekly' ? (
+                    <div className="space-y-3">
+                      <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Select Days</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
+                          <label key={day} className="flex items-center gap-2 cursor-pointer">
+                            <input 
+                              type="checkbox"
+                              checked={weeklyForm.includes(day)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setWeeklyForm([...weeklyForm, day]);
+                                } else {
+                                  setWeeklyForm(weeklyForm.filter(d => d !== day));
+                                }
+                              }}
+                              className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <span className="text-sm text-slate-700">{day}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ) : modalType === 'holiday' ? (
                     <>
                       <div className="space-y-1.5">
                         <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Holiday Name</label>

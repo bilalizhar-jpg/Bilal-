@@ -57,9 +57,15 @@ export default function CompanyPolicies() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setFormData({ ...formData, fileName: file.name });
-      // In a real app, we would upload the file to a server or convert to base64
-      // For this demo, we'll just store the name to simulate upload
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        setFormData({ 
+          ...formData, 
+          fileName: file.name,
+          content: evt.target?.result as string 
+        });
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -78,8 +84,15 @@ export default function CompanyPolicies() {
       doc.text(splitText, 14, 55);
       
       doc.save(`${policy.title.replace(/\s+/g, '_')}.pdf`);
+    } else if (policy.methodType === 'upload' && policy.content) {
+      const link = document.createElement('a');
+      link.href = policy.content;
+      link.download = policy.fileName || 'policy_document';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } else {
-      alert(`This would download the uploaded file: ${policy.fileName}`);
+      alert(`File not found for: ${policy.fileName}`);
     }
   };
 
