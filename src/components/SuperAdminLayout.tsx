@@ -134,34 +134,6 @@ export default function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
             })}
           </div>
         </nav>
-
-        <div className="p-4 border-t border-slate-200 dark:border-slate-800">
-          <div className="mb-4">
-            <label className="block text-[10px] text-slate-500 mb-1 font-bold">Select Company to Manage</label>
-            <select 
-              className={`w-full text-xs p-1.5 rounded border ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`}
-              value={user?.companyId || ''}
-              onChange={(e) => impersonateCompany(e.target.value || null)}
-            >
-              <option value="">-- Select Company --</option>
-              {companies.map(c => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <button
-            onClick={handleLogout}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors mt-4 border-t ${
-              isDark 
-                ? 'text-red-400 hover:bg-red-500/10 border-slate-800' 
-                : 'text-red-600 hover:bg-red-50 border-slate-100'
-            }`}
-          >
-            <LogOut className="w-5 h-5" />
-            {isSidebarOpen && <span>Log out</span>}
-          </button>
-        </div>
       </aside>
 
       <main className="flex-1 flex flex-col overflow-hidden">
@@ -201,6 +173,13 @@ export default function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
               <div className={`h-9 w-9 rounded-full ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-200 border-slate-300'} overflow-hidden border`}>
                 <img src={user?.avatar || "https://picsum.photos/seed/superadmin/100/100"} alt="Admin" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               </div>
+              <button 
+                onClick={handleLogout}
+                className={`p-2 ml-2 ${isDark ? 'text-red-400 hover:bg-slate-800' : 'text-red-600 hover:bg-slate-100'} rounded-md transition-colors`}
+                title="Log out"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
             </div>
           </div>
         </header>

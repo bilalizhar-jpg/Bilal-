@@ -16,7 +16,9 @@ import {
   Settings,
   Key,
   Shield,
-  AlertCircle
+  AlertCircle,
+  Upload,
+  User
 } from 'lucide-react';
 
 import AdminLayout from '../components/AdminLayout';
@@ -669,6 +671,40 @@ export default function EmployeeList() {
                 </div>
                 
                 <form onSubmit={handleSave} className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                  <div className="mb-6 flex items-center gap-4">
+                    <div className="relative w-24 h-24 rounded-full border-2 border-slate-200 overflow-hidden bg-slate-50 flex items-center justify-center shrink-0">
+                      {formData.avatar ? (
+                        <img src={formData.avatar} alt="Avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      ) : (
+                        <User className="w-10 h-10 text-slate-400" />
+                      )}
+                      {!isViewOnly && (
+                        <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 cursor-pointer transition-opacity">
+                          <Upload className="w-6 h-6 text-white" />
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            className="hidden" 
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setFormData({ ...formData, avatar: reader.result as string });
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }} 
+                          />
+                        </label>
+                      )}
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800">Profile Picture</h4>
+                      <p className="text-xs text-slate-500 mt-1">Upload a professional photo. Recommended size 256x256px.</p>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Employee Name</label>

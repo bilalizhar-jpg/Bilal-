@@ -52,6 +52,7 @@ export interface Employee {
 
 interface EmployeeContextType {
   employees: Employee[];
+  allEmployees: Employee[];
   addEmployee: (employee: Omit<Employee, 'companyId'>) => void;
   addEmployees: (employees: Omit<Employee, 'companyId'>[]) => void;
   updateEmployee: (id: string, employee: Partial<Employee>) => void;
@@ -176,7 +177,7 @@ export const EmployeeProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <EmployeeContext.Provider value={{ employees, addEmployee, addEmployees, updateEmployee, deleteEmployee, regenerateCredentials, validateEmployee }}>
+    <EmployeeContext.Provider value={{ employees, allEmployees, addEmployee, addEmployees, updateEmployee, deleteEmployee, regenerateCredentials, validateEmployee }}>
       {children}
     </EmployeeContext.Provider>
   );

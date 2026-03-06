@@ -10,7 +10,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isAuthenticated, user, signInWithGoogle } = useAuth();
-  const { employees } = useEmployees();
+  const { allEmployees } = useEmployees();
   const { companies } = useSuperAdmin();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -94,7 +94,7 @@ export default function LoginPage() {
     }
 
     // 3. Check Employee Credentials
-    const employee = employees.find(emp => 
+    const employee = allEmployees.find(emp => 
       (emp.username === username || emp.email === username) && emp.password === password
     );
 

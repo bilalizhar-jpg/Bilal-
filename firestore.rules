@@ -14,23 +14,17 @@ service cloud.firestore {
     
     match /companies/{companyId} {
       allow read: if true;
-      allow create: if true; // Public for registration
-      allow update: if isAuthenticated();
-      allow delete: if isAuthenticated();
+      allow write: if true;
     }
 
     match /employees/{employeeId} {
       allow read: if true;
-      allow create: if isAuthenticated();
-      allow update: if isAuthenticated();
-      allow delete: if isAuthenticated();
+      allow write: if true;
     }
 
     match /invoices/{invoiceId} {
-      allow read: if true; // Needed for Company Admin (custom auth)
-      allow create: if true; // Public for registration
-      allow update: if isAuthenticated();
-      allow delete: if isAuthenticated();
+      allow read: if true;
+      allow write: if true;
     }
 
     // Collections used by Company Admin/Employee (Custom Auth)
@@ -40,6 +34,11 @@ service cloud.firestore {
     match /attendance/{document=**} { allow read: if true; allow write: if true; }
     match /policies/{document=**} { allow read: if true; allow write: if true; }
     match /timeTracking/{document=**} { allow read: if true; allow write: if true; }
+    match /company_invoices/{document=**} { allow read: if true; allow write: if true; }
+    match /leave_types/{document=**} { allow read: if true; allow write: if true; }
+    match /holidays/{document=**} { allow read: if true; allow write: if true; }
+    match /weekly_holidays/{document=**} { allow read: if true; allow write: if true; }
+    match /orgChartTemplates/{document=**} { allow read: if true; allow write: if true; }
     
     // Company Data Collections
     match /awards/{document=**} { allow read: if true; allow write: if true; }

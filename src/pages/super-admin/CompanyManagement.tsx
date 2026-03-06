@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import SuperAdminLayout from '../../components/SuperAdminLayout';
 import { useSuperAdmin, Company, ALL_MENU_ITEMS } from '../../context/SuperAdminContext';
+import { useAuth } from '../../context/AuthContext';
 import { Trash2, Plus, Edit2, Save, X, Upload, Shield, Check, X as XIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function CompanyManagement() {
   const { companies, addCompany, deleteCompany, updateCompany, toggleMenuAccess, updateCompanyStatus, error } = useSuperAdmin();
+  const { user, impersonateCompany } = useAuth();
   const [newCompany, setNewCompany] = useState({ 
     name: '', email: '', mobile: '', subscriptionPlan: 'Basic', uniqueCode: '',
-    logo: '', subsidiary: '', headOffice: '', factoryLocation: ''
+    logo: '', subsidiary: '', headOffice: '', factoryLocation: '',
+    adminUsername: '', adminPassword: ''
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Company | null>(null);
@@ -36,7 +39,11 @@ export default function CompanyManagement() {
       ...newCompany,
       uniqueCode: newCompany.uniqueCode || Math.random().toString(36).substring(2, 9).toUpperCase()
     });
-    setNewCompany({ name: '', email: '', mobile: '', subscriptionPlan: 'Basic', uniqueCode: '', logo: '', subsidiary: '', headOffice: '', factoryLocation: '' });
+    setNewCompany({ 
+      name: '', email: '', mobile: '', subscriptionPlan: 'Basic', uniqueCode: '', 
+      logo: '', subsidiary: '', headOffice: '', factoryLocation: '',
+      adminUsername: '', adminPassword: '' 
+    });
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
@@ -95,6 +102,8 @@ export default function CompanyManagement() {
           <input type="text" placeholder="Subsidiary" className="p-2 border rounded" value={newCompany.subsidiary} onChange={e => setNewCompany({...newCompany, subsidiary: e.target.value})} />
           <input type="text" placeholder="Head Office Location" className="p-2 border rounded" value={newCompany.headOffice} onChange={e => setNewCompany({...newCompany, headOffice: e.target.value})} />
           <input type="text" placeholder="Factory Location" className="p-2 border rounded" value={newCompany.factoryLocation} onChange={e => setNewCompany({...newCompany, factoryLocation: e.target.value})} />
+          <input type="text" placeholder="Admin Username" className="p-2 border rounded" value={newCompany.adminUsername} onChange={e => setNewCompany({...newCompany, adminUsername: e.target.value})} required />
+          <input type="password" placeholder="Admin Password" className="p-2 border rounded" value={newCompany.adminPassword} onChange={e => setNewCompany({...newCompany, adminPassword: e.target.value})} required />
           <label className="flex items-center gap-2 p-2 border rounded cursor-pointer">
             <Upload className="w-4 h-4" /> Upload Logo
             <input type="file" accept="image/*" className="hidden" onChange={(e) => handleLogoUpload(e, false)} />
@@ -111,7 +120,22 @@ export default function CompanyManagement() {
       </div>
 
       <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-        <h2 className="text-lg font-bold mb-4">Registered Companies</h2>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+          <h2 className="text-lg font-bold">Registered Companies</h2>
+          <div className="w-full sm:w-64">
+            <label className="block text-[10px] text-slate-500 mb-1 font-bold">Select Company to Manage</label>
+            <select 
+              className="w-full text-xs p-1.5 rounded border bg-slate-50 border-slate-200 text-slate-900 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+              value={user?.companyId || ''}
+              onChange={(e) => impersonateCompany(e.target.value || null)}
+            >
+              <option value="">-- Select Company --</option>
+              {companies.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -120,6 +144,7 @@ export default function CompanyManagement() {
                 <th className="pb-3">Name</th>
                 <th className="pb-3">Unique Code</th>
                 <th className="pb-3">Admin Credentials</th>
+                <th className="pb-3 text-center">Status</th>
                 <th className="pb-3 text-center">Edit Company</th>
                 <th className="pb-3 text-center">Menu Access</th>
                 <th className="pb-3">Action</th>
@@ -138,6 +163,9 @@ export default function CompanyManagement() {
                         <div>Pass: {company.adminPassword}</div>
                       </td>
                       <td className="py-3 text-center">
+                         <span className="text-xs text-slate-400">Save to edit status</span>
+                      </td>
+                      <td className="py-3 text-center">
                          <span className="text-xs text-slate-400">Save to edit access</span>
                       </td>
                       <td className="py-3 flex gap-2">
@@ -153,6 +181,18 @@ export default function CompanyManagement() {
                       <td className="py-3 text-xs text-slate-600">
                         <div>User: {company.adminUsername}</div>
                         <div>Pass: {company.adminPassword}</div>
+                      </td>
+                      <td className="py-3 text-center">
+                        <button 
+                          onClick={() => updateCompanyStatus(company.id, company.isActive ? 'inactive' : 'active')}
+                          className={`px-3 py-1 rounded font-bold text-xs flex items-center gap-1 mx-auto ${
+                            company.isActive 
+                              ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' 
+                              : 'bg-red-100 text-red-700 hover:bg-red-200'
+                          }`}
+                        >
+                          {company.isActive ? 'Active' : 'Inactive'}
+                        </button>
                       </td>
                       <td className="py-3 text-center">
                         <button 
@@ -228,6 +268,14 @@ export default function CompanyManagement() {
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Factory Location</label>
                     <input type="text" className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-700" value={editForm.factoryLocation || ''} onChange={e => setEditForm({...editForm, factoryLocation: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Admin Username</label>
+                    <input type="text" className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-700" value={editForm.adminUsername || ''} onChange={e => setEditForm({...editForm, adminUsername: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Admin Password</label>
+                    <input type="text" className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-700" value={editForm.adminPassword || ''} onChange={e => setEditForm({...editForm, adminPassword: e.target.value})} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Subscription Plan</label>
