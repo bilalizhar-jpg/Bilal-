@@ -9,7 +9,6 @@ export default function SuperAdminDashboard() {
   const stats = [
     { name: 'Total Companies', value: companies.length, icon: Building2, color: 'bg-indigo-500' },
     { name: 'Active Companies', value: companies.filter(c => c.status === 'active').length, icon: Users, color: 'bg-emerald-500' },
-    { name: 'Inactive Companies', value: companies.filter(c => c.status === 'inactive').length, icon: UserMinus, color: 'bg-amber-500' },
     { name: 'License Expired', value: 0, icon: AlertTriangle, color: 'bg-red-500' },
   ];
 
@@ -47,8 +46,8 @@ export default function SuperAdminDashboard() {
                 <td className="py-3">{company.name}</td>
                 <td className="py-3">{company.email}</td>
                 <td className="py-3">
-                  <span className={`px-2 py-1 rounded-full text-xs ${company.status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
-                    {company.status}
+                  <span className="px-2 py-1 rounded-full text-xs bg-emerald-100 text-emerald-800">
+                    active
                   </span>
                 </td>
                 <td className="py-3">{company.subscriptionPlan}</td>

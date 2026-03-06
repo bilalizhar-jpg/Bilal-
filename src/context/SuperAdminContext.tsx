@@ -100,12 +100,9 @@ export const SuperAdminProvider = ({ children }: { children: ReactNode }) => {
     const unsubscribeCompanies = onSnapshot(qCompanies, (snapshot) => {
       const companiesData = snapshot.docs.map(doc => {
         const data = doc.data();
-        // Normalize status and isActive to be consistent
-        // If either says active, treat as active. 
-        // We also check for 'active' string case-insensitively just in case.
-        const rawStatus = String(data.status || '').toLowerCase();
-        const isActive = rawStatus === 'active' || data.isActive === true;
-        const status = isActive ? 'active' : 'inactive';
+        // Use status as source of truth, default to active if missing
+        const status = data.status || 'active';
+        const isActive = status === 'active';
         
         return { ...data, id: doc.id, status, isActive } as Company;
       });

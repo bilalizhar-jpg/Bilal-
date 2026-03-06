@@ -13,6 +13,7 @@ export default function CompanyManagement() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Company | null>(null);
   const [accessModalOpen, setAccessModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
 
   // Sync editForm with latest company data if it changes while editing
@@ -56,6 +57,7 @@ export default function CompanyManagement() {
   const startEdit = (company: Company) => {
     setEditingId(company.id);
     setEditForm(company);
+    setEditModalOpen(true);
   };
 
   const saveEdit = () => {
@@ -63,6 +65,7 @@ export default function CompanyManagement() {
       updateCompany(editForm);
       setEditingId(null);
       setEditForm(null);
+      setEditModalOpen(false);
     }
   };
 
@@ -117,7 +120,7 @@ export default function CompanyManagement() {
                 <th className="pb-3">Name</th>
                 <th className="pb-3">Unique Code</th>
                 <th className="pb-3">Admin Credentials</th>
-                <th className="pb-3 text-center">Status</th>
+                <th className="pb-3 text-center">Edit Company</th>
                 <th className="pb-3 text-center">Menu Access</th>
                 <th className="pb-3">Action</th>
               </tr>
@@ -133,20 +136,6 @@ export default function CompanyManagement() {
                       <td className="py-3 text-xs">
                         <div>User: {company.adminUsername}</div>
                         <div>Pass: {company.adminPassword}</div>
-                      </td>
-                      <td className="py-3 text-center">
-                        <button 
-                          onClick={() => {
-                            const newStatus = company.isActive ? 'inactive' : 'active';
-                            updateCompanyStatus(company.id, newStatus);
-                            if (editForm && editingId === company.id) {
-                              setEditForm({ ...editForm, status: newStatus, isActive: newStatus === 'active' });
-                            }
-                          }}
-                          className={`px-3 py-1 rounded font-bold text-xs ${company.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}
-                        >
-                          {company.isActive ? 'Active' : 'Hold'}
-                        </button>
                       </td>
                       <td className="py-3 text-center">
                          <span className="text-xs text-slate-400">Save to edit access</span>
@@ -167,13 +156,10 @@ export default function CompanyManagement() {
                       </td>
                       <td className="py-3 text-center">
                         <button 
-                          onClick={() => {
-                            const newStatus = company.isActive ? 'inactive' : 'active';
-                            updateCompanyStatus(company.id, newStatus);
-                          }}
-                          className={`px-3 py-1 rounded font-bold text-xs ${company.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}
+                          onClick={() => startEdit(company)}
+                          className="px-3 py-1 rounded bg-amber-100 text-amber-700 font-bold text-xs hover:bg-amber-200 flex items-center gap-1 mx-auto"
                         >
-                          {company.isActive ? 'Active' : 'Hold'}
+                          <Edit2 className="w-3 h-3" /> Edit Company
                         </button>
                       </td>
                       <td className="py-3 text-center">
@@ -185,7 +171,6 @@ export default function CompanyManagement() {
                         </button>
                       </td>
                       <td className="py-3 flex gap-2">
-                        <button onClick={() => startEdit(company)} className="text-indigo-500 hover:text-indigo-700"><Edit2 className="w-5 h-5" /></button>
                         <button onClick={() => deleteCompany(company.id)} className="text-red-500 hover:text-red-700"><Trash2 className="w-5 h-5" /></button>
                       </td>
                     </>
@@ -196,6 +181,85 @@ export default function CompanyManagement() {
           </table>
         </div>
       </div>
+
+      {/* Edit Company Modal */}
+      <AnimatePresence>
+        {editModalOpen && editForm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar"
+            >
+              <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center sticky top-0 bg-white dark:bg-slate-800 z-10">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Edit Company Details</h2>
+                <button onClick={() => setEditModalOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">
+                  <XIcon className="w-6 h-6 text-slate-500" />
+                </button>
+              </div>
+              
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Company Name</label>
+                    <input type="text" className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-700" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email</label>
+                    <input type="email" className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-700" value={editForm.email} onChange={e => setEditForm({...editForm, email: e.target.value})} required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mobile</label>
+                    <input type="text" className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-700" value={editForm.mobile} onChange={e => setEditForm({...editForm, mobile: e.target.value})} required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Unique Code</label>
+                    <input type="text" className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-700" value={editForm.uniqueCode} onChange={e => setEditForm({...editForm, uniqueCode: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Subsidiary</label>
+                    <input type="text" className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-700" value={editForm.subsidiary || ''} onChange={e => setEditForm({...editForm, subsidiary: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Head Office Location</label>
+                    <input type="text" className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-700" value={editForm.headOffice || ''} onChange={e => setEditForm({...editForm, headOffice: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Factory Location</label>
+                    <input type="text" className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-700" value={editForm.factoryLocation || ''} onChange={e => setEditForm({...editForm, factoryLocation: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Subscription Plan</label>
+                    <select className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-700" value={editForm.subscriptionPlan} onChange={e => setEditForm({...editForm, subscriptionPlan: e.target.value as any})}>
+                      <option value="Basic">Basic</option>
+                      <option value="Pro">Pro</option>
+                      <option value="Enterprise">Enterprise</option>
+                    </select>
+                  </div>
+                  <div className="col-span-full">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Upload New Logo</label>
+                    <div className="flex items-center gap-4">
+                      {editForm.logo && <img src={editForm.logo} alt="Current Logo" className="w-12 h-12 object-contain border rounded p-1" />}
+                      <label className="flex items-center gap-2 p-2 border rounded cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                        <Upload className="w-4 h-4" /> Choose File
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handleLogoUpload(e, true)} />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-6 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3 sticky bottom-0 bg-white dark:bg-slate-800 z-10">
+                <button onClick={() => setEditModalOpen(false)} className="px-4 py-2 border rounded text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-700">Cancel</button>
+                <button onClick={saveEdit} className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 flex items-center gap-2">
+                  <Save className="w-4 h-4" /> Save Changes
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Access Management Modal */}
       <AnimatePresence>

@@ -15,7 +15,6 @@ interface SuperAdminLayoutProps {
 
 export default function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isHeadOpen, setIsHeadOpen] = useState(true);
   const [openMenus, setOpenMenus] = useState<string[]>([]);
   const location = useLocation();
   const navigate = useNavigate();
@@ -70,100 +69,85 @@ export default function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
             </Link>
           ))}
 
-          {/* Head Section (Employer Portal Functions) */}
-          <div className="mt-8">
-            <button
-              onClick={() => setIsHeadOpen(!isHeadOpen)}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors ${
-                isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              <span>Head (Employer Portal)</span>
-              {isHeadOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-            </button>
+          <div className="mt-8 px-3 mb-2 text-sm font-bold text-slate-900 dark:text-white">
+            Working
+          </div>
 
-            {isHeadOpen && (
-              <div className="mt-2 space-y-1">
-                <div className="px-3 mb-4">
-                  <label className="block text-[10px] text-slate-500 mb-1 font-bold">Select Company to Manage</label>
-                  <select 
-                    className={`w-full text-xs p-1.5 rounded border ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`}
-                    value={user?.companyId || ''}
-                    onChange={(e) => impersonateCompany(e.target.value || null)}
-                  >
-                    <option value="">-- Select Company --</option>
-                    {companies.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
+          {/* Employer Portal Functions */}
+          <div className="mt-2 space-y-1">
+            {ADMIN_MENU_ITEMS.map((item) => {
+              const isActive = location.pathname === item.path || (item.subItems?.some(sub => location.pathname === sub.path));
+              const isOpen = openMenus.includes(item.name);
 
-                {user?.companyId ? (
-                  ADMIN_MENU_ITEMS.map((item) => {
-                    const isActive = location.pathname === item.path || (item.subItems?.some(sub => location.pathname === sub.path));
-                    const isOpen = openMenus.includes(item.name);
-
-                    return (
-                      <div key={item.name}>
-                        {item.hasSub ? (
-                          <button
-                            onClick={() => toggleMenu(item.name)}
-                            className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium transition-colors ${
-                              isActive 
-                                ? (isDark ? 'bg-indigo-500/20 text-indigo-400' : 'bg-[#E8F0FE] text-[#1A73E8]') 
-                                : (isDark ? 'text-slate-400 hover:bg-slate-800 hover:text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900')
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <item.icon className={`w-4 h-4 ${isActive ? (isDark ? 'text-indigo-400' : 'text-[#1A73E8]') : 'text-slate-500'}`} />
-                              {isSidebarOpen && <span>{item.name}</span>}
-                            </div>
-                            {isSidebarOpen && (isOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />)}
-                          </button>
-                        ) : (
-                          <Link
-                            to={item.path || '#'}
-                            className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium transition-colors ${
-                              location.pathname === item.path 
-                                ? (isDark ? 'bg-indigo-500/20 text-indigo-400' : 'bg-[#E8F0FE] text-[#1A73E8]') 
-                                : (isDark ? 'text-slate-400 hover:bg-slate-800 hover:text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900')
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <item.icon className={`w-4 h-4 ${location.pathname === item.path ? (isDark ? 'text-indigo-400' : 'text-[#1A73E8]') : 'text-slate-500'}`} />
-                              {isSidebarOpen && <span>{item.name}</span>}
-                            </div>
-                          </Link>
-                        )}
-
-                        {isSidebarOpen && item.hasSub && isOpen && (
-                          <div className="mt-1 ml-4 space-y-1 border-l border-slate-200 dark:border-slate-800 pl-4">
-                            {item.subItems?.map(sub => (
-                              <Link
-                                key={sub.name}
-                                to={sub.path}
-                                className={`block px-3 py-1.5 rounded-md text-[10px] font-medium transition-colors ${
-                                  location.pathname === sub.path
-                                    ? (isDark ? 'text-indigo-400' : 'text-[#1A73E8]')
-                                    : (isDark ? 'text-slate-500 hover:text-white' : 'text-slate-500 hover:text-slate-900')
-                                }`}
-                              >
-                                {sub.name}
-                              </Link>
-                            ))}
-                          </div>
-                        )}
+              return (
+                <div key={item.name}>
+                  {item.hasSub ? (
+                    <button
+                      onClick={() => toggleMenu(item.name)}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
+                        isActive 
+                          ? (isDark ? 'bg-indigo-500/20 text-indigo-400' : 'bg-[#E8F0FE] text-[#1A73E8]') 
+                          : (isDark ? 'text-slate-400 hover:bg-slate-800 hover:text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900')
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <item.icon className={`w-5 h-5 ${isActive ? (isDark ? 'text-indigo-400' : 'text-[#1A73E8]') : 'text-slate-500'}`} />
+                        {isSidebarOpen && <span>{item.name}</span>}
                       </div>
-                    );
-                  })
-                ) : (
-                  <div className="px-3 py-4 text-center">
-                    <Shield className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                    <p className="text-[10px] text-slate-500">Select a company to access employer portal functions</p>
-                  </div>
-                )}
-              </div>
-            )}
+                      {isSidebarOpen && (isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />)}
+                    </button>
+                  ) : (
+                    <Link
+                      to={item.path || '#'}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
+                        location.pathname === item.path 
+                          ? (isDark ? 'bg-indigo-500/20 text-indigo-400' : 'bg-[#E8F0FE] text-[#1A73E8]') 
+                          : (isDark ? 'text-slate-400 hover:bg-slate-800 hover:text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900')
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <item.icon className={`w-5 h-5 ${location.pathname === item.path ? (isDark ? 'text-indigo-400' : 'text-[#1A73E8]') : 'text-slate-500'}`} />
+                        {isSidebarOpen && <span>{item.name}</span>}
+                      </div>
+                    </Link>
+                  )}
+
+                  {isSidebarOpen && item.hasSub && isOpen && (
+                    <div className="mt-1 ml-4 space-y-1 border-l border-slate-200 dark:border-slate-800 pl-4">
+                      {item.subItems?.map(sub => (
+                        <Link
+                          key={sub.name}
+                          to={sub.path}
+                          className={`block px-3 py-2 rounded-md text-xs font-medium transition-colors ${
+                            location.pathname === sub.path
+                              ? (isDark ? 'text-indigo-400' : 'text-[#1A73E8]')
+                              : (isDark ? 'text-slate-500 hover:text-white' : 'text-slate-500 hover:text-slate-900')
+                          }`}
+                        >
+                          {sub.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </nav>
+
+        <div className="p-4 border-t border-slate-200 dark:border-slate-800">
+          <div className="mb-4">
+            <label className="block text-[10px] text-slate-500 mb-1 font-bold">Select Company to Manage</label>
+            <select 
+              className={`w-full text-xs p-1.5 rounded border ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`}
+              value={user?.companyId || ''}
+              onChange={(e) => impersonateCompany(e.target.value || null)}
+            >
+              <option value="">-- Select Company --</option>
+              {companies.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
           </div>
 
           <button
@@ -177,7 +161,7 @@ export default function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
             <LogOut className="w-5 h-5" />
             {isSidebarOpen && <span>Log out</span>}
           </button>
-        </nav>
+        </div>
       </aside>
 
       <main className="flex-1 flex flex-col overflow-hidden">

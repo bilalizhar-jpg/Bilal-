@@ -61,9 +61,9 @@ export default function RegisterPage() {
         headOffice: formData.companyAddress,
         adminUsername: generatedUsername,
         adminPassword: generatedPassword,
-        status: 'inactive', // Pending approval
+        status: 'active',
         blockedMenus: [],
-        isActive: false, // Pending approval
+        isActive: true,
       };
 
       await setDoc(doc(db, 'companies', companyId), newCompany);

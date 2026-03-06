@@ -217,6 +217,7 @@ import { LeaveProvider } from './context/LeaveContext';
 import { PolicyProvider } from './context/PolicyContext';
 import { LetterProvider } from './context/LetterContext';
 import { CompanyDataProvider } from './context/CompanyDataContext';
+import { InvoiceProvider } from './context/InvoiceContext';
 
 export default function App() {
   return (
@@ -229,9 +230,11 @@ export default function App() {
                 <PolicyProvider>
                   <LetterProvider>
                     <CompanyDataProvider>
-                      <Router>
-                        <AppContent />
-                      </Router>
+                      <InvoiceProvider>
+                        <Router>
+                          <AppContent />
+                        </Router>
+                      </InvoiceProvider>
                     </CompanyDataProvider>
                   </LetterProvider>
                 </PolicyProvider>
