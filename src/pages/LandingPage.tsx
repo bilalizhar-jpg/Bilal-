@@ -1,281 +1,190 @@
-import { motion } from 'motion/react';
-import { ArrowRight, Users, ShieldCheck, Zap, Globe, CheckCircle2, Star, TrendingUp, HeartHandshake, Building2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { ArrowRight, Users, ShieldCheck, Zap, Globe, CheckCircle2, Star, TrendingUp, HeartHandshake, Building2, Terminal, Cpu, Network } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function LandingPage() {
   return (
-    <div className="pt-16 dark:bg-slate-950 transition-colors duration-300">
+    <div className="relative min-h-screen overflow-hidden bg-[#020203] text-white selection:bg-indigo-500/30">
+      {/* Immersive Background Atmosphere */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3],
+            x: [0, 50, 0],
+            y: [0, 30, 0]
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] rounded-full bg-indigo-600/20 blur-[150px]" 
+        />
+        <motion.div 
+          animate={{ 
+            scale: [1.2, 1, 1.2],
+            opacity: [0.2, 0.4, 0.2],
+            x: [0, -40, 0],
+            y: [0, -20, 0]
+          }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+          className="absolute bottom-[-20%] right-[-10%] w-[70%] h-[70%] rounded-full bg-emerald-600/20 blur-[150px]" 
+        />
+        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:40px_40px]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#020203]/50 to-[#020203]" />
+      </div>
+
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 sm:py-32">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(45rem_50rem_at_top,theme(colors.indigo.100),transparent)] dark:bg-[radial-gradient(45rem_50rem_at_top,theme(colors.indigo.900),transparent)] opacity-20 dark:opacity-40" />
-        
+      <section className="relative pt-32 pb-20 sm:pt-48 sm:pb-32 z-10">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 text-xs font-bold mb-6"
-              >
-                <Star className="w-3 h-3 fill-current" />
-                <span>Trusted by 500+ HR Teams Worldwide</span>
-              </motion.div>
-              
-              <motion.h1 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-5xl sm:text-7xl font-display font-bold tracking-tight text-slate-900 dark:text-white leading-[1.1]"
-              >
-                Empower Your <span className="text-indigo-600 dark:text-indigo-400">Workforce</span> with HRM Pro.
-              </motion.h1>
-              
-              <motion.p 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="mt-8 text-lg leading-8 text-slate-600 dark:text-slate-400 max-w-xl"
-              >
-                The all-in-one HR management platform designed for modern companies. Automate payroll, track attendance, manage leaves, and foster a culture of excellence.
-              </motion.p>
-              
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="mt-10 flex flex-wrap items-center gap-4"
-              >
-                <Link
-                  to="/register"
-                  className="rounded-2xl bg-indigo-600 px-8 py-4 text-sm font-bold text-white shadow-xl shadow-indigo-200 dark:shadow-none hover:bg-indigo-700 transition-all flex items-center gap-2 group"
-                >
-                  Start Your Free Trial
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
-                <Link
-                  to="/login"
-                  className="rounded-2xl bg-white dark:bg-slate-900 px-8 py-4 text-sm font-bold text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
-                >
-                  Watch Demo
-                </Link>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
-                className="mt-10 flex items-center gap-6"
-              >
-                <div className="flex -space-x-3">
-                  {[1, 2, 3, 4].map((i) => (
-                    <img 
-                      key={i}
-                      src={`https://picsum.photos/seed/avatar${i}/100/100`} 
-                      className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-950 object-cover"
-                      referrerPolicy="no-referrer"
-                      alt="User avatar"
-                    />
-                  ))}
-                </div>
-                <div className="text-sm text-slate-500 dark:text-slate-400">
-                  <span className="font-bold text-slate-900 dark:text-white">Join 10,000+</span> employees already using HRM Pro
-                </div>
-              </motion.div>
-            </div>
-
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3 }}
-              className="relative"
+          <div className="flex flex-col items-center text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-indigo-400 text-[10px] font-black uppercase tracking-[0.3em] mb-12"
             >
-              <div className="relative z-10 bg-white dark:bg-slate-900 p-4 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800">
-                <img
-                  src="https://picsum.photos/seed/dashboard/1200/800"
-                  alt="HRM Dashboard Preview"
-                  className="rounded-2xl w-full shadow-inner"
-                  referrerPolicy="no-referrer"
-                />
-                
-                {/* Floating UI Elements */}
-                <motion.div 
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{ duration: 4, repeat: Infinity }}
-                  className="absolute -top-6 -right-6 bg-emerald-500 text-white p-4 rounded-2xl shadow-xl hidden sm:block"
-                >
-                  <CheckCircle2 className="w-6 h-6 mb-1" />
-                  <div className="text-[10px] font-bold uppercase tracking-wider">Payroll Processed</div>
-                  <div className="text-lg font-bold">$42,500.00</div>
-                </motion.div>
+              <Terminal className="w-3 h-3" />
+              <span>System Status: Optimal • 500+ Nodes Active</span>
+            </motion.div>
+            
+            <motion.h1 
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className="text-6xl sm:text-8xl md:text-9xl font-display font-black tracking-tighter leading-[0.85] uppercase"
+            >
+              The Next <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-white to-emerald-400">Evolution</span> <br />
+              of Workforce
+            </motion.h1>
+            
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.8 }}
+              className="mt-12 text-lg sm:text-xl leading-relaxed text-slate-400 max-w-2xl font-medium"
+            >
+              Architecting the future of human capital management. 
+              Automate complexity. Scale intelligence. Empower humanity.
+            </motion.p>
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+              className="mt-16 flex flex-wrap justify-center items-center gap-6"
+            >
+              <Link
+                to="/register"
+                className="relative group px-10 py-5 rounded-2xl bg-white text-black font-black text-xs uppercase tracking-[0.2em] overflow-hidden transition-all hover:scale-105 active:scale-95"
+              >
+                <span className="relative z-10 flex items-center gap-3">
+                  Initialize Protocol
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </span>
+              </Link>
+              <Link
+                to="/login"
+                className="px-10 py-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-white/10 transition-all active:scale-95"
+              >
+                Access Terminal
+              </Link>
+            </motion.div>
 
-                <motion.div 
-                  animate={{ y: [0, 10, 0] }}
-                  transition={{ duration: 5, repeat: Infinity, delay: 1 }}
-                  className="absolute -bottom-6 -left-6 bg-indigo-600 text-white p-4 rounded-2xl shadow-xl hidden sm:block"
-                >
-                  <Users className="w-6 h-6 mb-1" />
-                  <div className="text-[10px] font-bold uppercase tracking-wider">Active Employees</div>
-                  <div className="text-lg font-bold">1,284</div>
-                </motion.div>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6, duration: 1 }}
+              className="mt-24 flex flex-col items-center gap-6"
+            >
+              <div className="flex -space-x-4">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="relative group">
+                    <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-500 to-emerald-500 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-500" />
+                    <img 
+                      src={`https://picsum.photos/seed/user${i}/100/100`} 
+                      className="relative w-12 h-12 rounded-full border-2 border-black object-cover"
+                      referrerPolicy="no-referrer"
+                      alt=""
+                    />
+                  </div>
+                ))}
               </div>
-              
-              {/* Background Decorative Elements */}
-              <div className="absolute -top-20 -right-20 w-64 h-64 bg-indigo-400/20 rounded-full blur-3xl -z-10" />
-              <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-emerald-400/20 rounded-full blur-3xl -z-10" />
+              <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
+                <span className="text-white">10,000+</span> Entities Synchronized
+              </div>
             </motion.div>
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="py-12 border-y border-slate-100 dark:border-slate-900 bg-white dark:bg-slate-950/50">
+      <section className="relative py-24 z-10">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
             {[
-              { label: 'Time Saved', value: '40%', icon: Zap },
-              { label: 'Accuracy', value: '99.9%', icon: ShieldCheck },
-              { label: 'Growth', value: '2.5x', icon: TrendingUp },
-              { label: 'Satisfaction', value: '4.9/5', icon: HeartHandshake },
-            ].map((stat) => (
-              <div key={stat.label}>
-                <div className="flex justify-center mb-2">
-                  <stat.icon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              { label: 'Efficiency Gain', value: '40%', icon: Zap, color: 'text-indigo-400' },
+              { label: 'System Integrity', value: '99.9%', icon: ShieldCheck, color: 'text-emerald-400' },
+              { label: 'Scale Factor', value: '2.5x', icon: TrendingUp, color: 'text-blue-400' },
+              { label: 'User Resonance', value: '4.9/5', icon: HeartHandshake, color: 'text-rose-400' },
+            ].map((stat, i) => (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                key={stat.label} 
+                className="text-center group"
+              >
+                <div className="flex justify-center mb-6">
+                  <div className={`p-4 rounded-2xl bg-white/5 border border-white/10 group-hover:scale-110 transition-transform duration-500 ${stat.color}`}>
+                    <stat.icon className="w-6 h-6" />
+                  </div>
                 </div>
-                <div className="text-3xl font-bold text-slate-900 dark:text-white">{stat.value}</div>
-                <div className="text-sm text-slate-500 dark:text-slate-400">{stat.label}</div>
-              </div>
+                <div className="text-4xl font-black tracking-tighter mb-2">{stat.value}</div>
+                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{stat.label}</div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="about" className="py-24 bg-slate-50 dark:bg-slate-900/30">
+      <section id="about" className="relative py-32 z-10">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl lg:text-center">
-            <h2 className="text-base font-bold leading-7 text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Core Modules</h2>
-            <p className="mt-2 text-4xl font-display font-bold tracking-tight text-slate-900 dark:text-white sm:text-5xl">
-              Everything you need to manage people
-            </p>
-            <p className="mt-6 text-lg leading-8 text-slate-600 dark:text-slate-400">
-              Stop juggling multiple spreadsheets. HRM Pro brings all your HR functions into one unified, secure, and intuitive dashboard.
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-24">
+            <div className="max-w-2xl">
+              <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-400 mb-6">Core Infrastructure</h2>
+              <p className="text-5xl sm:text-7xl font-display font-black tracking-tighter uppercase leading-none">
+                Unified <br />
+                <span className="text-slate-500">Intelligence</span>
+              </p>
+            </div>
+            <p className="text-slate-400 max-w-md font-medium leading-relaxed">
+              Dismantle silos. HRM Pro integrates every facet of human capital management into a singular, high-performance ecosystem.
             </p>
           </div>
           
-          <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[
-                { 
-                  name: 'Smart Attendance', 
-                  icon: Zap, 
-                  description: 'Automated tracking with geo-fencing and biometric integration options.',
-                  color: 'bg-blue-500'
-                },
-                { 
-                  name: 'Leave Management', 
-                  icon: Globe, 
-                  description: 'Customizable leave policies and automated approval workflows.',
-                  color: 'bg-indigo-500'
-                },
-                { 
-                  name: 'Payroll Automation', 
-                  icon: TrendingUp, 
-                  description: 'One-click payroll processing with automated tax calculations.',
-                  color: 'bg-emerald-500'
-                },
-                { 
-                  name: 'Employee Self-Service', 
-                  icon: Users, 
-                  description: 'Empower employees to manage their own data and requests.',
-                  color: 'bg-amber-500'
-                },
-                { 
-                  name: 'Performance Tracking', 
-                  icon: Star, 
-                  description: 'Set goals, conduct reviews, and track employee growth over time.',
-                  color: 'bg-rose-500'
-                },
-                { 
-                  name: 'Recruitment CRM', 
-                  icon: ShieldCheck, 
-                  description: 'Manage the entire hiring pipeline from job posting to onboarding.',
-                  color: 'bg-violet-500'
-                },
-              ].map((feature) => (
-                <motion.div 
-                  whileHover={{ y: -5 }}
-                  key={feature.name} 
-                  className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all"
-                >
-                  <div className={`${feature.color} w-12 h-12 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-current/20`}>
-                    <feature.icon className="h-6 w-6 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
-                    {feature.name}
-                  </h3>
-                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                    {feature.description}
-                  </p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="py-24 overflow-hidden">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl lg:text-center mb-16">
-            <h2 className="text-base font-bold leading-7 text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Testimonials</h2>
-            <p className="mt-2 text-4xl font-display font-bold tracking-tight text-slate-900 dark:text-white sm:text-5xl">
-              Loved by HR Professionals
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              {
-                quote: "HRM Pro has completely transformed how we handle payroll. What used to take days now takes minutes.",
-                author: "Sarah Jenkins",
-                role: "HR Director at TechFlow",
-                avatar: "https://picsum.photos/seed/sarah/100/100"
-              },
-              {
-                quote: "The employee self-service portal is a game changer. Our team loves the transparency and ease of use.",
-                author: "Michael Chen",
-                role: "People Ops at InnovateX",
-                avatar: "https://picsum.photos/seed/michael/100/100"
-              },
-              {
-                quote: "Finally, an HR tool that is actually intuitive. The recruitment CRM is the best we've ever used.",
-                author: "Elena Rodriguez",
-                role: "Talent Acquisition at GlobalScale",
-                avatar: "https://picsum.photos/seed/elena/100/100"
-              }
-            ].map((testimonial, i) => (
+              { name: 'Neural Attendance', icon: Cpu, desc: 'Biometric synchronization with real-time spatial verification.' },
+              { name: 'Quantum Payroll', icon: Network, desc: 'Instantaneous multi-currency processing with automated compliance.' },
+              { name: 'Self-Service Node', icon: Users, desc: 'Decentralized management for autonomous employee entities.' },
+              { name: 'Growth Analytics', icon: TrendingUp, desc: 'Predictive performance modeling and skill-gap visualization.' },
+              { name: 'Secure Protocol', icon: ShieldCheck, desc: 'Military-grade encryption for sensitive personnel data.' },
+              { name: 'Global Network', icon: Globe, desc: 'Seamless cross-border workforce orchestration.' },
+            ].map((feature, i) => (
               <motion.div 
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm"
+                transition={{ delay: i * 0.05 }}
+                key={feature.name} 
+                className="group relative p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md hover:bg-white/10 transition-all duration-500"
               >
-                <div className="flex gap-1 text-amber-400 mb-4">
-                  {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="w-4 h-4 fill-current" />)}
+                <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <feature.icon className="w-16 h-16" />
                 </div>
-                <p className="text-slate-600 dark:text-slate-400 italic mb-8">"{testimonial.quote}"</p>
-                <div className="flex items-center gap-4">
-                  <img 
-                    src={testimonial.avatar} 
-                    alt={testimonial.author} 
-                    className="w-12 h-12 rounded-full object-cover border-2 border-indigo-100 dark:border-indigo-900/50"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div>
-                    <div className="font-bold text-slate-900 dark:text-white text-sm">{testimonial.author}</div>
-                    <div className="text-xs text-slate-500 dark:text-slate-500">{testimonial.role}</div>
-                  </div>
-                </div>
+                <feature.icon className="w-8 h-8 text-indigo-400 mb-8 group-hover:scale-110 transition-transform duration-500" />
+                <h3 className="text-lg font-black uppercase tracking-widest mb-4">{feature.name}</h3>
+                <p className="text-sm text-slate-400 leading-relaxed font-medium">{feature.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -283,85 +192,88 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24">
+      <section className="relative py-32 z-10">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="relative isolate overflow-hidden bg-indigo-600 px-6 py-24 shadow-2xl rounded-3xl sm:px-24 xl:py-32">
-            <h2 className="mx-auto max-w-2xl text-center text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Ready to transform your HR operations?
-            </h2>
-            <p className="mx-auto mt-6 max-w-xl text-center text-lg leading-8 text-indigo-100">
-              Join thousands of forward-thinking companies that use HRM Pro to build better workplaces.
-            </p>
-            <div className="mt-10 flex justify-center gap-x-6">
-              <Link
-                to="/register"
-                className="rounded-xl bg-white px-8 py-4 text-sm font-bold text-indigo-600 shadow-sm hover:bg-indigo-50 transition-all"
-              >
-                Get Started Now
-              </Link>
-              <Link to="/contact" className="text-sm font-bold leading-6 text-white flex items-center gap-2">
-                Contact Sales <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-            {/* Decorative circles */}
-            <svg viewBox="0 0 1024 1024" className="absolute left-1/2 top-1/2 -z-10 h-[64rem] w-[64rem] -translate-x-1/2 [mask-image:radial-gradient(closest-side,white,transparent)]" aria-hidden="true">
-              <circle cx="512" cy="512" r="512" fill="url(#759c1415-0410-454c-8f7c-9a820de03641)" fillOpacity="0.7" />
-              <defs>
-                <radialGradient id="759c1415-0410-454c-8f7c-9a820de03641">
-                  <stop stopColor="#7775D6" />
-                  <stop offset={1} stopColor="#E935C1" />
-                </radialGradient>
-              </defs>
-            </svg>
+          <div className="relative rounded-[40px] overflow-hidden bg-white/5 border border-white/10 backdrop-blur-3xl p-12 sm:p-24 text-center">
+            <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 via-transparent to-emerald-500/10" />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              className="relative z-10"
+            >
+              <h2 className="text-4xl sm:text-6xl font-display font-black tracking-tighter uppercase mb-8">
+                Initialize Your <br />
+                <span className="text-indigo-400">Future</span> Today
+              </h2>
+              <p className="text-slate-400 max-w-xl mx-auto mb-16 font-medium leading-relaxed">
+                Join the vanguard of organizations redefining the relationship between technology and talent.
+              </p>
+              <div className="flex flex-wrap justify-center gap-6">
+                <Link
+                  to="/register"
+                  className="px-12 py-6 rounded-2xl bg-white text-black font-black text-xs uppercase tracking-[0.2em] hover:scale-105 transition-all"
+                >
+                  Begin Onboarding
+                </Link>
+                <Link
+                  to="/contact"
+                  className="px-12 py-6 rounded-2xl bg-white/5 border border-white/10 text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-white/10 transition-all"
+                >
+                  Consultation
+                </Link>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer id="contact" className="bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-900 py-12">
+      <footer className="relative py-24 z-10 border-t border-white/5 bg-black/50 backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-24">
             <div className="col-span-2 md:col-span-1">
-              <Link to="/" className="flex items-center gap-2 mb-6">
-                <div className="bg-indigo-600 p-1.5 rounded-lg">
+              <Link to="/" className="flex items-center gap-3 mb-8">
+                <div className="bg-indigo-600 p-2 rounded-xl">
                   <Building2 className="w-6 h-6 text-white" />
                 </div>
-                <span className="font-display font-bold text-xl tracking-tight text-slate-900 dark:text-white">HRM Pro</span>
+                <span className="font-display font-black text-2xl tracking-tighter uppercase">HRM Pro</span>
               </Link>
-              <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs">
-                Making workforce management simple, efficient, and human-centric.
+              <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-xs">
+                Architecting the infrastructure for the next generation of human collaboration.
               </p>
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider">Product</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 transition-colors">Features</a></li>
-                <li><a href="#" className="text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 transition-colors">Pricing</a></li>
-                <li><a href="#" className="text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 transition-colors">Security</a></li>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white mb-8">Protocol</h3>
+              <ul className="space-y-4">
+                <li><a href="#" className="text-sm text-slate-500 hover:text-indigo-400 transition-colors font-medium">Core Modules</a></li>
+                <li><a href="#" className="text-sm text-slate-500 hover:text-indigo-400 transition-colors font-medium">Security Layer</a></li>
+                <li><a href="#" className="text-sm text-slate-500 hover:text-indigo-400 transition-colors font-medium">API Terminal</a></li>
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider">Company</h3>
-              <ul className="space-y-2">
-                <li><a href="#about" className="text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 transition-colors">About Us</a></li>
-                <li><a href="#" className="text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 transition-colors">Careers</a></li>
-                <li><a href="#" className="text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 transition-colors">Contact</a></li>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white mb-8">Organization</h3>
+              <ul className="space-y-4">
+                <li><a href="#" className="text-sm text-slate-500 hover:text-indigo-400 transition-colors font-medium">About Mission</a></li>
+                <li><a href="#" className="text-sm text-slate-500 hover:text-indigo-400 transition-colors font-medium">Intelligence</a></li>
+                <li><a href="#" className="text-sm text-slate-500 hover:text-indigo-400 transition-colors font-medium">Connect</a></li>
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4 uppercase tracking-wider">Legal</h3>
-              <ul className="space-y-2">
-                <li><a href="#policy" className="text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 transition-colors">Privacy Policy</a></li>
-                <li><a href="#terms" className="text-sm text-slate-600 dark:text-slate-400 hover:text-indigo-600 transition-colors">Terms of Service</a></li>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white mb-8">Legal</h3>
+              <ul className="space-y-4">
+                <li><a href="#" className="text-sm text-slate-500 hover:text-indigo-400 transition-colors font-medium">Privacy Policy</a></li>
+                <li><a href="#" className="text-sm text-slate-500 hover:text-indigo-400 transition-colors font-medium">Terms of Service</a></li>
               </ul>
             </div>
           </div>
-          <div className="mt-12 pt-8 border-t border-slate-100 dark:border-slate-900 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-xs text-slate-500 dark:text-slate-400">© 2024 HRM Pro. Built with love for HR professionals.</p>
-            <div className="flex gap-6">
-              <a href="#" className="text-slate-400 hover:text-indigo-600 transition-colors">Twitter</a>
-              <a href="#" className="text-slate-400 hover:text-indigo-600 transition-colors">LinkedIn</a>
-              <a href="#" className="text-slate-400 hover:text-indigo-600 transition-colors">GitHub</a>
+          <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">© 2026 HRM PRO • NEURAL NETWORK ARCHITECTURE</p>
+            <div className="flex gap-8">
+              <a href="#" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 hover:text-white transition-colors">Twitter</a>
+              <a href="#" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 hover:text-white transition-colors">LinkedIn</a>
+              <a href="#" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 hover:text-white transition-colors">GitHub</a>
             </div>
           </div>
         </div>

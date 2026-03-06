@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import EmployeeLayout from '../../components/EmployeeLayout';
 import { Calendar, Plus, Clock, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 export default function EmployeeLeaves() {
   const { theme } = useTheme();
   const { user } = useAuth();
-  const { applyLeave, getEmployeeLeaves } = useLeaves();
+  const { applyLeave, getEmployeeLeaves, leaveTypes, leaveRequests } = useLeaves();
   const isDark = theme === 'dark';
   const [isApplying, setIsApplying] = useState(false);
 
@@ -19,11 +19,25 @@ export default function EmployeeLeaves() {
     reason: ''
   });
 
-  const leaveBalances = [
-    { type: 'Annual Leave', total: 20, used: 8, available: 12, color: 'emerald' },
-    { type: 'Sick Leave', total: 10, used: 2, available: 8, color: 'amber' },
-    { type: 'Casual Leave', total: 5, used: 5, available: 0, color: 'blue' },
-  ];
+  const leaveBalances = useMemo(() => {
+    if (!user) return [];
+    
+    const colors = ['emerald', 'amber', 'blue', 'purple', 'pink', 'indigo', 'cyan', 'teal'];
+    
+    return leaveTypes.map((type, index) => {
+      const used = leaveRequests
+        .filter(req => (req.employeeId === (user.employeeId || user.id)) && req.type === type.name && req.status === 'Approved')
+        .reduce((acc, req) => acc + req.days, 0);
+      
+      return {
+        type: type.name,
+        total: type.days,
+        used,
+        available: type.days - used,
+        color: colors[index % colors.length]
+      };
+    });
+  }, [leaveTypes, leaveRequests, user]);
 
   const leaveHistory = user ? getEmployeeLeaves(user.employeeId || user.id) : [];
 
@@ -44,7 +58,7 @@ export default function EmployeeLeaves() {
     applyLeave({
       employeeId: user.employeeId || user.id,
       employeeName: user.name,
-      type: formData.type === 'annual' ? 'Annual Leave' : formData.type === 'sick' ? 'Sick Leave' : 'Casual Leave',
+      type: formData.type,
       startDate: formData.startDate,
       endDate: formData.endDate,
       days: diffDays,
@@ -62,7 +76,7 @@ export default function EmployeeLeaves() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Leave Management</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">View your leave balances and apply for new leaves.</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">View your leave balances and apply for new leaves.</p>
           </div>
           <button 
             onClick={() => setIsApplying(true)}
@@ -87,15 +101,15 @@ export default function EmployeeLeaves() {
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
                   <p className="text-2xl font-bold text-slate-800 dark:text-white">{balance.total}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Total</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">Total</p>
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-slate-800 dark:text-white">{balance.used}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Used</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">Used</p>
                 </div>
                 <div>
                   <p className={`text-2xl font-bold text-${balance.color}-600 dark:text-${balance.color}-400`}>{balance.available}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Available</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">Available</p>
                 </div>
               </div>
             </div>
@@ -121,9 +135,9 @@ export default function EmployeeLeaves() {
                   className={`w-full p-2.5 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-300 text-slate-900'}`}
                 >
                   <option value="">Select Leave Type</option>
-                  <option value="annual">Annual Leave</option>
-                  <option value="sick">Sick Leave</option>
-                  <option value="casual">Casual Leave</option>
+                  {leaveTypes.map(type => (
+                    <option key={type.id} value={type.name}>{type.name}</option>
+                  ))}
                 </select>
               </div>
               
@@ -185,7 +199,7 @@ export default function EmployeeLeaves() {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className={`bg-slate-50 dark:bg-slate-800/50 border-b ${isDark ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-500'}`}>
+              <thead className={`bg-slate-50 dark:bg-slate-800/50 border-b ${isDark ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-600'}`}>
                 <tr>
                   <th className="px-6 py-4 font-medium">Leave Type</th>
                   <th className="px-6 py-4 font-medium">Duration</th>
@@ -198,11 +212,11 @@ export default function EmployeeLeaves() {
                 {leaveHistory.map((leave) => (
                   <tr key={leave.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">{leave.type}</td>
-                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
+                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
                       {leave.startDate} <span className="mx-2">to</span> {leave.endDate}
                     </td>
-                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{leave.days}</td>
-                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400 truncate max-w-[200px]">{leave.reason}</td>
+                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{leave.days}</td>
+                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400 truncate max-w-[200px]">{leave.reason}</td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
                         leave.status === 'Approved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :

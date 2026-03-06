@@ -29,6 +29,9 @@ interface CompanyDataContextType {
   tasks: DataEntity[];
   sales: DataEntity[];
   loans: DataEntity[];
+  payrolls: DataEntity[];
+  payrollBatches: DataEntity[];
+  salaryRecords: DataEntity[];
   orgChartTemplates: DataEntity[];
   loading: boolean;
   addEntity: (collectionName: string, data: any) => Promise<void>;
@@ -57,6 +60,9 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
   const [tasks, setTasks] = useState<DataEntity[]>([]);
   const [sales, setSales] = useState<DataEntity[]>([]);
   const [loans, setLoans] = useState<DataEntity[]>([]);
+  const [payrolls, setPayrolls] = useState<DataEntity[]>([]);
+  const [payrollBatches, setPayrollBatches] = useState<DataEntity[]>([]);
+  const [salaryRecords, setSalaryRecords] = useState<DataEntity[]>([]);
   const [orgChartTemplates, setOrgChartTemplates] = useState<DataEntity[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -76,6 +82,9 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
       { name: 'tasks', setter: setTasks },
       { name: 'sales', setter: setSales },
       { name: 'loans', setter: setLoans },
+      { name: 'payrolls', setter: setPayrolls },
+      { name: 'payrollBatches', setter: setPayrollBatches },
+      { name: 'salaryRecords', setter: setSalaryRecords },
       { name: 'orgChartTemplates', setter: setOrgChartTemplates }
     ];
 
@@ -131,6 +140,9 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
       tasks,
       sales,
       loans,
+      payrolls,
+      payrollBatches,
+      salaryRecords,
       orgChartTemplates,
       loading,
       addEntity,

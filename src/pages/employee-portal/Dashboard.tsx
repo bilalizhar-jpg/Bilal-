@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import EmployeeLayout from '../../components/EmployeeLayout';
 import { Clock, Calendar, FileText, Bell, CheckCircle2, User, Mail, Phone, MapPin, Briefcase, Hash } from 'lucide-react';
@@ -6,6 +7,8 @@ import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { useEmployees } from '../../context/EmployeeContext';
 import { useLeaves } from '../../context/LeaveContext';
+import { useChat } from '../../context/ChatContext';
+import { useCompanyData } from '../../context/CompanyDataContext';
 
 export default function EmployeeDashboard() {
   const navigate = useNavigate();
@@ -13,117 +16,175 @@ export default function EmployeeDashboard() {
   const { user } = useAuth();
   const { employees } = useEmployees();
   const { getEmployeeLeaves } = useLeaves();
+  const { invitations, acceptInvitation, rejectInvitation } = useChat();
+  const { notices, tasks } = useCompanyData();
   const isDark = theme === 'dark';
 
   const currentEmployee = employees.find(emp => emp.id === user?.id);
   const myLeaves = user ? getEmployeeLeaves(user.employeeId || user.id) : [];
   const latestLeave = myLeaves[0];
 
+  const pendingTasksCount = tasks.filter(t => t.assignee === user?.name && t.status !== 'Done').length;
+  const newNoticesCount = notices.filter(n => new Date(n.date) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length;
+  const recentNotices = notices.slice(0, 3);
+
   return (
     <EmployeeLayout>
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Welcome back, {user?.name || 'Employee'}!</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Here is what's happening today.</p>
+          <h1 className={`text-3xl font-black ${isDark ? 'text-white' : 'text-slate-900'} uppercase tracking-tighter`}>Welcome back, {user?.name || 'Employee'}!</h1>
+          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-1">Terminal Status: Operational</p>
         </div>
+
+        {/* Chat Invitations */}
+        {invitations.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`glass-card p-6 border ${isDark ? 'border-white/5' : 'border-slate-200'}`}
+          >
+            <h3 className={`text-[10px] font-black ${isDark ? 'text-white' : 'text-slate-900'} uppercase tracking-[0.2em] mb-6 flex items-center gap-2`}>
+              <Mail className="w-4 h-4 text-indigo-400" />
+              Incoming Communications
+            </h3>
+            <div className="space-y-4">
+              {invitations.map(invite => {
+                const sender = employees.find(e => e.id === invite.fromUserId);
+                return (
+                  <div key={invite.id} className={`flex items-center justify-between p-4 ${isDark ? 'bg-white/5 border-white/5' : 'bg-slate-100 border-slate-200'} rounded-xl border group hover:bg-white/10 transition-all`}>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-black text-xl">
+                        {sender?.name?.charAt(0) || '?'}
+                      </div>
+                      <div>
+                        <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                          {invite.type === 'group' 
+                            ? `Invited to group "${invite.groupName || 'Unknown Group'}"` 
+                            : `Message request from ${sender?.name || 'Unknown User'}`}
+                        </p>
+                        <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">
+                          {invite.timestamp?.toDate ? new Date(invite.timestamp.toDate()).toLocaleDateString() : 'Just now'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <button 
+                        onClick={() => acceptInvitation(invite)}
+                        className="px-4 py-2 text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-lg border border-emerald-500/20 transition-all"
+                      >
+                        Accept
+                      </button>
+                      <button 
+                        onClick={() => rejectInvitation(invite.id)}
+                        className="px-4 py-2 text-[10px] font-black uppercase tracking-widest bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg border border-red-500/20 transition-all"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
 
         {/* Employee Profile Card */}
         {currentEmployee && (
-          <div className={`p-6 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm`}>
-            <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-              <User className="w-5 h-5 text-indigo-500" />
-              My Profile
+          <div className="glass-card p-8 border border-white/5">
+            <h2 className="text-[10px] font-black text-white uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
+              <User className="w-4 h-4 text-indigo-400" />
+              Identity Profile
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="space-y-1">
-                <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                  <Hash className="w-3 h-3" /> Employee ID
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              <div className="space-y-2">
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                  <Hash className="w-3 h-3" /> Node ID
                 </p>
-                <p className="font-medium text-slate-900 dark:text-white">{currentEmployee.employeeId}</p>
+                <p className="text-lg font-black text-white tracking-tight">{currentEmployee.employeeId}</p>
               </div>
-              <div className="space-y-1">
-                <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                  <Briefcase className="w-3 h-3" /> Department
+              <div className="space-y-2">
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                  <Briefcase className="w-3 h-3" /> Sector
                 </p>
-                <p className="font-medium text-slate-900 dark:text-white">{currentEmployee.department}</p>
+                <p className="text-lg font-black text-white tracking-tight">{currentEmployee.department}</p>
               </div>
-              <div className="space-y-1">
-                <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+              <div className="space-y-2">
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
                   <User className="w-3 h-3" /> Designation
                 </p>
-                <p className="font-medium text-slate-900 dark:text-white">{currentEmployee.designation}</p>
+                <p className="text-lg font-black text-white tracking-tight">{currentEmployee.designation}</p>
               </div>
-              <div className="space-y-1">
-                <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                  <Calendar className="w-3 h-3" /> Joining Date
+              <div className="space-y-2">
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                  <Calendar className="w-3 h-3" /> Initialization
                 </p>
-                <p className="font-medium text-slate-900 dark:text-white">{currentEmployee.joiningDate}</p>
+                <p className="text-lg font-black text-white tracking-tight">{currentEmployee.joiningDate}</p>
               </div>
             </div>
           </div>
         )}
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className={`p-6 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm`}>
-            <h3 className="font-bold text-slate-800 dark:text-white mb-4">Quick Actions</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <button 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="glass-card p-8 border border-white/5">
+            <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em] mb-8">Rapid Access</h3>
+            <div className="grid grid-cols-2 gap-6">
+              <motion.button 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => navigate('/employee-portal/attendance')}
-                className="flex flex-col items-center justify-center p-4 rounded-xl border border-emerald-100 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-all dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-900/40"
+                className="flex flex-col items-center justify-center p-6 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 hover:bg-emerald-500/10 transition-all"
               >
-                <Clock className="w-6 h-6 mb-2" />
-                <span className="text-sm font-bold">Daily Attendance</span>
-              </button>
-              <button 
+                <Clock className="w-8 h-8 mb-3" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Attendance</span>
+              </motion.button>
+              <motion.button 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => navigate('/employee-portal/leaves')}
-                className="flex flex-col items-center justify-center p-4 rounded-xl border border-blue-100 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/40"
+                className="flex flex-col items-center justify-center p-6 rounded-2xl border border-blue-500/20 bg-blue-500/5 text-blue-400 hover:bg-blue-500/10 transition-all"
               >
-                <Calendar className="w-6 h-6 mb-2" />
-                <span className="text-sm font-bold">Apply Leave</span>
-              </button>
+                <Calendar className="w-8 h-8 mb-3" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Apply Leave</span>
+              </motion.button>
             </div>
           </div>
 
-          <div className={`p-6 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm`}>
-            <h3 className="font-bold text-slate-800 dark:text-white mb-4">Today's Stats</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700">
-                <p className="text-xs text-slate-500 dark:text-slate-400">Pending Tasks</p>
-                <p className="text-xl font-bold text-slate-900 dark:text-white">5</p>
+          <div className="glass-card p-8 border border-white/5">
+            <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em] mb-8">Daily Metrics</h3>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="p-5 bg-white/5 rounded-2xl border border-white/5">
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Active Tasks</p>
+                <p className="text-3xl font-black text-white tracking-tighter">{pendingTasksCount}</p>
               </div>
-              <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-700">
-                <p className="text-xs text-slate-500 dark:text-slate-400">Unread Notices</p>
-                <p className="text-xl font-bold text-slate-900 dark:text-white">2</p>
+              <div className="p-5 bg-white/5 rounded-2xl border border-white/5">
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">New Notices</p>
+                <p className="text-3xl font-black text-white tracking-tighter">{newNoticesCount}</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Recent Notices */}
-          <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm overflow-hidden`}>
-            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-              <h3 className="font-bold text-slate-800 dark:text-white">Recent Notices</h3>
-              <button className="text-sm text-emerald-600 dark:text-emerald-400 hover:underline">View All</button>
+          <div className="glass-card border border-white/5 overflow-hidden">
+            <div className="p-6 border-b border-white/5 flex justify-between items-center">
+              <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Broadcast Feed</h3>
+              <button onClick={() => navigate('/employee-portal/notices')} className="text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:text-indigo-300">View All</button>
             </div>
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {[
-                { title: 'Company Townhall Meeting', date: 'Today, 2:00 PM', type: 'Event' },
-                { title: 'Updated Leave Policy', date: 'Yesterday', type: 'Policy' },
-                { title: 'Public Holiday Announcement', date: '2 days ago', type: 'Announcement' }
-              ].map((notice, i) => (
-                <div key={i} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer flex gap-4">
-                  <div className={`p-2 rounded-lg shrink-0 h-fit ${
-                    notice.type === 'Event' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' :
-                    notice.type === 'Policy' ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' :
-                    'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'
+            <div className="divide-y divide-white/[0.02]">
+              {recentNotices.map((notice, i) => (
+                <div key={i} className="p-6 hover:bg-white/[0.02] transition-colors cursor-pointer flex gap-5">
+                  <div className={`p-3 rounded-xl shrink-0 h-fit border ${
+                    notice.type === 'Event' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                    notice.type === 'Policy' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                    'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                   }`}>
                     <Bell className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-slate-800 dark:text-white text-sm">{notice.title}</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{notice.date}</p>
+                    <h4 className="font-bold text-white text-sm uppercase tracking-tight">{notice.type}</h4>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">{notice.date}</p>
                   </div>
                 </div>
               ))}
@@ -131,35 +192,35 @@ export default function EmployeeDashboard() {
           </div>
 
           {/* My Leave Status */}
-          <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm overflow-hidden`}>
-            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-              <h3 className="font-bold text-slate-800 dark:text-white">My Leave Status</h3>
-              <button onClick={() => navigate('/employee-portal/leaves')} className="text-sm text-emerald-600 dark:text-emerald-400 hover:underline">Apply Leave</button>
+          <div className="glass-card border border-white/5 overflow-hidden">
+            <div className="p-6 border-b border-white/5 flex justify-between items-center">
+              <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Leave Protocol</h3>
+              <button onClick={() => navigate('/employee-portal/leaves')} className="text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:text-indigo-300">New Request</button>
             </div>
-            <div className="p-4">
+            <div className="p-6">
               <div className="space-y-4">
                 {latestLeave ? (
-                  <div className="flex items-center justify-between p-3 border border-slate-200 dark:border-slate-700 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-2 h-2 rounded-full ${
-                        latestLeave.status === 'Approved' ? 'bg-emerald-500' :
-                        latestLeave.status === 'Rejected' ? 'bg-red-500' : 'bg-amber-500'
+                  <div className="flex items-center justify-between p-5 bg-white/5 border border-white/5 rounded-2xl">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-3 h-3 rounded-full shadow-lg ${
+                        latestLeave.status === 'Approved' ? 'bg-emerald-500 shadow-emerald-500/20' :
+                        latestLeave.status === 'Rejected' ? 'bg-red-500 shadow-red-500/20' : 'bg-amber-500 shadow-amber-500/20'
                       }`}></div>
                       <div>
-                        <p className="text-sm font-medium text-slate-800 dark:text-white">{latestLeave.type}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">{latestLeave.startDate} - {latestLeave.endDate}</p>
+                        <p className="text-sm font-bold text-white uppercase tracking-tight">{latestLeave.type}</p>
+                        <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">{latestLeave.startDate} — {latestLeave.endDate}</p>
                       </div>
                     </div>
-                    <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
-                      latestLeave.status === 'Approved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                      latestLeave.status === 'Rejected' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                      'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                    <span className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full border ${
+                      latestLeave.status === 'Approved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                      latestLeave.status === 'Rejected' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                      'bg-amber-500/10 text-amber-400 border-amber-500/20'
                     }`}>
                       {latestLeave.status}
                     </span>
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">No leave requests found.</p>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-[0.2em] text-center py-8">No active protocols found.</p>
                 )}
               </div>
             </div>

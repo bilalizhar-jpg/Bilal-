@@ -27,18 +27,7 @@ interface SalaryAdvanceRecord {
   approved: boolean;
 }
 
-const initialRecords: SalaryAdvanceRecord[] = [
-  { id: '1', employeeName: 'Kristen Lillith Stout Rodriquez', amount: 50, releaseAmount: 0, salaryMonth: '2026-03', status: 'Active', approved: true },
-  { id: '2', employeeName: 'Honorato Imogene Curry Terry', amount: 5000, releaseAmount: 0, salaryMonth: '2026-02', status: 'Active', approved: true },
-  { id: '3', employeeName: 'Maisha Lucy Zamora Gonzales', amount: 100, releaseAmount: 0, salaryMonth: '2026-02', status: 'Active', approved: true },
-  { id: '4', employeeName: 'Honorato Imogene Curry Terry', amount: 5000, releaseAmount: 0, salaryMonth: '2026-02', status: 'Active', approved: true },
-  { id: '5', employeeName: 'Amy Aphrodite Zamora Peck', amount: 12000, releaseAmount: 0, salaryMonth: '2026-02', status: 'Active', approved: true },
-  { id: '6', employeeName: 'Amy Aphrodite Zamora Peck', amount: 999999.99, releaseAmount: 0, salaryMonth: '2026-03', status: 'Active', approved: true },
-  { id: '7', employeeName: 'Honorato Imogene Curry Terry', amount: 8674, releaseAmount: 0, salaryMonth: '2026-02', status: 'Active', approved: true },
-  { id: '8', employeeName: 'Amy Aphrodite Zamora Peck', amount: 15000, releaseAmount: 0, salaryMonth: '2026-02', status: 'Active', approved: true },
-  { id: '9', employeeName: 'Maisha Lucy Zamora Gonzales', amount: 25000, releaseAmount: 0, salaryMonth: '2026-01', status: 'Active', approved: true },
-  { id: '10', employeeName: 'Mohmed Afif Akram', amount: 222, releaseAmount: 0, salaryMonth: '2025-07', status: 'Inactive', approved: false },
-];
+const initialRecords: SalaryAdvanceRecord[] = [];
 
 export default function SalaryAdvance() {
   const [records, setRecords] = useState<SalaryAdvanceRecord[]>(initialRecords);

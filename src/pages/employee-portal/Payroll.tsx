@@ -18,6 +18,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useSettings } from '../../context/SettingsContext';
 import { useAuth } from '../../context/AuthContext';
 import { useEmployees } from '../../context/EmployeeContext';
+import { useCompanyData } from '../../context/CompanyDataContext';
 import { motion, AnimatePresence } from 'motion/react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -37,6 +38,8 @@ export default function EmployeePayroll() {
   const settings = useSettings();
   const { user } = useAuth();
   const { employees } = useEmployees();
+  const { payrolls, loans } = useCompanyData();
+  const { companies } = useSuperAdmin(); // Added this
   const isDark = theme === 'dark';
   const [activeTab, setActiveTab] = useState<'slips' | 'advance' | 'loan'>('slips');
   const [isPayslipModalOpen, setIsPayslipModalOpen] = useState(false);
@@ -45,11 +48,57 @@ export default function EmployeePayroll() {
   const [editableEmployeeInfo, setEditableEmployeeInfo] = useState<{label: string, value: string}[]>([]);
 
   const currentEmployee = employees.find(emp => emp.id === user?.id);
+  const company = companies.find(c => c.id === currentEmployee?.companyId);
 
-  const salarySlips = [
-    { id: 1, month: 'February 2026', amount: `$${currentEmployee?.salary || 5000}.00`, status: 'Paid', date: 'Feb 28, 2026', staffId: currentEmployee?.employeeId || '#000001', position: currentEmployee?.designation || 'Manager', contact: currentEmployee?.mobile || '+1(873)591-1817', address: currentEmployee?.country || '123 Main St', workingHours: 10, workedHours: 230, recruitmentDate: currentEmployee?.joiningDate || '2023-01-01', note: '' },
-    { id: 2, month: 'January 2026', amount: `$${currentEmployee?.salary || 5000}.00`, status: 'Paid', date: 'Jan 31, 2026', staffId: currentEmployee?.employeeId || '#000001', position: currentEmployee?.designation || 'Manager', contact: currentEmployee?.mobile || '+1(873)591-1817', address: currentEmployee?.country || '123 Main St', workingHours: 10, workedHours: 230, recruitmentDate: currentEmployee?.joiningDate || '2023-01-01', note: '' },
-  ];
+  useEffect(() => {
+    console.log("Payroll Debug:", { 
+      currentEmployeeId: user?.id,
+      currentEmployee, 
+      companyId: currentEmployee?.companyId,
+      company, 
+      allCompanies: companies 
+    });
+  }, [currentEmployee, company, companies]);
+
+  const salarySlips = payrolls
+    .filter(p => p.employeeId === currentEmployee?.id)
+    .map(p => ({
+      id: p.id,
+      month: p.month,
+      amount: `${settings.currency.symbol}${p.netSalary}`,
+      status: p.status,
+      date: p.paymentDate || '-',
+      staffId: currentEmployee?.employeeId || '',
+      position: currentEmployee?.designation || '',
+      contact: currentEmployee?.mobile || '',
+      address: currentEmployee?.location || '',
+      workingHours: p.workingHours || 0,
+      workedHours: p.workedHours || 0,
+      recruitmentDate: currentEmployee?.joiningDate || '',
+      note: p.note || ''
+    }));
+
+  const advanceRequests = loans
+    .filter(l => l.employeeId === currentEmployee?.id && l.type === 'Advance')
+    .map(l => ({
+      id: l.id,
+      date: l.requestDate,
+      amount: `${settings.currency.symbol}${l.amount}`,
+      reason: l.reason,
+      status: l.status
+    }));
+
+  const loanRequests = loans
+    .filter(l => l.employeeId === currentEmployee?.id && l.type !== 'Advance')
+    .map(l => ({
+      id: l.id,
+      date: l.requestDate,
+      amount: `${settings.currency.symbol}${l.amount}`,
+      reason: l.reason,
+      emi: `${settings.currency.symbol}${l.installmentAmount}/mo`,
+      status: l.status,
+      remaining: `${settings.currency.symbol}${l.remainingAmount}`
+    }));
 
   useEffect(() => {
     if (selectedSlip && currentEmployee) {
@@ -57,16 +106,17 @@ export default function EmployeePayroll() {
         { label: 'Employee name', value: currentEmployee.name },
         { label: 'Position', value: currentEmployee.designation },
         { label: 'Contact', value: currentEmployee.mobile },
-        { label: 'Address', value: currentEmployee.country },
+        { label: 'Address', value: currentEmployee.location },
         { label: 'Total working hours', value: selectedSlip.workingHours.toString() },
         { label: 'Staff id', value: currentEmployee.employeeId },
         { label: 'Month', value: selectedSlip.month },
         { label: 'Recruitment date', value: currentEmployee.joiningDate },
         { label: 'Worked hours', value: selectedSlip.workedHours.toString() },
       ]);
+      // TODO: Fetch real breakdown from payroll record if available
       setPayslipRows([
-        { id: '1', description: 'Basic salary', amount: currentEmployee.salary || 6400, rate: 0, value: currentEmployee.salary || 6400, deduction: 0, type: 'earning' },
-        { id: '2', description: 'Transport allowance', amount: 470, rate: 0, value: 470, deduction: 0, type: 'earning' },
+        { id: '1', description: 'Basic salary', amount: currentEmployee.salary || 0, rate: 0, value: currentEmployee.salary || 0, deduction: 0, type: 'earning' },
+        { id: '2', description: 'Transport allowance', amount: 0, rate: 0, value: 0, deduction: 0, type: 'earning' },
         { id: '3', description: 'State income tax', amount: 0, rate: 0, value: 0, deduction: currentEmployee.taxDeduction || 0, type: 'deduction' },
         { id: '4', description: 'Social security', amount: 0, rate: 0, value: 0, deduction: 0, type: 'deduction' },
       ]);
@@ -108,15 +158,6 @@ export default function EmployeePayroll() {
       if (buttons) (buttons as HTMLElement).style.display = 'flex';
     }
   };
-
-  const advanceRequests = [
-    { id: 1, date: 'Mar 10, 2026', amount: '$1,000.00', reason: 'Medical Emergency', status: 'Pending' },
-    { id: 2, date: 'Nov 05, 2025', amount: '$500.00', reason: 'Car Repair', status: 'Approved' },
-  ];
-
-  const loanRequests = [
-    { id: 1, date: 'Jan 15, 2026', amount: '$5,000.00', reason: 'Home Renovation', emi: '$500/mo', status: 'Active', remaining: '$4,000.00' },
-  ];
 
   return (
     <EmployeeLayout>
@@ -339,11 +380,15 @@ export default function EmployeePayroll() {
                   {/* Payslip Header */}
                   <div className="text-center space-y-2">
                     <div className="flex justify-center mb-4">
-                      <div className="bg-emerald-600 p-2 rounded-xl">
-                        <Building2 className="w-8 h-8 text-white" />
+                      <div className="bg-emerald-600 p-2 rounded-xl w-16 h-16 flex items-center justify-center overflow-hidden">
+                        {company?.logo ? (
+                          <img src={company.logo} alt={company.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <Building2 className="w-8 h-8 text-white" />
+                        )}
                       </div>
                     </div>
-                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Bdtask HRM (PAYSLIP)</h2>
+                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{company?.name || 'Bdtask HRM (PAYSLIP)'}</h2>
                   </div>
 
                   {/* Employee Info Grid */}

@@ -11,7 +11,8 @@ import {
   Calendar,
   FileText,
   RefreshCw,
-  Settings
+  Settings,
+  MapPin
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import * as XLSX from 'xlsx';
@@ -73,6 +74,7 @@ export default function Attendance() {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedRecordForLogs, setSelectedRecordForLogs] = useState<any>(null);
 
   const dailyAttendanceData = attendanceRecords
     .filter(record => {
@@ -92,7 +94,8 @@ export default function Attendance() {
         loginTime: record.loginTime || '-',
         logoutTime: record.logoutTime || '-',
         workingHours: realWorkingHours,
-        date: record.date
+        date: record.date,
+        logs: record.logs || []
       };
     });
 
@@ -420,6 +423,7 @@ export default function Attendance() {
                           <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase">Logout Time</th>
                           <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase">Working Hours</th>
                           <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase">Date</th>
+                          <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
@@ -431,6 +435,15 @@ export default function Attendance() {
                             <td className="px-4 py-3 text-sm text-amber-600 font-bold">{record.logoutTime}</td>
                             <td className="px-4 py-3 text-sm text-indigo-600 font-bold">{record.workingHours}</td>
                             <td className="px-4 py-3 text-sm text-slate-500">{record.date}</td>
+                            <td className="px-4 py-3 text-sm">
+                              <button 
+                                onClick={() => setSelectedRecordForLogs(record)}
+                                className="text-indigo-600 hover:text-indigo-800 font-bold text-xs flex items-center gap-1"
+                              >
+                                <FileText className="w-3.5 h-3.5" />
+                                View Logs
+                              </button>
+                            </td>
                           </tr>
                         ))}
                         {dailyAttendanceData.length === 0 && (
@@ -590,6 +603,70 @@ export default function Attendance() {
           </div>
 
         <AnimatePresence>
+          {selectedRecordForLogs && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden"
+              >
+                <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                  <div>
+                    <h3 className="font-bold text-slate-800">Attendance Logs</h3>
+                    <p className="text-xs text-slate-500">{selectedRecordForLogs.employeeName} - {selectedRecordForLogs.date}</p>
+                  </div>
+                  <button onClick={() => setSelectedRecordForLogs(null)} className="p-1 hover:bg-slate-200 rounded-full transition-colors">
+                    <X className="w-5 h-5 text-slate-500" />
+                  </button>
+                </div>
+                
+                <div className="p-6 max-h-[60vh] overflow-y-auto">
+                  <div className="space-y-4">
+                    {selectedRecordForLogs.logs.length === 0 ? (
+                      <p className="text-center text-slate-500 py-8">No detailed logs available for this record.</p>
+                    ) : (
+                      selectedRecordForLogs.logs.map((log: any, idx: number) => (
+                        <div key={idx} className="flex gap-4 p-4 rounded-lg border border-slate-100 bg-slate-50/50">
+                          <div className="flex-1 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                log.action.includes('In') ? 'bg-emerald-100 text-emerald-700' :
+                                log.action.includes('Out') ? 'bg-red-100 text-red-700' :
+                                'bg-amber-100 text-amber-700'
+                              }`}>
+                                {log.action}
+                              </span>
+                              <span className="text-xs font-mono text-slate-500">{log.time}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                              <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                              <span>{log.location}</span>
+                            </div>
+                          </div>
+                          {log.selfie && (
+                            <div className="w-20 h-20 rounded-lg border border-slate-200 overflow-hidden bg-white shrink-0">
+                              <img src={log.selfie} alt="Selfie" className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="p-4 border-t border-slate-100 flex justify-end bg-slate-50">
+                  <button 
+                    onClick={() => setSelectedRecordForLogs(null)}
+                    className="bg-slate-800 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-slate-900"
+                  >
+                    Close
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+
           {isCustomFieldModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
               <motion.div 

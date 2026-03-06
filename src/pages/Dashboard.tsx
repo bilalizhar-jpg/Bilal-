@@ -97,7 +97,7 @@ export default function Dashboard() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* Blinking Leave Notification */}
         <AnimatePresence>
           {showLeaveNotification && pendingLeave && (
@@ -105,21 +105,21 @@ export default function Dashboard() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/30 rounded-xl p-4 flex items-center justify-between shadow-sm animate-pulse"
+              className="glass-card border border-amber-500/20 bg-amber-500/5 p-4 flex items-center justify-between shadow-lg shadow-amber-500/5 animate-pulse"
             >
-              <div className="flex items-center gap-3">
-                <div className="bg-amber-100 dark:bg-amber-900/40 p-2 rounded-full">
-                  <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+              <div className="flex items-center gap-4">
+                <div className="bg-amber-500/10 p-2 rounded-xl border border-amber-500/20">
+                  <AlertCircle className="w-5 h-5 text-amber-400" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-amber-800 dark:text-amber-200">New Leave Application</h4>
-                  <p className="text-xs text-amber-600 dark:text-amber-400">{pendingLeave.employeeName} has applied for {pendingLeave.type} ({pendingLeave.days} days). Notification sent to HR & Dept Head.</p>
+                  <h4 className="text-[10px] font-black text-amber-400 uppercase tracking-widest">Priority Alert: Leave Protocol</h4>
+                  <p className="text-xs text-amber-200/60 mt-0.5">{pendingLeave.employeeName} has initialized a leave request ({pendingLeave.days} days).</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Link to="/leave" className="text-xs font-bold text-amber-700 dark:text-amber-300 hover:underline">Review Now</Link>
-                <button onClick={() => setShowLeaveNotification(false)} className="p-1 hover:bg-amber-100 dark:hover:bg-amber-900/40 rounded-full">
-                  <X className="w-4 h-4 text-amber-500 dark:text-amber-500" />
+              <div className="flex items-center gap-4">
+                <Link to="/leave" className="text-[10px] font-black text-amber-400 uppercase tracking-widest hover:text-amber-300 transition-colors">Review Protocol</Link>
+                <button onClick={() => setShowLeaveNotification(false)} className="p-1.5 hover:bg-white/5 rounded-lg transition-colors">
+                  <X className="w-4 h-4 text-amber-500/50" />
                 </button>
               </div>
             </motion.div>
@@ -129,67 +129,89 @@ export default function Dashboard() {
         {/* Top Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat) => (
-            <div key={stat.label} className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex justify-between items-center">
+            <motion.div 
+              key={stat.label} 
+              whileHover={{ y: -5 }}
+              className="glass-card p-6 border border-white/5 flex justify-between items-center group"
+            >
               <div>
-                <h3 className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">{stat.label}</h3>
-                <p className="text-3xl font-bold text-slate-800 dark:text-white">{stat.value}</p>
+                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 group-hover:text-slate-400 transition-colors">{stat.label}</h3>
+                <p className="text-4xl font-black text-white tracking-tighter">{stat.value}</p>
               </div>
-              <div className={`${stat.bg} ${stat.color} p-3 rounded-xl`}>
-                <stat.icon className="w-6 h-6" />
+              <div className={`p-4 rounded-2xl bg-white/5 border border-white/5 group-hover:border-white/10 transition-all`}>
+                <stat.icon className={`w-6 h-6 ${stat.color}`} />
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Main Charts Area */}
-          <div className="lg:col-span-3 space-y-6">
+          <div className="lg:col-span-3 space-y-8">
             {/* Attendance Chart */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="font-bold text-slate-800 dark:text-white">Daily attendance statistic (department wise)</h2>
+            <div className="glass-card p-8 border border-white/5">
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Deployment Metrics (Departmental)</h2>
               </div>
-              <div className="h-[350px] w-full">
+              <div className="h-[400px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={deptAttendanceData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme === 'dark' ? '#1e293b' : '#f0f0f0'} />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: theme === 'dark' ? '#94a3b8' : '#64748b' }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: theme === 'dark' ? '#94a3b8' : '#64748b' }} tickFormatter={(val) => `${val}%`} />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                    <XAxis 
+                      dataKey="name" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fontSize: 10, fill: '#64748b', fontWeight: 900 }} 
+                    />
+                    <YAxis 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fontSize: 10, fill: '#64748b', fontWeight: 900 }} 
+                      tickFormatter={(val) => `${val}%`} 
+                    />
                     <Tooltip 
                       contentStyle={{ 
-                        backgroundColor: theme === 'dark' ? '#0f172a' : '#ffffff',
-                        borderColor: theme === 'dark' ? '#1e293b' : '#e2e8f0',
-                        color: theme === 'dark' ? '#f8fafc' : '#0f172a'
+                        backgroundColor: 'rgba(2, 2, 3, 0.9)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '12px',
+                        color: '#fff'
                       }}
-                      cursor={{ fill: theme === 'dark' ? '#1e293b' : '#f8fafc' }} 
+                      itemStyle={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase' }}
+                      cursor={{ fill: 'rgba(255,255,255,0.02)' }} 
                     />
-                    <Legend verticalAlign="top" align="right" iconType="rect" wrapperStyle={{ paddingBottom: '20px' }} />
-                    <Bar dataKey="leave" name="Leave %" fill="#FF4D4D" radius={[4, 4, 0, 0]} barSize={40} />
-                    <Bar dataKey="present" name="Present %" fill="#00C49F" radius={[4, 4, 0, 0]} barSize={40} />
-                    <Bar dataKey="absent" name="Absent %" fill="#FFBB28" radius={[4, 4, 0, 0]} barSize={40} />
+                    <Legend 
+                      verticalAlign="top" 
+                      align="right" 
+                      iconType="circle" 
+                      wrapperStyle={{ paddingBottom: '30px', fontSize: '10px', fontWeight: 900, textTransform: 'uppercase' }} 
+                    />
+                    <Bar dataKey="leave" name="Leave" fill="rgba(244, 63, 94, 0.6)" radius={[4, 4, 0, 0]} barSize={32} />
+                    <Bar dataKey="present" name="Present" fill="rgba(16, 185, 129, 0.6)" radius={[4, 4, 0, 0]} barSize={32} />
+                    <Bar dataKey="absent" name="Absent" fill="rgba(245, 158, 11, 0.6)" radius={[4, 4, 0, 0]} barSize={32} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
             {/* Recruitment Chart */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="font-bold text-slate-800 dark:text-white">Position wise recruitment</h2>
-                <select className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-3 py-1 text-xs outline-none text-slate-900 dark:text-white">
-                  <option>Yearly</option>
-                  <option>Monthly</option>
+            <div className="glass-card p-8 border border-white/5">
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Recruitment Trajectory</h2>
+                <select className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-[10px] font-black uppercase tracking-widest outline-none text-white hover:bg-white/10 transition-all">
+                  <option className="bg-slate-900">Yearly Cycle</option>
+                  <option className="bg-slate-900">Monthly Cycle</option>
                 </select>
               </div>
-              <div className="h-[250px] w-full flex items-center justify-center border-t border-slate-50 dark:border-slate-800">
-                <div className="text-slate-300 dark:text-slate-600 text-sm italic">No data available for the selected period</div>
+              <div className="h-[250px] w-full flex items-center justify-center border-t border-white/5">
+                <div className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] italic">Data Stream: Inactive</div>
               </div>
             </div>
 
             {/* Awarded Chart */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="font-bold text-slate-800 dark:text-white">Awarded</h2>
+            <div className="glass-card p-8 border border-white/5">
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Excellence Distribution</h2>
               </div>
               <div className="h-[200px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -198,13 +220,13 @@ export default function Dashboard() {
                     <YAxis dataKey="name" type="category" hide />
                     <Tooltip 
                       contentStyle={{ 
-                        backgroundColor: theme === 'dark' ? '#0f172a' : '#ffffff',
-                        borderColor: theme === 'dark' ? '#1e293b' : '#e2e8f0',
-                        color: theme === 'dark' ? '#f8fafc' : '#0f172a'
+                        backgroundColor: 'rgba(2, 2, 3, 0.9)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '12px'
                       }}
                     />
-                    <Legend verticalAlign="top" align="right" iconType="rect" />
-                    <Bar dataKey="value" fill="#0088FE" radius={[0, 4, 4, 0]} barSize={20} />
+                    <Bar dataKey="value" fill="rgba(99, 102, 241, 0.6)" radius={[0, 4, 4, 0]} barSize={24} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -212,87 +234,87 @@ export default function Dashboard() {
           </div>
 
           {/* Right Side Widgets */}
-          <div className="space-y-6">
+          <div className="space-y-8">
             {/* Leave Application */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-              <div className="p-4 border-b border-slate-100 dark:border-slate-800">
-                <h2 className="font-bold text-slate-800 dark:text-white text-sm">Leave Application</h2>
+            <div className="glass-card border border-white/5 overflow-hidden">
+              <div className="p-6 border-b border-white/5">
+                <h2 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Leave Registry</h2>
               </div>
-              <div className="p-4 space-y-4">
+              <div className="p-6 space-y-6">
                 {recentLeaves.map((app, i) => (
-                  <div key={app.id} className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                  <div key={app.id} className="flex items-center justify-between gap-4 group">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-xs font-black text-indigo-400 group-hover:bg-white/10 transition-all">
                         {app.employeeName.charAt(0)}
                       </div>
                       <div className="min-w-0">
-                        <div className="text-[11px] font-bold text-slate-800 dark:text-white truncate">{app.employeeName}</div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate">Reason : {app.reason}</div>
+                        <div className="text-xs font-black text-white uppercase tracking-tight truncate">{app.employeeName}</div>
+                        <div className="text-[10px] text-slate-500 uppercase tracking-widest truncate mt-1">Reason: {app.reason}</div>
                       </div>
                     </div>
-                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded border shrink-0 ${
-                      app.status === 'Approved' ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-900/30' :
-                      app.status === 'Rejected' ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-900/30' :
-                      'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-900/30'
+                    <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border shrink-0 ${
+                      app.status === 'Approved' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' :
+                      app.status === 'Rejected' ? 'text-red-400 bg-red-500/10 border-red-500/20' :
+                      'text-amber-400 bg-amber-500/10 border-amber-500/20'
                     }`}>
                       {app.status}
                     </span>
                   </div>
                 ))}
                 {recentLeaves.length === 0 && (
-                  <div className="text-center py-4 text-xs text-slate-400 italic">No recent leave applications</div>
+                  <div className="text-center py-6 text-[10px] font-black text-slate-600 uppercase tracking-widest italic">Registry Empty</div>
                 )}
-                <Link to="/leave" className="block w-full text-center text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-2 hover:underline">See All Request →</Link>
+                <Link to="/leave" className="block w-full text-center text-[10px] font-black text-indigo-400 uppercase tracking-widest mt-4 hover:text-indigo-300 transition-colors">Full Registry Access →</Link>
               </div>
             </div>
 
             {/* New Recruitment */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-              <div className="p-4 border-b border-slate-100 dark:border-slate-800">
-                <h2 className="font-bold text-slate-800 dark:text-white text-sm">New recruitment</h2>
+            <div className="glass-card border border-white/5 overflow-hidden">
+              <div className="p-6 border-b border-white/5">
+                <h2 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">New Personnel</h2>
               </div>
-              <div className="p-4 space-y-4">
+              <div className="p-6 space-y-6">
                 {recentRecruits.map((rec, i) => (
-                  <div key={rec.id} className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <img src={rec.avatar || `https://picsum.photos/seed/rec${i}/40/40`} className="w-8 h-8 rounded-full object-cover" referrerPolicy="no-referrer" />
+                  <div key={rec.id} className="flex items-center justify-between gap-4 group">
+                    <div className="flex items-center gap-4">
+                      <img src={rec.avatar || `https://picsum.photos/seed/rec${i}/40/40`} className="w-10 h-10 rounded-xl object-cover border border-white/5 group-hover:border-white/20 transition-all" referrerPolicy="no-referrer" />
                       <div>
-                        <div className="text-[11px] font-bold text-slate-800 dark:text-white">{rec.name}</div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400">Date : {rec.joiningDate}</div>
+                        <div className="text-xs font-black text-white uppercase tracking-tight">{rec.name}</div>
+                        <div className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Joined: {rec.joiningDate}</div>
                       </div>
                     </div>
-                    <button className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded border border-emerald-100 dark:border-emerald-900/30 shrink-0">Recruit</button>
+                    <button className="text-[9px] font-black text-emerald-400 uppercase tracking-widest bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 hover:bg-emerald-500/20 transition-all">Recruit</button>
                   </div>
                 ))}
                 {recentRecruits.length === 0 && (
-                  <div className="text-center py-4 text-xs text-slate-400 italic">No recent recruits</div>
+                  <div className="text-center py-6 text-[10px] font-black text-slate-600 uppercase tracking-widest italic">No New Personnel</div>
                 )}
-                <button className="w-full text-center text-xs text-slate-500 dark:text-slate-400 font-bold mt-2 hover:underline">See More</button>
+                <button className="w-full text-center text-[10px] font-black text-slate-500 uppercase tracking-widest mt-4 hover:text-slate-400 transition-colors">Expand View</button>
               </div>
             </div>
 
             {/* Notice Board Widget */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-              <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                <h2 className="font-bold text-slate-800 dark:text-white text-sm">Notice Board</h2>
-                <Link to="/notice" className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline">View All</Link>
+            <div className="glass-card border border-white/5 overflow-hidden">
+              <div className="p-6 border-b border-white/5 flex justify-between items-center">
+                <h2 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Notice Board</h2>
+                <Link to="/notice" className="text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:text-indigo-300 transition-colors">View All</Link>
               </div>
-              <div className="p-4 space-y-4">
+              <div className="p-6 space-y-6">
                 {[
                   { type: 'Govt special', title: 'Eid Holiday', date: '2026-01-31' },
                   { type: 'General Meeting', title: 'Monthly Staff Meeting', date: '2025-04-06' },
                   { type: 'Policy', title: 'New Attendance Policy', date: '2025-01-16' },
                 ].map((notice, i) => (
-                  <div key={i} className="flex items-start gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
-                    <div className="bg-indigo-50 dark:bg-indigo-900/30 p-2 rounded-lg shrink-0">
-                      <Bell className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  <div key={i} className="flex items-start gap-4 p-3 rounded-2xl hover:bg-white/5 transition-all cursor-pointer group">
+                    <div className="bg-indigo-500/10 p-3 rounded-xl border border-indigo-500/20 group-hover:bg-indigo-500/20 transition-all">
+                      <Bell className="w-4 h-4 text-indigo-400" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-[11px] font-bold text-slate-800 dark:text-white truncate">{notice.title}</div>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[9px] font-medium text-slate-500 dark:text-slate-400">{notice.type}</span>
-                        <span className="text-[9px] text-slate-400 dark:text-slate-600">•</span>
-                        <span className="text-[9px] text-slate-400 dark:text-slate-600">{notice.date}</span>
+                      <div className="text-xs font-black text-white uppercase tracking-tight truncate group-hover:text-indigo-400 transition-colors">{notice.title}</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{notice.type}</span>
+                        <span className="text-[9px] text-slate-700">•</span>
+                        <span className="text-[9px] text-slate-500 uppercase tracking-widest">{notice.date}</span>
                       </div>
                     </div>
                   </div>
@@ -301,11 +323,11 @@ export default function Dashboard() {
             </div>
 
             {/* Loan Payment Received */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-              <div className="p-4 border-b border-slate-100 dark:border-slate-800">
-                <h2 className="font-bold text-slate-800 dark:text-white text-sm">Loan payment received</h2>
+            <div className="glass-card border border-white/5 overflow-hidden">
+              <div className="p-6 border-b border-white/5">
+                <h2 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Financial Liquidity</h2>
               </div>
-              <div className="p-4 flex flex-col items-center">
+              <div className="p-8 flex flex-col items-center">
                 <div className="h-40 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -320,14 +342,14 @@ export default function Dashboard() {
                         paddingAngle={0}
                         dataKey="value"
                       >
-                        <Cell fill="#00C49F" />
+                        <Cell fill="rgba(16, 185, 129, 0.4)" stroke="rgba(16, 185, 129, 0.6)" />
                       </Pie>
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
                 <div className="text-center -mt-8">
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold">Total Loan Amount</div>
-                  <div className="text-xl font-bold text-slate-800 dark:text-white">$0.00</div>
+                  <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Loan Volume</div>
+                  <div className="text-3xl font-black text-white tracking-tighter">$0.00</div>
                 </div>
               </div>
             </div>

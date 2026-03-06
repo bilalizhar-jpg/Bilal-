@@ -77,7 +77,7 @@ import EmployeeMarketing from './pages/employee-portal/Marketing';
 import EmployeeMessages from './pages/employee-portal/Messages';
 import EmployeeCompanyPolicies from './pages/employee-portal/CompanyPolicies';
 
-import { AnimatePresence } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { db } from './firebase';
@@ -103,8 +103,34 @@ function AppContent() {
 
   if (!isFirebaseReady) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#020203] relative overflow-hidden">
+        {/* Atmospheric Background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-[120px] animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] animate-pulse delay-700" />
+        </div>
+
+        <div className="relative z-10 flex flex-col items-center">
+          <motion.div 
+            animate={{ 
+              rotate: 360,
+              scale: [1, 1.1, 1],
+            }}
+            transition={{ 
+              rotate: { duration: 2, repeat: Infinity, ease: "linear" },
+              scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+            }}
+            className="w-16 h-16 border-t-2 border-r-2 border-indigo-500 rounded-full shadow-[0_0_20px_rgba(99,102,241,0.3)]"
+          />
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="mt-8 text-[10px] font-black uppercase tracking-[0.4em] text-indigo-400/60"
+          >
+            Initializing Systems
+          </motion.div>
+        </div>
       </div>
     );
   }
@@ -218,6 +244,7 @@ import { PolicyProvider } from './context/PolicyContext';
 import { LetterProvider } from './context/LetterContext';
 import { CompanyDataProvider } from './context/CompanyDataContext';
 import { InvoiceProvider } from './context/InvoiceContext';
+import { ChatProvider } from './context/ChatContext';
 
 export default function App() {
   return (
@@ -231,9 +258,11 @@ export default function App() {
                   <LetterProvider>
                     <CompanyDataProvider>
                       <InvoiceProvider>
-                        <Router>
-                          <AppContent />
-                        </Router>
+                        <ChatProvider>
+                          <Router>
+                            <AppContent />
+                          </Router>
+                        </ChatProvider>
                       </InvoiceProvider>
                     </CompanyDataProvider>
                   </LetterProvider>

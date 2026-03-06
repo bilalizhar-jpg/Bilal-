@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   CheckCircle2, 
   List, 
@@ -16,6 +16,7 @@ import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
 import { useSettings } from '../../context/SettingsContext';
 import { useEmployees } from '../../context/EmployeeContext';
+import { useCompanyData } from '../../context/CompanyDataContext';
 import { motion, AnimatePresence } from 'motion/react';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
@@ -31,20 +32,11 @@ interface GeneratedSalary {
   approvedBy: string;
 }
 
-const initialGenerated: GeneratedSalary[] = [
-  { id: '1', salaryName: '2050-02', generateDate: '2026-02-12', generateBy: 'Admin', status: 'Approved', approvedDate: '2026-02-15', approvedBy: 'Admin' },
-  { id: '2', salaryName: '2039-06', generateDate: '2026-01-29', generateBy: 'Admin', status: 'Approved', approvedDate: '2026-02-02', approvedBy: 'Admin' },
-  { id: '3', salaryName: '2032-02', generateDate: '2026-01-28', generateBy: 'Admin', status: 'Approved', approvedDate: '2026-01-28', approvedBy: 'Admin' },
-  { id: '4', salaryName: '2028-07', generateDate: '2026-01-22', generateBy: 'Admin', status: 'Approved', approvedDate: '2026-01-22', approvedBy: 'Admin' },
-  { id: '5', salaryName: '2028-10', generateDate: '2026-01-22', generateBy: 'Admin', status: 'Approved', approvedDate: '2026-01-22', approvedBy: 'Admin' },
-  { id: '6', salaryName: '1234-12', generateDate: '2025-12-29', generateBy: 'Admin', status: 'Approved', approvedDate: '2026-01-19', approvedBy: 'Admin' },
-  { id: '7', salaryName: '8888-12', generateDate: '2025-12-24', generateBy: 'Admin', status: 'Approved', approvedDate: '2025-12-24', approvedBy: 'Admin' },
-  { id: '8', salaryName: '2020-12', generateDate: '2025-10-31', generateBy: 'Admin', status: 'Approved', approvedDate: '2025-11-03', approvedBy: 'Admin' },
-];
-
 export default function SalaryGenerate() {
-  const [selectedMonth, setSelectedMonth] = useState('2026-02');
-  const [generatedList, setGeneratedList] = useState<GeneratedSalary[]>(initialGenerated);
+  const { payrollBatches, addEntity, updateEntity, deleteEntity, salaryRecords } = useCompanyData();
+  const { employees } = useEmployees();
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [generatedList, setGeneratedList] = useState<GeneratedSalary[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingSalary, setEditingSalary] = useState<GeneratedSalary | null>(null);
@@ -52,28 +44,85 @@ export default function SalaryGenerate() {
   const [viewingSalary, setViewingSalary] = useState<GeneratedSalary | null>(null);
   const { theme } = useTheme();
   const settings = useSettings();
-  const { employees } = useEmployees();
   const activeEmployees = employees.filter(e => e.status === 'Active');
   const isDark = theme === 'dark';
 
-  const handleGenerate = () => {
-    const newGen: GeneratedSalary = {
-      id: Math.random().toString(36).substr(2, 9),
+  useEffect(() => {
+    setGeneratedList(payrollBatches as unknown as GeneratedSalary[]);
+  }, [payrollBatches]);
+
+  const handleGenerate = async () => {
+    if (!selectedMonth) {
+      alert('Please select a month');
+      return;
+    }
+
+    // Check if already generated
+    const exists = payrollBatches.some(b => b.salaryName === selectedMonth);
+    if (exists) {
+      alert(`Salary for ${selectedMonth} already generated.`);
+      return;
+    }
+
+    const batchId = Math.random().toString(36).substr(2, 9);
+    const newBatch = {
+      id: batchId,
       salaryName: selectedMonth,
       generateDate: new Date().toISOString().split('T')[0],
-      generateBy: 'Admin',
+      generateBy: 'Admin', // Should be current user name
       status: 'Pending',
       approvedDate: '-',
       approvedBy: '-'
     };
-    setGeneratedList([newGen, ...generatedList]);
-    alert(`Salary generation started for ${selectedMonth}`);
+
+    try {
+      await addEntity('payrollBatches', newBatch);
+
+      // Generate salary records for all active employees
+      const promises = activeEmployees.map(emp => {
+        const basicSalary = emp.salary || 0;
+        // Default allowances/deductions logic could go here
+        const initialPayslip = [
+          { id: '1', description: 'Basic salary', amount: basicSalary, rate: 0, value: basicSalary, deduction: 0, type: 'earning' },
+          { id: '2', description: 'Transport allowance', amount: 0, rate: 0, value: 0, deduction: 0, type: 'earning' },
+          { id: '3', description: 'State income tax', amount: 0, rate: 0, value: 0, deduction: 0, type: 'deduction' },
+          { id: '4', description: 'Social security', amount: 0, rate: 0, value: 0, deduction: 0, type: 'deduction' },
+          { id: '5', description: 'Loan deduction', amount: 0, rate: 0, value: 0, deduction: 0, type: 'deduction' },
+          { id: '6', description: 'Salary advance', amount: 0, rate: 0, value: 0, deduction: 0, type: 'deduction' },
+        ];
+
+        return addEntity('salaryRecords', {
+          employeeId: emp.id,
+          employeeName: emp.name,
+          batchId: batchId,
+          month: selectedMonth,
+          basicSalary: basicSalary,
+          totalAllowance: basicSalary, // Initial total
+          totalDeduction: 0,
+          netSalary: basicSalary,
+          status: 'Unpaid',
+          payslipData: JSON.stringify(initialPayslip)
+        });
+      });
+
+      await Promise.all(promises);
+      alert(`Salary generation started for ${selectedMonth}`);
+    } catch (error) {
+      console.error("Error generating salary", error);
+      alert("Failed to generate salary");
+    }
   };
 
-  const handleApprove = (id: string) => {
-    setGeneratedList(generatedList.map(item => 
-      item.id === id ? { ...item, status: 'Approved', approvedDate: new Date().toISOString().split('T')[0], approvedBy: 'Admin' } : item
-    ));
+  const handleApprove = async (id: string) => {
+    try {
+      await updateEntity('payrollBatches', id, {
+        status: 'Approved',
+        approvedDate: new Date().toISOString().split('T')[0],
+        approvedBy: 'Admin'
+      });
+    } catch (error) {
+      console.error("Error approving salary", error);
+    }
   };
 
   const handleEdit = (salary: GeneratedSalary) => {
@@ -81,19 +130,32 @@ export default function SalaryGenerate() {
     setIsEditModalOpen(true);
   };
 
-  const handleSaveEdit = (e: React.FormEvent) => {
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingSalary) {
-      setGeneratedList(generatedList.map(item => 
-        item.id === editingSalary.id ? editingSalary : item
-      ));
-      setIsEditModalOpen(false);
+      try {
+        await updateEntity('payrollBatches', editingSalary.id, {
+          salaryName: editingSalary.salaryName,
+          status: editingSalary.status
+        });
+        setIsEditModalOpen(false);
+      } catch (error) {
+        console.error("Error updating batch", error);
+      }
     }
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this salary generation?')) {
-      setGeneratedList(generatedList.filter(item => item.id !== id));
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this salary generation? This will also delete all associated salary records.')) {
+      try {
+        await deleteEntity('payrollBatches', id);
+        // Also delete associated salary records
+        // Note: Ideally this should be a cloud function or batch write, but for now we filter client side
+        const recordsToDelete = salaryRecords.filter(r => r.batchId === id);
+        await Promise.all(recordsToDelete.map(r => deleteEntity('salaryRecords', r.id)));
+      } catch (error) {
+        console.error("Error deleting batch", error);
+      }
     }
   };
 

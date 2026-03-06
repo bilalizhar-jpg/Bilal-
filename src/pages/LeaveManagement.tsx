@@ -658,8 +658,12 @@ export default function LeaveManagement() {
                         <input 
                           required
                           type="number" 
-                          value={holidayForm.totalDays}
-                          onChange={(e) => setHolidayForm({...holidayForm, totalDays: parseInt(e.target.value)})}
+                          value={holidayForm.totalDays ?? ''}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            const num = parseInt(val);
+                            setHolidayForm({...holidayForm, totalDays: isNaN(num) ? 0 : num});
+                          }}
                           className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                         />
                       </div>
@@ -682,8 +686,12 @@ export default function LeaveManagement() {
                         <input 
                           required
                           type="number" 
-                          value={typeForm.days}
-                          onChange={(e) => setTypeForm({...typeForm, days: parseInt(e.target.value)})}
+                          value={typeForm.days ?? ''}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            const num = parseInt(val);
+                            setTypeForm({...typeForm, days: isNaN(num) ? 0 : num});
+                          }}
                           className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                         />
                       </div>

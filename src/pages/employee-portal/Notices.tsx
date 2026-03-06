@@ -2,45 +2,21 @@ import React from 'react';
 import EmployeeLayout from '../../components/EmployeeLayout';
 import { Bell, Calendar, Search, Filter } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { useCompanyData } from '../../context/CompanyDataContext';
 
 export default function EmployeeNotices() {
   const { theme } = useTheme();
+  const { notices: allNotices } = useCompanyData();
   const isDark = theme === 'dark';
 
-  const notices = [
-    { 
-      id: 1, 
-      title: 'Company Townhall Meeting', 
-      date: 'Today, 2:00 PM', 
-      type: 'Event', 
-      content: 'Please join us for the quarterly company townhall meeting in the main conference room. We will be discussing Q1 performance and Q2 goals. Attendance is mandatory.',
-      isNew: true
-    },
-    { 
-      id: 2, 
-      title: 'Updated Leave Policy', 
-      date: 'Yesterday, 10:00 AM', 
-      type: 'Policy', 
-      content: 'The company leave policy has been updated. Please review the new guidelines regarding annual leave carry-over and sick leave documentation requirements.',
-      isNew: true
-    },
-    { 
-      id: 3, 
-      title: 'Public Holiday Announcement', 
-      date: '2 days ago', 
-      type: 'Announcement', 
-      content: 'The office will be closed next Monday in observance of the national holiday. Enjoy your long weekend!',
-      isNew: false
-    },
-    { 
-      id: 4, 
-      title: 'IT System Maintenance', 
-      date: 'Last Week', 
-      type: 'Alert', 
-      content: 'Scheduled IT maintenance will occur this Saturday from 12:00 AM to 4:00 AM. During this time, the internal portal and email services may experience brief interruptions.',
-      isNew: false
-    }
-  ];
+  const notices = allNotices.map(n => ({
+    id: n.id,
+    title: n.type,
+    date: n.date,
+    type: n.type,
+    content: n.description,
+    isNew: new Date(n.date) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  }));
 
   return (
     <EmployeeLayout>

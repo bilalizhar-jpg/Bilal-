@@ -100,21 +100,34 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <Link to="/" className="flex justify-center items-center gap-2 mb-6">
-          <div className="bg-indigo-600 p-1.5 rounded-lg">
-            <Building2 className="w-6 h-6 text-white" />
-          </div>
-          <span className="font-display font-bold text-2xl tracking-tight">HRM Pro</span>
+    <div className="min-h-screen bg-[#020203] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Atmospheric Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] animate-pulse delay-700" />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:50px_50px]" />
+      </div>
+
+      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+        <Link to="/" className="flex justify-center items-center gap-3 mb-8 group">
+          <motion.div 
+            whileHover={{ rotate: 5, scale: 1.05 }}
+            className="bg-gradient-to-tr from-indigo-500 to-emerald-500 p-0.5 rounded-xl shadow-lg shadow-indigo-500/20"
+          >
+            <div className="bg-black p-2 rounded-[10px]">
+              <Building2 className="w-8 h-8 text-white" />
+            </div>
+          </motion.div>
+          <span className="font-display font-black text-3xl tracking-tighter text-white uppercase">HRM Pro</span>
         </Link>
-        <h2 className="text-center text-3xl font-display font-bold tracking-tight text-slate-900">
-          Register Your Company
+        <h2 className="text-center text-4xl font-display font-black tracking-tighter text-white uppercase">
+          Initialize Company
         </h2>
-        <p className="mt-2 text-center text-sm text-slate-600">
+        <p className="mt-4 text-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
           Already have an account?{' '}
-          <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
-            Sign in
+          <Link to="/login" className="text-indigo-400 hover:text-indigo-300 transition-colors">
+            Access Terminal
           </Link>
         </p>
       </div>
@@ -122,82 +135,76 @@ export default function RegisterPage() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mt-8 sm:mx-auto sm:w-full sm:max-w-2xl"
+        className="mt-10 sm:mx-auto sm:w-full sm:max-w-2xl relative z-10"
       >
-        <div className="bg-white py-8 px-4 shadow-xl shadow-slate-200/50 sm:rounded-2xl sm:px-10 border border-slate-100">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="glass-card py-10 px-6 sm:px-12 border border-white/5">
+          <form className="space-y-8" onSubmit={handleSubmit}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Company Name */}
-              <div>
-                <label htmlFor="companyName" className="block text-sm font-medium text-slate-700">
-                  Company Name
+              <div className="space-y-2">
+                <label htmlFor="companyName" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1">
+                  Company Designation
                 </label>
-                <div className="mt-1">
-                  <input
-                    id="companyName"
-                    name="companyName"
-                    type="text"
-                    required
-                    value={formData.companyName}
-                    onChange={handleInputChange}
-                    className="block w-full rounded-lg border-slate-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2.5 border"
-                    placeholder="Acme Corp"
-                  />
-                </div>
+                <input
+                  id="companyName"
+                  name="companyName"
+                  type="text"
+                  required
+                  value={formData.companyName}
+                  onChange={handleInputChange}
+                  className="block w-full bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-600 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all py-4 px-4 text-sm"
+                  placeholder="ACME CORP"
+                />
               </div>
 
               {/* Official Email */}
-              <div>
-                <label htmlFor="officialEmail" className="block text-sm font-medium text-slate-700">
-                  Official Email
+              <div className="space-y-2">
+                <label htmlFor="officialEmail" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1">
+                  Communication Node
                 </label>
-                <div className="mt-1">
-                  <input
-                    id="officialEmail"
-                    name="officialEmail"
-                    type="email"
-                    required
-                    value={formData.officialEmail}
-                    onChange={handleInputChange}
-                    className="block w-full rounded-lg border-slate-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2.5 border"
-                    placeholder="hr@acme.com"
-                  />
-                </div>
+                <input
+                  id="officialEmail"
+                  name="officialEmail"
+                  type="email"
+                  required
+                  value={formData.officialEmail}
+                  onChange={handleInputChange}
+                  className="block w-full bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-600 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all py-4 px-4 text-sm"
+                  placeholder="HR@ACME.COM"
+                />
               </div>
 
               {/* Official Mobile */}
-              <div>
-                <label htmlFor="officialMobile" className="block text-sm font-medium text-slate-700">
-                  Official Mobile
+              <div className="space-y-2">
+                <label htmlFor="officialMobile" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1">
+                  Signal Channel
                 </label>
-                <div className="mt-1">
-                  <input
-                    id="officialMobile"
-                    name="officialMobile"
-                    type="tel"
-                    required
-                    value={formData.officialMobile}
-                    onChange={handleInputChange}
-                    className="block w-full rounded-lg border-slate-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2.5 border"
-                    placeholder="+1 (555) 000-0000"
-                  />
-                </div>
+                <input
+                  id="officialMobile"
+                  name="officialMobile"
+                  type="tel"
+                  required
+                  value={formData.officialMobile}
+                  onChange={handleInputChange}
+                  className="block w-full bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-600 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all py-4 px-4 text-sm"
+                  placeholder="+1 (555) 000-0000"
+                />
               </div>
 
               {/* Company Logo */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700">
-                  Company Logo
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1">
+                  Visual Identity
                 </label>
-                <div className="mt-1 flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
+                <div className="flex items-center gap-4">
+                  <div className="h-14 w-14 rounded-xl bg-white/5 flex items-center justify-center overflow-hidden border border-white/10">
                     {logoPreview ? (
                       <img src={logoPreview} alt="Logo preview" className="h-full w-full object-cover" />
                     ) : (
-                      <Building2 className="h-6 w-6 text-slate-400" />
+                      <Building2 className="h-6 w-6 text-slate-600" />
                     )}
                   </div>
-                  <label className="cursor-pointer bg-white px-3 py-2 border border-slate-300 rounded-md shadow-sm text-sm font-medium text-slate-700 hover:bg-slate-50 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                  <label className="cursor-pointer bg-white/5 px-4 py-3 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-white/10 hover:text-white transition-all">
                     <Upload className="w-4 h-4 inline-block mr-2" />
                     Upload
                     <input type="file" className="sr-only" accept="image/*" onChange={handleLogoChange} />
@@ -207,40 +214,38 @@ export default function RegisterPage() {
             </div>
 
             {/* Company Address */}
-            <div>
-              <label htmlFor="companyAddress" className="block text-sm font-medium text-slate-700">
-                Company Address
+            <div className="space-y-2">
+              <label htmlFor="companyAddress" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1">
+                Physical Coordinates
               </label>
-              <div className="mt-1">
-                <textarea
-                  id="companyAddress"
-                  name="companyAddress"
-                  rows={3}
-                  required
-                  value={formData.companyAddress}
-                  onChange={handleInputChange}
-                  className="block w-full rounded-lg border-slate-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2.5 border"
-                  placeholder="123 Business Ave, Suite 100, City, Country"
-                />
-              </div>
+              <textarea
+                id="companyAddress"
+                name="companyAddress"
+                rows={3}
+                required
+                value={formData.companyAddress}
+                onChange={handleInputChange}
+                className="block w-full bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-600 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all py-4 px-4 text-sm"
+                placeholder="123 BUSINESS AVE, SUITE 100, CITY, COUNTRY"
+              />
             </div>
 
-            <div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              >
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Registering...
-                  </div>
-                ) : (
-                  'Complete Registration'
-                )}
-              </button>
-            </div>
+            <motion.button
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              type="submit"
+              disabled={isLoading}
+              className="w-full flex justify-center py-4 px-4 bg-white text-black rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-indigo-50 transition-all disabled:opacity-50 shadow-lg shadow-white/5"
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                  Processing...
+                </div>
+              ) : (
+                'Finalize Initialization'
+              )}
+            </motion.button>
           </form>
         </div>
       </motion.div>

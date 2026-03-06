@@ -92,7 +92,12 @@ export const TimeTrackingProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const startTracking = async (employeeId: string, employeeName: string) => {
-    const newData: TrackingData = trackingData[employeeId] || {
+    const existingData = trackingData[employeeId];
+    const newData: TrackingData = existingData ? {
+      ...existingData,
+      status: 'Online',
+      lastActive: Date.now()
+    } : {
       employeeId,
       employeeName,
       status: 'Online',

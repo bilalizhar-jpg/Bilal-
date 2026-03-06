@@ -67,7 +67,10 @@ interface Sale {
 export default function ProjectManagement() {
   const { theme } = useTheme();
   const settings = useSettings();
-  const { projects, tasks, sales, addEntity, updateEntity, deleteEntity } = useCompanyData();
+  const { projects: rawProjects, tasks: rawTasks, sales: rawSales, addEntity, updateEntity, deleteEntity } = useCompanyData();
+  const projects = rawProjects as unknown as Project[];
+  const tasks = rawTasks as unknown as Task[];
+  const sales = rawSales as unknown as Sale[];
   const isDark = theme === 'dark';
   const [activeTab, setActiveTab] = useState<'projects' | 'tasks' | 'sales'>('projects');
 
@@ -76,10 +79,29 @@ export default function ProjectManagement() {
     companyName: '', hrPersonDetails: '', contactPersonDetails: '', projectType: '', duration: '', startDate: '', endDate: '', timeline: '', assignedTo: '', status: 'Onboarding'
   });
 
-  const handleAddProject = async () => {
-    await addEntity('projects', newProject);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+
+  const handleSaveProject = async () => {
+    if (editingProject) {
+      await updateEntity('projects', editingProject.id, newProject);
+    } else {
+      await addEntity('projects', newProject);
+    }
     setIsAddingProject(false);
+    setEditingProject(null);
     setNewProject({ companyName: '', hrPersonDetails: '', contactPersonDetails: '', projectType: '', duration: '', startDate: '', endDate: '', timeline: '', assignedTo: '', status: 'Onboarding' });
+  };
+
+  const handleEditProject = (project: Project) => {
+    setEditingProject(project);
+    setNewProject(project);
+    setIsAddingProject(true);
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    if (window.confirm('Are you sure you want to delete this project?')) {
+      await deleteEntity('projects', projectId);
+    }
   };
 
   const updateTaskStatus = async (taskId: string, newStatus: Task['status']) => {
@@ -160,19 +182,26 @@ export default function ProjectManagement() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6 pb-12">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold text-slate-800 dark:text-white">Business Development & Project Management</h2>
-          <div className="flex gap-2">
-            <button className="bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-slate-700">
+      <div className="space-y-8 pb-12">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Operations Hub</h2>
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-1">Business Development & Project Management</p>
+          </div>
+          <div className="flex gap-3">
+            <motion.button 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="bg-white/5 border border-white/10 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-white/10 transition-all"
+            >
               <Printer className="w-4 h-4" />
-              Print Report
-            </button>
+              Export Report
+            </motion.button>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-slate-200 dark:border-slate-800">
+        <div className="flex gap-2 p-1 bg-white/5 border border-white/10 rounded-2xl w-fit">
           <TabButton active={activeTab === 'projects'} onClick={() => setActiveTab('projects')} label="Projects" icon={<Briefcase className="w-4 h-4" />} isDark={isDark} />
           <TabButton active={activeTab === 'tasks'} onClick={() => setActiveTab('tasks')} label="Task Board" icon={<Layout className="w-4 h-4" />} isDark={isDark} />
           <TabButton active={activeTab === 'sales'} onClick={() => setActiveTab('sales')} label="Sales & Commission" icon={<DollarSign className="w-4 h-4" />} isDark={isDark} />
@@ -190,7 +219,11 @@ export default function ProjectManagement() {
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-bold text-slate-800 dark:text-white">Project Portfolio</h3>
                 <button 
-                  onClick={() => setIsAddingProject(true)}
+                  onClick={() => {
+                    setIsAddingProject(true);
+                    setEditingProject(null);
+                    setNewProject({ companyName: '', hrPersonDetails: '', contactPersonDetails: '', projectType: '', duration: '', startDate: '', endDate: '', timeline: '', assignedTo: '', status: 'Onboarding' });
+                  }}
                   className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-indigo-700"
                 >
                   <Plus className="w-4 h-4" />
@@ -200,7 +233,7 @@ export default function ProjectManagement() {
 
               {isAddingProject && (
                 <div className={`p-6 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-lg space-y-4`}>
-                  <h4 className="font-bold text-indigo-600 uppercase text-xs tracking-widest">Add New Project Details</h4>
+                  <h4 className="font-bold text-indigo-600 uppercase text-xs tracking-widest">{editingProject ? 'Edit Project Details' : 'Add New Project Details'}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <InputField label="Company Name" value={newProject.companyName} onChange={(v) => setNewProject({...newProject, companyName: v})} isDark={isDark} />
                     <InputField label="HR Person Details" value={newProject.hrPersonDetails} onChange={(v) => setNewProject({...newProject, hrPersonDetails: v})} isDark={isDark} />
@@ -222,67 +255,91 @@ export default function ProjectManagement() {
                   </div>
                   <div className="flex justify-end gap-2">
                     <button onClick={() => setIsAddingProject(false)} className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-700">Cancel</button>
-                    <button onClick={handleAddProject} className="bg-indigo-600 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700">Add Project</button>
+                    <button onClick={handleSaveProject} className="bg-indigo-600 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700">{editingProject ? 'Update Project' : 'Add Project'}</button>
                   </div>
                 </div>
               )}
 
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 gap-6">
                 {projects.map(project => (
-                  <div key={project.id} className={`p-6 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm hover:shadow-md transition-shadow relative group`}>
-                    <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-1.5 bg-amber-400 text-white rounded hover:bg-amber-500"><Edit3 className="w-4 h-4" /></button>
-                      <button className="p-1.5 bg-red-500 text-white rounded hover:bg-red-600"><Trash2 className="w-4 h-4" /></button>
+                  <motion.div 
+                    layout
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    key={project.id} 
+                    className="glass-card p-8 border border-white/5 relative group overflow-hidden"
+                  >
+                    <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500/50" />
+                    <div className="absolute top-6 right-6 flex gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                      <button onClick={() => handleEditProject(project)} className="p-2 bg-white/10 text-white rounded-xl hover:bg-amber-500/20 transition-colors border border-white/10"><Edit3 className="w-4 h-4" /></button>
+                      <button onClick={() => handleDeleteProject(project.id)} className="p-2 bg-white/10 text-white rounded-xl hover:bg-red-500/20 transition-colors border border-white/10"><Trash2 className="w-4 h-4" /></button>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                      <div className="md:col-span-2 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Briefcase className="w-5 h-5 text-indigo-600" />
-                          <h4 className="text-xl font-bold text-slate-800 dark:text-white">{project.companyName}</h4>
-                        </div>
-                        <p className="text-sm text-slate-500 font-medium">{project.projectType}</p>
-                        <div className="grid grid-cols-2 gap-4 mt-4">
-                          <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase">HR Contact</p>
-                            <p className="text-xs text-slate-700 dark:text-slate-300">{project.hrPersonDetails}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                      <div className="md:col-span-2 space-y-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
+                            <Briefcase className="w-6 h-6 text-indigo-400" />
                           </div>
                           <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase">Contact Person</p>
-                            <p className="text-xs text-slate-700 dark:text-slate-300">{project.contactPersonDetails}</p>
+                            <h4 className="text-xl font-black text-white uppercase tracking-tight">{project.companyName}</h4>
+                            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">{project.projectType}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-6 pt-4">
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">HR Node</p>
+                            <p className="text-sm text-slate-300 font-medium">{project.hrPersonDetails}</p>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Contact Point</p>
+                            <p className="text-sm text-slate-300 font-medium">{project.contactPersonDetails}</p>
                           </div>
                         </div>
                       </div>
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-slate-400" />
-                          <span className="text-xs font-medium text-slate-600 dark:text-slate-400">{project.startDate} to {project.endDate}</span>
+                      <div className="space-y-4 flex flex-col justify-center">
+                        <div className="flex items-center gap-3 group/item">
+                          <div className="p-1.5 bg-white/5 rounded-lg border border-white/10">
+                            <Calendar className="w-4 h-4 text-slate-400" />
+                          </div>
+                          <span className="text-xs font-medium text-slate-400">{project.startDate} — {project.endDate}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-slate-400" />
-                          <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Duration: {project.duration}</span>
+                        <div className="flex items-center gap-3 group/item">
+                          <div className="p-1.5 bg-white/5 rounded-lg border border-white/10">
+                            <Clock className="w-4 h-4 text-slate-400" />
+                          </div>
+                          <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Duration: {project.duration}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <User className="w-4 h-4 text-slate-400" />
-                          <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Assigned: {project.assignedTo}</span>
+                        <div className="flex items-center gap-3 group/item">
+                          <div className="p-1.5 bg-white/5 rounded-lg border border-white/10">
+                            <User className="w-4 h-4 text-slate-400" />
+                          </div>
+                          <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Assigned: {project.assignedTo}</span>
                         </div>
                       </div>
-                      <div className="flex flex-col justify-between items-end">
-                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
-                          project.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
-                          project.status === 'Completed' ? 'bg-green-100 text-green-700' :
-                          'bg-amber-100 text-amber-700'
+                      <div className="flex flex-col justify-center items-end">
+                        <div className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border ${
+                          project.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                          project.status === 'In Progress' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                          project.status === 'Onboarding' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                          'bg-slate-500/10 text-slate-400 border-slate-500/20'
                         }`}>
                           {project.status}
-                        </span>
-                        <div className="w-full mt-4">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Timeline Progress</p>
-                          <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                            <div className="h-full bg-indigo-600 rounded-full" style={{ width: '45%' }}></div>
-                          </div>
+                        </div>
+                        <div className="mt-4 w-full bg-white/5 h-1 rounded-full overflow-hidden border border-white/5">
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: project.status === 'Completed' ? '100%' : project.status === 'In Progress' ? '65%' : '15%' }}
+                            className={`h-full ${
+                              project.status === 'Completed' ? 'bg-emerald-500' :
+                              project.status === 'In Progress' ? 'bg-blue-500' :
+                              'bg-amber-500'
+                            }`}
+                          />
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </motion.div>
@@ -510,14 +567,14 @@ export default function ProjectManagement() {
   );
 }
 
-function TabButton({ active, onClick, label, icon, isDark }: any) {
+function TabButton({ active, onClick, label, icon }: any) {
   return (
     <button 
       onClick={onClick}
-      className={`flex items-center gap-2 px-6 py-3 text-sm font-bold transition-all relative ${
+      className={`flex items-center gap-2 px-6 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all relative rounded-xl ${
         active 
-          ? 'text-indigo-600' 
-          : 'text-slate-500 hover:text-slate-700'
+          ? 'text-white bg-white/10' 
+          : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
       }`}
     >
       {icon}
@@ -525,7 +582,7 @@ function TabButton({ active, onClick, label, icon, isDark }: any) {
       {active && (
         <motion.div 
           layoutId="activeTab" 
-          className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"
+          className="absolute inset-0 border border-white/20 rounded-xl"
         />
       )}
     </button>

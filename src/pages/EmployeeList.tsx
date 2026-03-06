@@ -23,11 +23,13 @@ import {
 
 import AdminLayout from '../components/AdminLayout';
 import { useEmployees, Employee, CustomField } from '../context/EmployeeContext';
+import { useCompanyData } from '../context/CompanyDataContext';
 
 type TabType = 'active' | 'positions' | 'inactive';
 
 export default function EmployeeList() {
   const { employees, addEmployee, addEmployees, updateEmployee, deleteEmployee, regenerateCredentials } = useEmployees();
+  const { departments } = useCompanyData();
   const [activeTab, setActiveTab] = useState<TabType>('active');
   const [showFilters, setShowFilters] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,16 +41,15 @@ export default function EmployeeList() {
   const [employeeToDelete, setEmployeeToDelete] = useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<Record<string, string>>({
     employeeName: '',
     employeeId: '',
     employeeType: '',
     department: '',
     designation: '',
     bloodGroup: '',
-    country: '',
-    gender: '',
-    maritalStatus: ''
+    location: '',
+    city: ''
   });
 
   const [isViewOnly, setIsViewOnly] = useState(false);
@@ -65,9 +66,8 @@ export default function EmployeeList() {
     nationalId: '',
     department: '',
     employeeType: 'Full Time',
-    country: '',
-    gender: '',
-    maritalStatus: '',
+    location: '',
+    city: '',
     customFields: [],
     salary: 0,
     taxDeduction: 0,
@@ -89,9 +89,8 @@ export default function EmployeeList() {
       department: '',
       designation: '',
       bloodGroup: '',
-      country: '',
-      gender: '',
-      maritalStatus: ''
+      location: '',
+      city: ''
     });
     setSearchTerm('');
   };
@@ -132,9 +131,8 @@ export default function EmployeeList() {
       nationalId: '',
       department: '',
       employeeType: 'Full Time',
-      country: '',
-      gender: '',
-      maritalStatus: '',
+      location: '',
+      city: '',
       customFields: [],
       salary: 0,
       taxDeduction: 0,
@@ -239,11 +237,10 @@ export default function EmployeeList() {
               nationalId: row['National ID'] || '',
               department: row['Department'] || '',
               employeeType: row['Employee Type'] || 'Full Time',
-              country: row['Country'] || '',
-              gender: row['Gender'] || '',
-              maritalStatus: row['Marital Status'] || '',
+              location: row['Location'] || '',
+              city: row['City'] || '',
               customFields: []
-            })) as Employee[];
+            })) as unknown as Employee[];
 
             addEmployees(newEmployees);
             alert(`Successfully imported ${newEmployees.length} employees.`);
@@ -278,9 +275,7 @@ export default function EmployeeList() {
         'National ID': '123456789',
         'Department': 'Production',
         'Employee Type': 'Full Time',
-        'Country': 'USA',
-        'Gender': 'Male',
-        'Marital Status': 'Single'
+        'Country': 'USA'
       }
     ];
     
@@ -307,14 +302,24 @@ export default function EmployeeList() {
     const matchesDept = !filters.department || emp.department === filters.department;
     const matchesDesig = !filters.designation || emp.designation === filters.designation;
     const matchesBlood = !filters.bloodGroup || emp.bloodGroup === filters.bloodGroup;
-    const matchesCountry = !filters.country || emp.country === filters.country;
-    const matchesGender = !filters.gender || emp.gender === filters.gender;
-    const matchesMarital = !filters.maritalStatus || emp.maritalStatus === filters.maritalStatus;
+    const matchesLocation = !filters.location || emp.location === filters.location;
+    const matchesCity = !filters.city || emp.city === filters.city;
+
+    // Custom fields filtering
+    const matchesCustomFields = Object.keys(filters).every(key => {
+      if (['employeeName', 'employeeId', 'employeeType', 'department', 'designation', 'bloodGroup', 'location', 'city'].includes(key)) return true;
+      if (!filters[key]) return true;
+      const field = emp.customFields?.find(f => f.key === key);
+      return field?.value === filters[key];
+    });
 
     return matchesGlobalSearch && matchesName && matchesId && 
            matchesType && matchesDept && matchesDesig && matchesBlood && 
-           matchesCountry && matchesGender && matchesMarital;
+           matchesLocation && matchesCity && matchesCustomFields;
   });
+
+  const uniqueDesignations = Array.from(new Set(employees.map(emp => emp.designation).filter(Boolean)));
+  const allCustomFieldKeys = Array.from(new Set(employees.flatMap(e => e.customFields?.map(f => f.key) || [])));
 
   return (
     <AdminLayout>
@@ -433,10 +438,10 @@ export default function EmployeeList() {
                       onChange={handleFilterChange}
                       className="border border-slate-200 rounded px-3 py-2 text-sm outline-none bg-white"
                     >
-                      <option value="">Select employee type</option>
-                      <option value="Full Time">Full Time</option>
-                      <option value="Part Time">Part Time</option>
-                      <option value="Contract">Contract</option>
+                      <option value="">All employee type</option>
+                      {Array.from(new Set(employees.map(e => e.employeeType).filter(Boolean))).map(type => (
+                        <option key={type} value={type}>{type}</option>
+                      ))}
                     </select>
                     <select 
                       name="department"
@@ -445,8 +450,12 @@ export default function EmployeeList() {
                       className="border border-slate-200 rounded px-3 py-2 text-sm outline-none bg-white"
                     >
                       <option value="">All department</option>
-                      <option value="Electrical">Electrical</option>
-                      <option value="Production">Production</option>
+                      {Array.from(new Set([
+                        ...departments.map(d => d.name),
+                        ...employees.map(e => e.department)
+                      ].filter(Boolean))).map(dept => (
+                        <option key={dept} value={dept}>{dept}</option>
+                      ))}
                     </select>
                     <select 
                       name="designation"
@@ -455,12 +464,9 @@ export default function EmployeeList() {
                       className="border border-slate-200 rounded px-3 py-2 text-sm outline-none bg-white"
                     >
                       <option value="">All designation</option>
-                      <option value="Manager">Manager</option>
-                      <option value="Developer">Developer</option>
-                      <option value="Designer">Designer</option>
-                      <option value="Lead">Lead</option>
-                      <option value="Analyst">Analyst</option>
-                      <option value="Engineer">Engineer</option>
+                      {Array.from(new Set(employees.map(e => e.designation).filter(Boolean))).map(desig => (
+                        <option key={desig} value={desig}>{desig}</option>
+                      ))}
                     </select>
                     <select 
                       name="bloodGroup"
@@ -469,47 +475,46 @@ export default function EmployeeList() {
                       className="border border-slate-200 rounded px-3 py-2 text-sm outline-none bg-white"
                     >
                       <option value="">All blood group</option>
-                      <option value="A+">A+</option>
-                      <option value="B+">B+</option>
-                      <option value="O+">O+</option>
-                      <option value="AB+">AB+</option>
-                      <option value="A-">A-</option>
-                      <option value="B-">B-</option>
+                      {Array.from(new Set(employees.map(e => e.bloodGroup).filter(Boolean))).map(bg => (
+                        <option key={bg} value={bg}>{bg}</option>
+                      ))}
                     </select>
                     <select 
-                      name="country"
-                      value={filters.country}
+                      name="location"
+                      value={filters.location}
                       onChange={handleFilterChange}
                       className="border border-slate-200 rounded px-3 py-2 text-sm outline-none bg-white"
                     >
-                      <option value="">All country</option>
-                      <option value="USA">USA</option>
-                      <option value="UK">UK</option>
-                      <option value="India">India</option>
-                      <option value="UAE">UAE</option>
-                      <option value="Canada">Canada</option>
-                      <option value="Pakistan">Pakistan</option>
+                      <option value="">All location</option>
+                      {Array.from(new Set(employees.map(e => e.location).filter(Boolean))).map(loc => (
+                        <option key={loc} value={loc}>{loc}</option>
+                      ))}
                     </select>
                     <select 
-                      name="gender"
-                      value={filters.gender}
+                      name="city"
+                      value={filters.city}
                       onChange={handleFilterChange}
                       className="border border-slate-200 rounded px-3 py-2 text-sm outline-none bg-white"
                     >
-                      <option value="">All gender</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
+                      <option value="">All city</option>
+                      {Array.from(new Set(employees.map(e => e.city).filter(Boolean))).map(city => (
+                        <option key={city} value={city}>{city}</option>
+                      ))}
                     </select>
-                    <select 
-                      name="maritalStatus"
-                      value={filters.maritalStatus}
-                      onChange={handleFilterChange}
-                      className="border border-slate-200 rounded px-3 py-2 text-sm outline-none bg-white"
-                    >
-                      <option value="">All marital status</option>
-                      <option value="Single">Single</option>
-                      <option value="Married">Married</option>
-                    </select>
+                    {allCustomFieldKeys.map(key => (
+                      <select 
+                        key={key}
+                        name={key}
+                        value={filters[key] || ''}
+                        onChange={handleFilterChange}
+                        className="border border-slate-200 rounded px-3 py-2 text-sm outline-none bg-white"
+                      >
+                        <option value="">All {key}</option>
+                        {Array.from(new Set(employees.flatMap(e => e.customFields?.filter(f => f.key === key).map(f => f.value) || []).filter(Boolean))).map(val => (
+                          <option key={val} value={val}>{val}</option>
+                        ))}
+                      </select>
+                    ))}
                     <div className="flex gap-2">
                       <button className="bg-[#28A745] text-white px-4 py-2 rounded text-sm font-bold hover:bg-[#218838]">Find</button>
                       <button 
@@ -756,37 +761,39 @@ export default function EmployeeList() {
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Designation</label>
-                      <select 
+                      <input 
                         required
                         disabled={isViewOnly}
+                        list="designations-list"
+                        type="text"
                         value={formData.designation}
                         onChange={(e) => setFormData({...formData, designation: e.target.value})}
                         className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all bg-white disabled:bg-slate-50 disabled:text-slate-500"
-                      >
-                        <option value="">Select Designation</option>
-                        <option value="Manager">Manager</option>
-                        <option value="Developer">Developer</option>
-                        <option value="Designer">Designer</option>
-                        <option value="Lead">Lead</option>
-                        <option value="Analyst">Analyst</option>
-                        <option value="Engineer">Engineer</option>
-                      </select>
+                        placeholder="Enter or select designation"
+                      />
+                      <datalist id="designations-list">
+                        {uniqueDesignations.map(desig => (
+                          <option key={desig} value={desig} />
+                        ))}
+                      </datalist>
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Department</label>
-                      <select 
+                      <input 
                         required
                         disabled={isViewOnly}
+                        list="departments-list"
+                        type="text"
                         value={formData.department}
                         onChange={(e) => setFormData({...formData, department: e.target.value})}
                         className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all bg-white disabled:bg-slate-50 disabled:text-slate-500"
-                      >
-                        <option value="">Select Department</option>
-                        <option value="Electrical">Electrical</option>
-                        <option value="Production">Production</option>
-                        <option value="HR">HR</option>
-                        <option value="Finance">Finance</option>
-                      </select>
+                        placeholder="Enter or select department"
+                      />
+                      <datalist id="departments-list">
+                        {departments.map(dept => (
+                          <option key={dept.id} value={dept.name} />
+                        ))}
+                      </datalist>
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Status</label>
@@ -851,6 +858,28 @@ export default function EmployeeList() {
                         onChange={(e) => setFormData({...formData, nationalId: e.target.value})}
                         className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all disabled:bg-slate-50 disabled:text-slate-500"
                         placeholder="ID Number"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Location</label>
+                      <input 
+                        disabled={isViewOnly}
+                        type="text" 
+                        value={formData.location || ''}
+                        onChange={(e) => setFormData({...formData, location: e.target.value})}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all disabled:bg-slate-50 disabled:text-slate-500"
+                        placeholder="Location"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">City</label>
+                      <input 
+                        disabled={isViewOnly}
+                        type="text" 
+                        value={formData.city || ''}
+                        onChange={(e) => setFormData({...formData, city: e.target.value})}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all disabled:bg-slate-50 disabled:text-slate-500"
+                        placeholder="City"
                       />
                     </div>
                   </div>

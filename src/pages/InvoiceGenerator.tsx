@@ -17,6 +17,8 @@ import {
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useInvoices, Invoice } from '../context/InvoiceContext';
+import { useSuperAdmin } from '../context/SuperAdminContext';
+import { useAuth } from '../context/AuthContext';
 
 type InvoiceType = 'simple' | 'tax';
 
@@ -111,11 +113,27 @@ const initialInvoiceData: InvoiceData = {
 
 export default function InvoiceGenerator() {
   const { invoices, addInvoice, updateInvoice, deleteInvoice } = useInvoices();
+  const { companies } = useSuperAdmin();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<InvoiceType>('simple');
   const [data, setData] = useState<InvoiceData>(initialInvoiceData);
   const [showSaved, setShowSaved] = useState(false);
   const invoiceRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const currentCompany = companies.find(c => c.id === user?.companyId);
+    if (currentCompany) {
+      setData(prev => ({
+        ...prev,
+        companyName: currentCompany.name,
+        companyAddress: currentCompany.address || '',
+        companyPhone: currentCompany.phone || '',
+        companyEmail: currentCompany.email || '',
+        logo: currentCompany.logo || null
+      }));
+    }
+  }, [companies, user?.companyId]);
 
   const [design, setDesign] = useState({
     color: '#4f46e5', // Indigo-600

@@ -286,6 +286,112 @@
         "date": { "type": "string" }
       },
       "required": ["id", "companyId", "sellerName", "saleAmount"]
+    },
+    "Chat": {
+      "title": "Chat",
+      "description": "A chat conversation (direct or group)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "type": { "type": "string", "enum": ["direct", "group"] },
+        "name": { "type": "string" },
+        "participants": { "type": "array", "items": { "type": "string" } },
+        "adminIds": { "type": "array", "items": { "type": "string" } },
+        "lastMessage": { "type": "object" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "companyId", "type", "participants"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "A message within a chat",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "chatId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "type": { "type": "string", "enum": ["text", "image", "file"] }
+      },
+      "required": ["id", "chatId", "senderId", "text"]
+    },
+    "Invitation": {
+      "title": "Invitation",
+      "description": "A chat invitation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "fromUserId": { "type": "string" },
+        "toUserId": { "type": "string" },
+        "type": { "type": "string", "enum": ["direct", "group"] },
+        "chatId": { "type": "string" },
+        "groupName": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "rejected"] },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "companyId", "fromUserId", "toUserId", "status"]
+    },
+    "PayrollBatch": {
+      "title": "Payroll Batch",
+      "description": "A batch of salaries generated for a specific month",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "salaryName": { "type": "string" },
+        "generateDate": { "type": "string" },
+        "generateBy": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "Approved"] },
+        "approvedDate": { "type": "string" },
+        "approvedBy": { "type": "string" }
+      },
+      "required": ["id", "companyId", "salaryName"]
+    },
+    "SalaryRecord": {
+      "title": "Salary Record",
+      "description": "Individual salary record for an employee",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "employeeId": { "type": "string" },
+        "employeeName": { "type": "string" },
+        "batchId": { "type": "string" },
+        "month": { "type": "string" },
+        "basicSalary": { "type": "number" },
+        "totalAllowance": { "type": "number" },
+        "totalDeduction": { "type": "number" },
+        "netSalary": { "type": "number" },
+        "status": { "type": "string", "enum": ["Paid", "Unpaid"] },
+        "payslipData": { "type": "string" }
+      },
+      "required": ["id", "companyId", "employeeId", "batchId"]
+    },
+    "Loan": {
+      "title": "Loan",
+      "description": "Employee loan record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "employeeId": { "type": "string" },
+        "amount": { "type": "number" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "companyId", "employeeId", "amount"]
+    },
+    "Payroll": {
+      "title": "Payroll",
+      "description": "Payroll record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" }
+      },
+      "required": ["id", "companyId"]
     }
   },
   "firestore": {
@@ -356,6 +462,34 @@
     "/sales/{saleId}": {
       "schema": "Sale",
       "description": "Collection of sales"
+    },
+    "/chats/{chatId}": {
+      "schema": "Chat",
+      "description": "Collection of chats"
+    },
+    "/chats/{chatId}/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Subcollection of messages within a chat"
+    },
+    "/invitations/{invitationId}": {
+      "schema": "Invitation",
+      "description": "Collection of chat invitations"
+    },
+    "/payrollBatches/{batchId}": {
+      "schema": "PayrollBatch",
+      "description": "Collection of payroll batches"
+    },
+    "/salaryRecords/{recordId}": {
+      "schema": "SalaryRecord",
+      "description": "Collection of individual salary records"
+    },
+    "/loans/{loanId}": {
+      "schema": "Loan",
+      "description": "Collection of loans"
+    },
+    "/payrolls/{payrollId}": {
+      "schema": "Payroll",
+      "description": "Collection of payrolls"
     }
   }
 }

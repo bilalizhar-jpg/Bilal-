@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Download, FileText, Printer, Filter } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
 import { useSettings } from '../../context/SettingsContext';
+import { useCompanyData } from '../../context/CompanyDataContext';
+import { useEmployees } from '../../context/EmployeeContext';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -16,29 +18,53 @@ interface CompanyPayrollRecord {
   generatedDate: string;
 }
 
-const initialPayrolls: CompanyPayrollRecord[] = [
-  { id: '1', month: 'February 2026', department: 'Engineering', totalAmount: 150000, status: 'Paid', generatedDate: '2026-02-28' },
-  { id: '2', month: 'February 2026', department: 'Design', totalAmount: 85000, status: 'Paid', generatedDate: '2026-02-28' },
-  { id: '3', month: 'February 2026', department: 'Marketing', totalAmount: 95000, status: 'Paid', generatedDate: '2026-02-28' },
-  { id: '4', month: 'January 2026', department: 'Engineering', totalAmount: 148000, status: 'Paid', generatedDate: '2026-01-31' },
-  { id: '5', month: 'January 2026', department: 'Design', totalAmount: 84000, status: 'Paid', generatedDate: '2026-01-31' },
-  { id: '6', month: 'January 2026', department: 'Marketing', totalAmount: 93000, status: 'Paid', generatedDate: '2026-01-31' },
-];
-
-const departments = ['All', 'Engineering', 'Design', 'Marketing', 'Human Resources', 'Finance'];
-
 export default function CompanyPayroll() {
-  const [payrolls, setPayrolls] = useState<CompanyPayrollRecord[]>(initialPayrolls);
-  const [filteredPayrolls, setFilteredPayrolls] = useState<CompanyPayrollRecord[]>(initialPayrolls);
+  const { payrollBatches, salaryRecords, departments } = useCompanyData();
+  const { employees } = useEmployees();
+  const [filteredPayrolls, setFilteredPayrolls] = useState<CompanyPayrollRecord[]>([]);
   const [startDate, setStartDate] = useState('2026-01-01');
-  const [endDate, setEndDate] = useState('2026-02-28');
+  const [endDate, setEndDate] = useState('2026-12-31');
   const [selectedDepartment, setSelectedDepartment] = useState('All');
   const { theme } = useTheme();
   const settings = useSettings();
   const isDark = theme === 'dark';
 
+  const [allPayrolls, setAllPayrolls] = useState<CompanyPayrollRecord[]>([]);
+
+  useEffect(() => {
+    // Aggregate salary records by month and department
+    const aggregated: { [key: string]: CompanyPayrollRecord } = {};
+
+    salaryRecords.forEach((record: any) => {
+      const employee = employees.find(e => e.id === record.employeeId);
+      const department = employee?.department || 'Unassigned';
+      const batch = payrollBatches.find((b: any) => b.id === record.batchId);
+      
+      if (!batch) return;
+
+      const key = `${batch.salaryName}-${department}`;
+
+      if (!aggregated[key]) {
+        aggregated[key] = {
+          id: key,
+          month: batch.salaryName,
+          department: department,
+          totalAmount: 0,
+          status: batch.status === 'Approved' ? 'Paid' : 'Pending', // Simplified status mapping
+          generatedDate: batch.generateDate
+        };
+      }
+
+      aggregated[key].totalAmount += (record.netSalary || 0);
+    });
+
+    const result = Object.values(aggregated);
+    setAllPayrolls(result);
+    setFilteredPayrolls(result);
+  }, [salaryRecords, payrollBatches, employees]);
+
   const handleFind = () => {
-    let result = payrolls;
+    let result = allPayrolls;
     if (selectedDepartment !== 'All') {
       result = result.filter(p => p.department === selectedDepartment);
     }
@@ -126,7 +152,8 @@ export default function CompanyPayroll() {
                 onChange={(e) => setSelectedDepartment(e.target.value)}
                 className={`mt-1 w-full border rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
               >
-                {departments.map(dep => <option key={dep} value={dep}>{dep}</option>)}
+                <option value="All">All</option>
+                {departments.map(dep => <option key={dep.id} value={dep.name}>{dep.name}</option>)}
               </select>
             </div>
             <button 

@@ -14,47 +14,62 @@ export default function SuperAdminDashboard() {
 
   return (
     <SuperAdminLayout>
-      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Command Center</h1>
+        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-1">Super Admin Overview</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
         {stats.map((stat) => (
-          <div key={stat.name} className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex items-center gap-4">
-            <div className={`p-3 rounded-lg text-white ${stat.color}`}>
+          <div key={stat.name} className="glass-card p-6 border border-white/5 flex items-center gap-5 group hover:border-white/10 transition-all">
+            <div className={`p-4 rounded-2xl text-white shadow-lg ${stat.color} bg-opacity-20 border border-white/10 group-hover:scale-110 transition-transform`}>
               <stat.icon className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-sm text-slate-500 dark:text-slate-400">{stat.name}</p>
-              <p className="text-2xl font-bold">{stat.value}</p>
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{stat.name}</p>
+              <p className="text-3xl font-black text-white tracking-tighter">{stat.value}</p>
             </div>
           </div>
         ))}
       </div>
       
-      <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-        <h2 className="text-lg font-bold mb-4">Recently Registered Companies</h2>
-        <table className="w-full">
-          <thead>
-            <tr className="text-left text-sm text-slate-500 border-b border-slate-200 dark:border-slate-700">
-              <th className="pb-3">Company Name</th>
-              <th className="pb-3">Email</th>
-              <th className="pb-3">Status</th>
-              <th className="pb-3">Subscription</th>
-            </tr>
-          </thead>
-          <tbody>
-            {companies.map(company => (
-              <tr key={company.id} className="border-b border-slate-100 dark:border-slate-700">
-                <td className="py-3">{company.name}</td>
-                <td className="py-3">{company.email}</td>
-                <td className="py-3">
-                  <span className="px-2 py-1 rounded-full text-xs bg-emerald-100 text-emerald-800">
-                    active
-                  </span>
-                </td>
-                <td className="py-3">{company.subscriptionPlan}</td>
+      <div className="glass-card p-8 border border-white/5">
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-xl font-black text-white uppercase tracking-tight">Recent Deployments</h2>
+          <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            Live Feed
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/5">
+                <th className="pb-4 px-4">Entity</th>
+                <th className="pb-4 px-4">Node</th>
+                <th className="pb-4 px-4 text-center">Status</th>
+                <th className="pb-4 px-4 text-right">Protocol</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-white/[0.02]">
+              {companies.map(company => (
+                <tr key={company.id} className="group hover:bg-white/[0.02] transition-colors">
+                  <td className="py-5 px-4">
+                    <div className="font-bold text-white uppercase tracking-tight">{company.name}</div>
+                  </td>
+                  <td className="py-5 px-4 text-sm text-slate-400">{company.email}</td>
+                  <td className="py-5 px-4 text-center">
+                    <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      Active
+                    </span>
+                  </td>
+                  <td className="py-5 px-4 text-right text-sm text-slate-400 font-mono">
+                    {company.subscriptionPlan.toUpperCase()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </SuperAdminLayout>
   );

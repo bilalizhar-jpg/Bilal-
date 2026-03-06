@@ -22,6 +22,9 @@ import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
 import { useSettings } from '../../context/SettingsContext';
 import { useEmployees } from '../../context/EmployeeContext';
+import { useCompanyData } from '../../context/CompanyDataContext';
+import { useSuperAdmin } from '../../context/SuperAdminContext';
+import { useAuth } from '../../context/AuthContext';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -39,6 +42,7 @@ interface EmployeeSalary {
   workingHours: number;
   workedHours: number;
   recruitmentDate: string;
+  payslipData?: string;
 }
 
 interface PayslipRow {
@@ -51,29 +55,48 @@ interface PayslipRow {
   type: 'earning' | 'deduction';
 }
 
-const initialSalaries: EmployeeSalary[] = [
-  { id: '1', employeeName: 'Honorato Imogene Curry Terry', salaryMonth: '2024-04', totalSalary: 550.00, staffId: '#000001', position: 'Manager', contact: '+1(873)591-1817', address: '123 Main St', workingHours: 10, workedHours: 230, recruitmentDate: '2011-04-27' },
-  { id: '2', employeeName: 'Maisha Lucy Zamora Gonzales', salaryMonth: '2024-04', totalSalary: -2020.00, staffId: '#000002', position: 'Developer', contact: '+1(873)591-1818', address: '456 Oak Ave', workingHours: 8, workedHours: 160, recruitmentDate: '2015-06-12' },
-  { id: '3', employeeName: 'Amy Aphrodite Zamora Peck', salaryMonth: '2024-04', totalSalary: 4000.00, staffId: '#000003', position: 'Designer', contact: '+1(873)591-1819', address: '789 Pine Rd', workingHours: 8, workedHours: 160, recruitmentDate: '2018-09-01' },
-  { id: '4', employeeName: 'Honorato Imogene Curry Terry', salaryMonth: '2024-05', totalSalary: 8440.00, staffId: '#000001', position: 'Manager', contact: '+1(873)591-1817', address: '123 Main St', workingHours: 10, workedHours: 230, recruitmentDate: '2011-04-27' },
-];
-
 export default function ManageSalary() {
-  const [salaries, setSalaries] = useState<EmployeeSalary[]>(initialSalaries);
-  const [filteredSalaries, setFilteredSalaries] = useState<EmployeeSalary[]>(initialSalaries);
+  const { salaryRecords, updateEntity } = useCompanyData();
+  const { employees } = useEmployees();
+  const { companies } = useSuperAdmin();
+  const { user } = useAuth();
+  const currentCompany = companies.find(c => c.id === user?.companyId);
+  const [salaries, setSalaries] = useState<EmployeeSalary[]>([]);
+  const [filteredSalaries, setFilteredSalaries] = useState<EmployeeSalary[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState('2024-04');
+  const [selectedMonth, setSelectedMonth] = useState('');
   const [isPayslipModalOpen, setIsPayslipModalOpen] = useState(false);
   const [selectedSalary, setSelectedSalary] = useState<EmployeeSalary | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const { theme } = useTheme();
   const settings = useSettings();
-  const { employees } = useEmployees();
   const activeEmployees = employees.filter(e => e.status === 'Active');
   const isDark = theme === 'dark';
 
   const [payslipRows, setPayslipRows] = useState<PayslipRow[]>([]);
   const [editableEmployeeInfo, setEditableEmployeeInfo] = useState<{label: string, value: string}[]>([]);
+
+  useEffect(() => {
+    // Map salaryRecords to EmployeeSalary
+    const mappedSalaries: EmployeeSalary[] = salaryRecords.map((record: any) => {
+      const employee = employees.find(e => e.id === record.employeeId);
+      return {
+        id: record.id,
+        employeeName: record.employeeName || employee?.name || 'Unknown',
+        salaryMonth: record.month,
+        totalSalary: record.netSalary,
+        staffId: employee?.employeeId || '-',
+        position: employee?.designation || '-',
+        contact: employee?.mobile || '-',
+        address: employee?.location || '-', // Using location as address placeholder
+        workingHours: 160, // Default or fetch from somewhere
+        workedHours: 160, // Default or fetch from somewhere
+        recruitmentDate: employee?.joiningDate || '-',
+        payslipData: record.payslipData
+      };
+    });
+    setSalaries(mappedSalaries);
+  }, [salaryRecords, employees]);
 
   useEffect(() => {
     let result = salaries;
@@ -87,11 +110,8 @@ export default function ManageSalary() {
       );
     }
     
-    // Filter by active employees
-    result = result.filter(s => activeEmployees.some(e => e.name === s.employeeName));
-    
     setFilteredSalaries(result);
-  }, [salaries, searchTerm, selectedMonth, activeEmployees]);
+  }, [salaries, searchTerm, selectedMonth]);
 
   useEffect(() => {
     if (selectedSalary) {
@@ -106,16 +126,30 @@ export default function ManageSalary() {
         { label: 'Recruitment date', value: selectedSalary.recruitmentDate },
         { label: 'Worked hours', value: selectedSalary.workedHours.toString() },
       ]);
-      setPayslipRows([
-        { id: '1', description: 'Basic salary', amount: 6400, rate: 0, value: 6400, deduction: 0, type: 'earning' },
-        { id: '2', description: 'Transport allowance', amount: 470, rate: 0, value: 470, deduction: 0, type: 'earning' },
-        { id: '3', description: 'State income tax', amount: 0, rate: 0, value: 0, deduction: 0, type: 'deduction' },
-        { id: '4', description: 'Social security', amount: 0, rate: 0, value: 0, deduction: 0, type: 'deduction' },
-        { id: '5', description: 'Loan deduction', amount: 0, rate: 0, value: 0, deduction: 0, type: 'deduction' },
-        { id: '6', description: 'Salary advance', amount: 0, rate: 0, value: 0, deduction: 0, type: 'deduction' },
-      ]);
+
+      if (selectedSalary.payslipData) {
+        try {
+          setPayslipRows(JSON.parse(selectedSalary.payslipData));
+        } catch (e) {
+          console.error("Error parsing payslip data", e);
+          setDefaultPayslipRows();
+        }
+      } else {
+        setDefaultPayslipRows();
+      }
     }
   }, [selectedSalary]);
+
+  const setDefaultPayslipRows = () => {
+    setPayslipRows([
+      { id: '1', description: 'Basic salary', amount: 0, rate: 0, value: 0, deduction: 0, type: 'earning' },
+      { id: '2', description: 'Transport allowance', amount: 0, rate: 0, value: 0, deduction: 0, type: 'earning' },
+      { id: '3', description: 'State income tax', amount: 0, rate: 0, value: 0, deduction: 0, type: 'deduction' },
+      { id: '4', description: 'Social security', amount: 0, rate: 0, value: 0, deduction: 0, type: 'deduction' },
+      { id: '5', description: 'Loan deduction', amount: 0, rate: 0, value: 0, deduction: 0, type: 'deduction' },
+      { id: '6', description: 'Salary advance', amount: 0, rate: 0, value: 0, deduction: 0, type: 'deduction' },
+    ]);
+  };
 
   const handleRowChange = (id: string, field: keyof PayslipRow, value: string | number) => {
     setPayslipRows(rows => rows.map(r => r.id === id ? { ...r, [field]: value } : r));
@@ -140,6 +174,24 @@ export default function ManageSalary() {
   const totalEarnings = payslipRows.filter(r => r.type === 'earning').reduce((sum, r) => sum + Number(r.value || 0), 0);
   const totalDeductions = payslipRows.filter(r => r.type === 'deduction').reduce((sum, r) => sum + Number(r.deduction || 0), 0);
   const netSalary = totalEarnings - totalDeductions;
+
+  const handleSavePayslip = async () => {
+    if (!selectedSalary) return;
+    
+    try {
+      await updateEntity('salaryRecords', selectedSalary.id, {
+        payslipData: JSON.stringify(payslipRows),
+        netSalary: netSalary,
+        totalAllowance: totalEarnings, // Assuming total earnings includes basic + allowances
+        totalDeduction: totalDeductions
+      });
+      setIsPayslipModalOpen(false);
+      alert('Payslip updated successfully');
+    } catch (error) {
+      console.error("Error updating payslip", error);
+      alert('Failed to update payslip');
+    }
+  };
 
   const handleFind = () => {
     let result = salaries;
@@ -426,10 +478,14 @@ export default function ManageSalary() {
                 <div className="text-center space-y-2">
                   <div className="flex justify-center mb-4">
                     <div className="bg-indigo-600 p-2 rounded-xl">
-                      <Building2 className="w-8 h-8 text-white" />
+                      {currentCompany?.logo ? (
+                        <img src={currentCompany.logo} alt="Logo" className="w-8 h-8 object-contain" />
+                      ) : (
+                        <Building2 className="w-8 h-8 text-white" />
+                      )}
                     </div>
                   </div>
-                  <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Bdtask HRM (PAYSLIP)</h2>
+                  <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{currentCompany?.name || 'Bdtask HRM (PAYSLIP)'}</h2>
                 </div>
 
                 {/* Employee Info Grid */}
@@ -602,7 +658,7 @@ export default function ManageSalary() {
                     <Download className="w-4 h-4" />
                     Download as pdf
                   </button>
-                  <button onClick={() => setIsPayslipModalOpen(false)} className="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-indigo-700">
+                  <button onClick={handleSavePayslip} className="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-indigo-700">
                     <Save className="w-4 h-4" />
                     Save Changes
                   </button>

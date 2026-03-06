@@ -2,16 +2,27 @@ import React from 'react';
 import EmployeeLayout from '../../components/EmployeeLayout';
 import { ClipboardList, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { useCompanyData } from '../../context/CompanyDataContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function EmployeeProjects() {
   const { theme } = useTheme();
+  const { projects: allProjects } = useCompanyData();
+  const { user } = useAuth();
   const isDark = theme === 'dark';
 
-  const projects = [
-    { id: 1, name: 'Website Redesign', role: 'Frontend Developer', status: 'In Progress', progress: 65, deadline: 'Apr 15, 2026' },
-    { id: 2, name: 'Mobile App Launch', role: 'UI/UX Designer', status: 'Planning', progress: 20, deadline: 'Jun 01, 2026' },
-    { id: 3, name: 'Q1 Marketing Campaign', role: 'Contributor', status: 'Completed', progress: 100, deadline: 'Mar 01, 2026' },
-  ];
+  const projects = allProjects
+    .filter(p => 
+      (p.assignedTo && (p.assignedTo.includes(user?.name || '') || p.assignedTo.includes(user?.id || '') || p.assignedTo.includes(user?.employeeId || '')))
+    )
+    .map(p => ({
+      id: p.id,
+      name: p.companyName,
+      role: 'Member',
+      status: p.status,
+      progress: 0,
+      deadline: p.endDate
+    }));
 
   return (
     <EmployeeLayout>

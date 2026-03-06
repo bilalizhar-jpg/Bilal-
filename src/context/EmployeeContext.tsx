@@ -34,9 +34,8 @@ export interface Employee {
   nationalId: string;
   department: string;
   employeeType: string;
-  country: string;
-  gender: string;
-  maritalStatus: string;
+  location: string;
+  city: string;
   customFields?: CustomField[];
   avatar?: string;
   salary?: number;
@@ -59,6 +58,7 @@ interface EmployeeContextType {
   deleteEmployee: (id: string) => void;
   regenerateCredentials: (id: string) => void;
   validateEmployee: (username: string, password: string) => Employee | undefined;
+  loading: boolean;
 }
 
 const EmployeeContext = createContext<EmployeeContextType | undefined>(undefined);
@@ -177,7 +177,7 @@ export const EmployeeProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <EmployeeContext.Provider value={{ employees, allEmployees, addEmployee, addEmployees, updateEmployee, deleteEmployee, regenerateCredentials, validateEmployee }}>
+    <EmployeeContext.Provider value={{ employees, allEmployees, addEmployee, addEmployees, updateEmployee, deleteEmployee, regenerateCredentials, validateEmployee, loading }}>
       {children}
     </EmployeeContext.Provider>
   );
