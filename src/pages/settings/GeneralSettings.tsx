@@ -4,12 +4,14 @@ import { useTheme } from '../../context/ThemeContext';
 import { Save, Building2, Globe, Mail, Phone, MapPin } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useSuperAdmin } from '../../context/SuperAdminContext';
+import { useSettings } from '../../context/SettingsContext';
 
 export default function GeneralSettings() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const { user } = useAuth();
   const { companies, updateCompany } = useSuperAdmin();
+  const settings = useSettings();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -18,6 +20,12 @@ export default function GeneralSettings() {
     phone: '',
     address: '',
     logo: ''
+  });
+  
+  const [generalSettings, setGeneralSettings] = useState({
+    timeZone: settings.timeZone,
+    colorPalette: settings.colorPalette,
+    timeFormat: settings.timeFormat
   });
 
   const [loading, setLoading] = useState(false);
@@ -44,6 +52,11 @@ export default function GeneralSettings() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleGeneralChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setGeneralSettings(prev => ({ ...prev, [name]: value }));
+  };
+
   const handleSave = async () => {
     if (!user?.companyId) return;
     
@@ -54,10 +67,13 @@ export default function GeneralSettings() {
       const currentCompany = companies.find(c => c.id === user.companyId);
       if (currentCompany) {
         await updateCompany({ ...currentCompany, ...formData });
-        setMessage({ type: 'success', text: 'Company details updated successfully!' });
+        settings.setTimeZone(generalSettings.timeZone);
+        settings.setColorPalette(generalSettings.colorPalette);
+        settings.setTimeFormat(generalSettings.timeFormat as '12h' | '24h');
+        setMessage({ type: 'success', text: 'Settings updated successfully!' });
       }
     } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to update company details.' });
+      setMessage({ type: 'error', text: 'Failed to update settings.' });
     } finally {
       setLoading(false);
     }
@@ -173,6 +189,51 @@ export default function GeneralSettings() {
               </div>
             </div>
 
+            <div className="border-t border-slate-100 dark:border-slate-800 pt-6 mt-6">
+              <h3 className="font-bold text-slate-800 dark:text-white mb-4">General Settings</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Time Zone</label>
+                  <input type="text" name="timeZone" value={generalSettings.timeZone} onChange={handleGeneralChange} className={`w-full border rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`} />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Time Format</label>
+                  <select name="timeFormat" value={generalSettings.timeFormat} onChange={handleGeneralChange} className={`w-full border rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}>
+                    <option value="12h">12 Hours</option>
+                    <option value="24h">24 Hours</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex justify-end mb-6">
+                <button 
+                  onClick={() => { settings.setTimeZone(generalSettings.timeZone); settings.setTimeFormat(generalSettings.timeFormat as '12h' | '24h'); setMessage({ type: 'success', text: 'Time settings saved!' }); }}
+                  className="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold hover:bg-indigo-700"
+                >
+                  Save Time Settings
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Text Color</label>
+                  <input type="color" name="colorPalette.text" value={generalSettings.colorPalette.text} onChange={(e) => setGeneralSettings(prev => ({ ...prev, colorPalette: { ...prev.colorPalette, text: e.target.value } }))} className="w-full h-10" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Background Color</label>
+                  <input type="color" name="colorPalette.background" value={generalSettings.colorPalette.background} onChange={(e) => setGeneralSettings(prev => ({ ...prev, colorPalette: { ...prev.colorPalette, background: e.target.value } }))} className="w-full h-10" />
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <button 
+                  onClick={() => { settings.setColorPalette(generalSettings.colorPalette); setMessage({ type: 'success', text: 'Color settings saved!' }); }}
+                  className="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold hover:bg-indigo-700"
+                >
+                  Save Color Settings
+                </button>
+              </div>
+            </div>
+
             <div className="flex justify-end pt-4">
               <button 
                 onClick={handleSave}
@@ -180,7 +241,7 @@ export default function GeneralSettings() {
                 className="bg-indigo-600 text-white px-6 py-2 rounded text-sm font-bold hover:bg-indigo-700 flex items-center gap-2 disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
-                {loading ? 'Saving...' : 'Save Changes'}
+                {loading ? 'Saving...' : 'Save Company Profile'}
               </button>
             </div>
           </div>

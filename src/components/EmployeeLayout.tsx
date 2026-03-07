@@ -24,6 +24,7 @@ import {
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTheme } from '../context/ThemeContext';
+import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
 import { useEmployees } from '../context/EmployeeContext';
 import { useSuperAdmin } from '../context/SuperAdminContext';
@@ -38,11 +39,18 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme } = useTheme();
+  const { colorPalette, timeFormat } = useSettings();
   const { user, logout } = useAuth();
   const { employees } = useEmployees();
   const { companies } = useSuperAdmin();
   const isDark = theme === 'dark';
   const isDashboard = location.pathname === '/employee-portal/dashboard';
+
+  // Apply color palette
+  const layoutStyle = {
+    backgroundColor: colorPalette.background,
+    color: colorPalette.text
+  };
 
   // Find the full employee details based on the logged-in user
   const currentEmployee = employees.find(emp => emp.id === user?.id);
@@ -63,6 +71,7 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
   };
 
   const menuItems = [
+    // Always visible
     { name: 'Dashboard', icon: LayoutDashboard, path: '/employee-portal/dashboard' },
     { name: 'Daily Attendance', icon: Calendar, path: '/employee-portal/attendance' },
     { name: 'Leaves', icon: UserMinus, path: '/employee-portal/leaves' },
@@ -78,24 +87,39 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
     },
     { name: 'Notice Board', icon: Bell, path: '/employee-portal/notices' },
     { name: 'Company Policies', icon: ClipboardList, path: '/employee-portal/policies' },
-    { name: 'Project Management', icon: ClipboardList, path: '/employee-portal/projects' },
+
+    // Permission-based
+    { name: 'Projects', icon: ClipboardList, path: '/employee-portal/projects' },
     { name: 'Procurement', icon: Briefcase, path: '/employee-portal/procurement' },
     { name: 'Recruitment', icon: UserCheck, path: '/employee-portal/recruitment' },
     { name: 'Marketing', icon: MessageSquare, path: '/employee-portal/marketing' },
-    { name: 'Messages', icon: MessageSquare, path: '/employee-portal/messages' },
+    { name: 'Message', icon: MessageSquare, path: '/employee-portal/messages' },
   ];
+
+  const alwaysVisible = ['Dashboard', 'Daily Attendance', 'Leaves', 'Payroll', 'Notice Board', 'Company Policies'];
 
   const filteredMenuItems = menuItems.filter(item => {
     let checkName = item.name;
     if (item.name === 'Daily Attendance') checkName = 'Attendance';
-    if (item.name === 'Company Policies') checkName = 'Org Chart'; // Policies are usually under Org Chart/Policies
-    if (item.name === 'Messages') checkName = 'Message';
+    if (item.name === 'Company Policies') checkName = 'Org Chart';
+    if (item.name === 'Message') checkName = 'Message';
     
-    return !blockedMenus.includes(checkName);
+    // Check company-wide blocked menus
+    if (blockedMenus.includes(checkName)) return false;
+
+    // Always visible items
+    if (alwaysVisible.includes(item.name)) return true;
+
+    // Permission-based items
+    if (currentEmployee && currentEmployee.allowedMenus) {
+      return currentEmployee.allowedMenus.includes(item.name);
+    }
+
+    return false;
   });
 
   return (
-    <div className={`min-h-screen flex relative overflow-hidden ${isDark ? 'bg-[#020203] text-white' : 'bg-slate-50 text-slate-900'}`}>
+    <div className={`min-h-screen flex relative overflow-hidden ${isDark ? 'bg-[#020203] text-white' : 'bg-slate-50 text-slate-900'}`} style={layoutStyle}>
       {/* Immersive Background Atmosphere */}
       {isDark && (
         <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">

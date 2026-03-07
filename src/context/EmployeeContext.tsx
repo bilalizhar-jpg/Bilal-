@@ -47,6 +47,7 @@ export interface Employee {
   password?: string;
   rewardPoints?: number;
   isTracked?: boolean;
+  allowedMenus?: string[];
 }
 
 interface EmployeeContextType {

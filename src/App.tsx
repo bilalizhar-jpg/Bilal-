@@ -50,6 +50,7 @@ import CreateTemplate from './pages/marketing/CreateTemplate';
 import SendCampaign from './pages/marketing/SendCampaign';
 import CampaignLogs from './pages/marketing/CampaignLogs';
 import RoleManagement from './pages/settings/RoleManagement';
+import Permissions from './pages/settings/Permissions';
 import SetupRules from './pages/settings/SetupRules';
 import GeneralSettings from './pages/settings/GeneralSettings';
 import InvoiceGenerator from './pages/InvoiceGenerator';
@@ -207,6 +208,7 @@ function AppContent() {
             <Route path="/marketing/send-campaign" element={<ProtectedRoute allowedRoles={['admin']}><SendCampaign /></ProtectedRoute>} />
             <Route path="/marketing/logs" element={<ProtectedRoute allowedRoles={['admin']}><CampaignLogs /></ProtectedRoute>} />
             <Route path="/role-management" element={<ProtectedRoute allowedRoles={['admin']}><RoleManagement /></ProtectedRoute>} />
+            <Route path="/permissions" element={<ProtectedRoute allowedRoles={['admin']}><Permissions /></ProtectedRoute>} />
             <Route path="/setup-rules" element={<ProtectedRoute allowedRoles={['admin']}><SetupRules /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute allowedRoles={['admin']}><GeneralSettings /></ProtectedRoute>} />
             <Route path="/invoice" element={<ProtectedRoute allowedRoles={['admin']}><InvoiceGenerator /></ProtectedRoute>} />

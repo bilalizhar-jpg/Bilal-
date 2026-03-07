@@ -19,6 +19,7 @@ import { useSettings } from '../../context/SettingsContext';
 import { useAuth } from '../../context/AuthContext';
 import { useEmployees } from '../../context/EmployeeContext';
 import { useCompanyData } from '../../context/CompanyDataContext';
+import { useSuperAdmin } from '../../context/SuperAdminContext';
 import { motion, AnimatePresence } from 'motion/react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';

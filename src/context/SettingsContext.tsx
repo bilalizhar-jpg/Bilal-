@@ -32,6 +32,12 @@ interface SettingsContextType {
   timeZone: string;
   setTimeZone: (tz: string) => void;
 
+  colorPalette: { text: string; background: string };
+  setColorPalette: (palette: { text: string; background: string }) => void;
+
+  timeFormat: '12h' | '24h';
+  setTimeFormat: (format: '12h' | '24h') => void;
+
   systemInstruction: string;
   setSystemInstruction: (instruction: string) => void;
 }
@@ -53,20 +59,40 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [languages, setLanguages] = useState<Language[]>(() => {
     const saved = localStorage.getItem('languages');
-    return saved ? JSON.parse(saved) : defaultLanguages;
+    try {
+      return saved ? JSON.parse(saved) : defaultLanguages;
+    } catch (e) {
+      localStorage.removeItem('languages');
+      return defaultLanguages;
+    }
   });
   const [language, setLanguageState] = useState<Language>(() => {
     const saved = localStorage.getItem('language');
-    return saved ? JSON.parse(saved) : defaultLanguages[0];
+    try {
+      return saved ? JSON.parse(saved) : defaultLanguages[0];
+    } catch (e) {
+      localStorage.removeItem('language');
+      return defaultLanguages[0];
+    }
   });
 
   const [currencies, setCurrencies] = useState<Currency[]>(() => {
     const saved = localStorage.getItem('currencies');
-    return saved ? JSON.parse(saved) : defaultCurrencies;
+    try {
+      return saved ? JSON.parse(saved) : defaultCurrencies;
+    } catch (e) {
+      localStorage.removeItem('currencies');
+      return defaultCurrencies;
+    }
   });
   const [currency, setCurrencyState] = useState<Currency>(() => {
     const saved = localStorage.getItem('currency');
-    return saved ? JSON.parse(saved) : defaultCurrencies[0];
+    try {
+      return saved ? JSON.parse(saved) : defaultCurrencies[0];
+    } catch (e) {
+      localStorage.removeItem('currency');
+      return defaultCurrencies[0];
+    }
   });
 
   const [tax, setTaxState] = useState<number>(() => {
@@ -77,6 +103,21 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [timeZone, setTimeZoneState] = useState<string>(() => {
     const saved = localStorage.getItem('timeZone');
     return saved || Intl.DateTimeFormat().resolvedOptions().timeZone;
+  });
+
+  const [colorPalette, setColorPaletteState] = useState<{ text: string; background: string }>(() => {
+    const saved = localStorage.getItem('colorPalette');
+    try {
+      return saved ? JSON.parse(saved) : { text: '#000000', background: '#ffffff' };
+    } catch (e) {
+      localStorage.removeItem('colorPalette');
+      return { text: '#000000', background: '#ffffff' };
+    }
+  });
+
+  const [timeFormat, setTimeFormatState] = useState<'12h' | '24h'>(() => {
+    const saved = localStorage.getItem('timeFormat');
+    return (saved as '12h' | '24h') || '12h';
   });
 
   const [systemInstruction, setSystemInstructionState] = useState<string>(() => {
@@ -109,6 +150,14 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   }, [timeZone]);
 
   useEffect(() => {
+    localStorage.setItem('colorPalette', JSON.stringify(colorPalette));
+  }, [colorPalette]);
+
+  useEffect(() => {
+    localStorage.setItem('timeFormat', timeFormat);
+  }, [timeFormat]);
+
+  useEffect(() => {
     localStorage.setItem('systemInstruction', systemInstruction);
   }, [systemInstruction]);
 
@@ -124,6 +173,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   const setTax = (newTax: number) => setTaxState(newTax);
   const setTimeZone = (tz: string) => setTimeZoneState(tz);
+  const setColorPalette = (palette: { text: string; background: string }) => setColorPaletteState(palette);
+  const setTimeFormat = (format: '12h' | '24h') => setTimeFormatState(format);
   const setSystemInstruction = (instruction: string) => setSystemInstructionState(instruction);
 
   return (
@@ -133,6 +184,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         currency, setCurrency, currencies, addCurrency, updateCurrency, deleteCurrency,
         tax, setTax,
         timeZone, setTimeZone,
+        colorPalette, setColorPalette,
+        timeFormat, setTimeFormat,
         systemInstruction, setSystemInstruction
       }}
     >

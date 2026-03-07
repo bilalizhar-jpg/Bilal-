@@ -103,7 +103,8 @@ export const ADMIN_MENU_ITEMS = [
   { name: 'Purchase Dep', icon: Briefcase, path: '#' },
   { name: 'Settings', icon: Settings, hasSub: true, subItems: [
       { name: 'General Settings', path: '/settings' },
-      { name: 'Roles & Permissions', path: '/settings/roles' }
+      { name: 'Roles & Permissions', path: '/role-management' },
+      { name: 'Menu Permissions', path: '/permissions' }
     ]
   }
 ];

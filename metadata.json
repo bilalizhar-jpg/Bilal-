@@ -1,5 +1,9 @@
 {
   "name": "HRM Pro",
   "description": "A comprehensive multi-vendor Human Resource Management system for modern organizations.",
-  "requestFramePermissions": ["camera", "microphone", "geolocation"]
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
 }
