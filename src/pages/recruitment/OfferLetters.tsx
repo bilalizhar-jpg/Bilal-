@@ -14,13 +14,7 @@ interface Template {
 export default function OfferLetters() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const [templates, setTemplates] = useState<Template[]>([
-    {
-      id: '1',
-      name: 'Standard Offer Letter',
-      content: '<h2>Offer of Employment</h2><p>Dear [Candidate Name],</p><p>We are pleased to offer you the position of [Job Title] at our company.</p><p>Your starting salary will be [Salary] per year.</p><p>Sincerely,<br/>HR Department</p>'
-    }
-  ]);
+  const [templates, setTemplates] = useState<Template[]>([]);
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);

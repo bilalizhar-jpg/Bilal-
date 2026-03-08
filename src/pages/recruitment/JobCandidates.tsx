@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Download, MoreVertical, X, ChevronRight, FileText } from 'lucide-react';
+import { ArrowLeft, Mail, Download, MoreVertical, X, ChevronRight, FileText, Eye } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
-import { getApplications, updateApplicationStage, Application } from '../../utils/applicationStore';
+import { useAuth } from '../../context/AuthContext';
+import { subscribeToApplications, updateApplicationStage, Application } from '../../utils/applicationStore';
+import { subscribeToJobs, Job as StoreJob } from '../../utils/jobStore';
 
 const STAGES = [
   'New Candidates',
@@ -18,7 +20,9 @@ const STAGES = [
 export default function JobCandidates() {
   const { jobId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [applications, setApplications] = useState<Application[]>([]);
+  const [job, setJob] = useState<StoreJob | null>(null);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
@@ -26,9 +30,22 @@ export default function JobCandidates() {
   const [emailBody, setEmailBody] = useState('');
 
   useEffect(() => {
-    const allApps = getApplications();
-    setApplications(allApps.filter(app => app.jobId === jobId));
-  }, [jobId]);
+    if (!user?.companyId || !jobId) return;
+
+    const unsubscribeJobs = subscribeToJobs((storedJobs) => {
+      const currentJob = storedJobs.find(j => j.id === jobId);
+      if (currentJob) setJob(currentJob);
+    }, user.companyId);
+
+    const unsubscribeApps = subscribeToApplications((allApps) => {
+      setApplications(allApps.filter(app => app.jobId === jobId));
+    }, user.companyId);
+
+    return () => {
+      unsubscribeJobs();
+      unsubscribeApps();
+    };
+  }, [jobId, user?.companyId]);
 
   const handleDragStart = (e: React.DragEvent, id: string) => {
     e.dataTransfer.setData('appId', id);
@@ -38,14 +55,10 @@ export default function JobCandidates() {
     e.preventDefault();
   };
 
-  const handleDrop = (e: React.DragEvent, stage: Application['stage']) => {
+  const handleDrop = async (e: React.DragEvent, stage: Application['stage']) => {
     e.preventDefault();
     const appId = e.dataTransfer.getData('appId');
-    updateApplicationStage(appId, stage);
-    
-    // Refresh local state
-    const allApps = getApplications();
-    setApplications(allApps.filter(app => app.jobId === jobId));
+    await updateApplicationStage(appId, stage);
   };
 
   const openModal = (app: Application) => {
@@ -58,11 +71,9 @@ export default function JobCandidates() {
     setIsModalOpen(false);
   };
 
-  const handleMoveStage = (stage: Application['stage']) => {
+  const handleMoveStage = async (stage: Application['stage']) => {
     if (selectedApp) {
-      updateApplicationStage(selectedApp.id, stage);
-      const allApps = getApplications();
-      setApplications(allApps.filter(app => app.jobId === jobId));
+      await updateApplicationStage(selectedApp.id, stage);
       closeModal();
     }
   };
@@ -104,17 +115,28 @@ export default function JobCandidates() {
             </div>
             <div>
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                {applications[0]?.jobTitle || 'Job Position'}
-                <span className="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded uppercase font-bold tracking-wider">Published</span>
+                {job?.title || applications[0]?.jobTitle || 'Job Position'}
+                <span className={`text-[10px] px-2 py-0.5 rounded uppercase font-bold tracking-wider ${job?.status === 'published' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'}`}>
+                  {job?.status || 'Draft'}
+                </span>
               </h2>
               <div className="flex items-center gap-4 text-xs text-slate-500 mt-1">
-                <span className="flex items-center gap-1"><FileText className="w-3 h-3" /> Head of Dep / Decisions Makers</span>
-                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-slate-200 flex items-center justify-center text-[8px]">📍</span> Dubai, United Arab Emirates</span>
-                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-slate-200 flex items-center justify-center text-[8px]">$</span> 1,300 USD - 2,000 USD</span>
+                <span className="flex items-center gap-1"><FileText className="w-3 h-3" /> {job?.department || 'General'}</span>
+                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-slate-200 flex items-center justify-center text-[8px]">📍</span> {job?.location || 'Remote'}</span>
+                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-slate-200 flex items-center justify-center text-[8px]">$</span> {job?.salary || 'Not specified'}</span>
               </div>
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <a 
+              href={`/careers/${user?.companyId || 'default'}?jobId=${jobId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-3 py-1.5 border border-slate-300 text-slate-700 rounded text-sm font-medium hover:bg-slate-50 transition-colors"
+            >
+              <Eye className="w-4 h-4" />
+              View on Career Page
+            </a>
             <div className="flex bg-white border border-slate-200 rounded-md overflow-hidden text-sm">
               <div className="px-3 py-1.5 border-r border-slate-200 text-emerald-600 font-medium bg-emerald-50">
                 Hired <span className="ml-1 text-emerald-800">0</span>
@@ -259,6 +281,43 @@ export default function JobCandidates() {
                       <span className="block text-slate-500 text-xs">Job Position</span>
                       <span className="text-slate-800 font-medium">{selectedApp.jobTitle}</span>
                     </div>
+                    {selectedApp.customQuestionAnswer && (
+                      <div>
+                        <span className="block text-slate-500 text-xs">Custom Question Answer (Legacy)</span>
+                        <div className="mt-1 p-2 bg-yellow-50 border border-yellow-100 rounded text-slate-700 italic">
+                          "{selectedApp.customQuestionAnswer}"
+                        </div>
+                      </div>
+                    )}
+                    {selectedApp.customQuestionAnswers && selectedApp.customQuestionAnswers.length > 0 && (
+                      <div className="space-y-2">
+                        <span className="block text-slate-500 text-xs">Custom Questions</span>
+                        {selectedApp.customQuestionAnswers.map((qa, index) => (
+                          <div key={index} className="p-2 bg-slate-50 border border-slate-100 rounded">
+                            <p className="text-xs font-medium text-slate-700 mb-1">{qa.question}</p>
+                            <p className="text-sm text-slate-800 italic">"{qa.answer}"</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {selectedApp.mcqAnswers && selectedApp.mcqAnswers.length > 0 && (
+                      <div className="space-y-2">
+                        <span className="block text-slate-500 text-xs">Assessment Results</span>
+                        {selectedApp.mcqAnswers.map((answer, index) => (
+                          <div key={index} className={`p-2 border rounded ${answer.isCorrect ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'}`}>
+                            <p className="text-xs font-medium text-slate-700 mb-1">{answer.question}</p>
+                            <p className="text-sm text-slate-800 italic">
+                              Selected: "{answer.selectedOptionText}" 
+                              {answer.isCorrect ? (
+                                <span className="ml-2 text-emerald-600 font-bold text-[10px] uppercase">✓ Correct</span>
+                              ) : (
+                                <span className="ml-2 text-red-600 font-bold text-[10px] uppercase">✗ Incorrect</span>
+                              )}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

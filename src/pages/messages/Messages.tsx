@@ -10,14 +10,24 @@ export default function Messages() {
   const { theme } = useTheme();
   const { user } = useAuth();
   const { employees } = useEmployees();
-  const { chats, messages, activeChat, setActiveChat, sendMessage, sendInvitation, createGroup, deleteChat } = useChat();
+  const { chats, messages, activeChat, setActiveChat, sendMessage, sendInvitation, createGroup, deleteChat, invitations, acceptInvitation } = useChat();
   const isDark = theme === 'dark';
 
   const [newMessage, setNewMessage] = useState('');
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(false);
+  const [incomingCall, setIncomingCall] = useState<Invitation | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  useEffect(() => {
+    const videoInvite = invitations.find(i => i.type === 'videoCall');
+    if (videoInvite) {
+      setIncomingCall(videoInvite);
+    } else {
+      setIncomingCall(null);
+    }
+  }, [invitations]);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -157,11 +167,19 @@ export default function Messages() {
               </div>
               <div className="flex items-center gap-2">
                 <button 
-                  onClick={() => setShowVideoCall(true)}
-                  className={`p-2 rounded-full ${isDark ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}
-                  title="Video Call"
+                  onClick={() => {
+                    if (activeChat) {
+                      const otherUserId = activeChat.participants.find(p => p !== user?.id);
+                      if (otherUserId) {
+                        sendInvitation(otherUserId, 'videoCall');
+                        alert('Video call invitation sent!');
+                      }
+                    }
+                  }}
+                  className={`p-3 rounded-full ${isDark ? 'bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30' : 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200'} transition-all`}
+                  title="Start Video Call"
                 >
-                  <Video className="w-5 h-5" />
+                  <Video className="w-6 h-6" />
                 </button>
                 <button 
                   onClick={() => {
@@ -331,7 +349,7 @@ export default function Messages() {
                   className="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-slate-700"
                 />
                 <h3 className="text-2xl font-bold text-white mb-2">{getChatName(activeChat!)}</h3>
-                <p className="text-slate-400 animate-pulse">Calling...</p>
+                <p className="text-slate-400 animate-pulse">Connected</p>
               </div>
             </div>
 
@@ -350,6 +368,38 @@ export default function Messages() {
                 className="p-4 rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors"
               >
                 <Phone className="w-6 h-6 rotate-[135deg]" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Incoming Video Call Modal */}
+      {incomingCall && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className={`w-full max-w-sm p-6 rounded-xl shadow-xl ${isDark ? 'bg-slate-900 border border-slate-800' : 'bg-white'}`}>
+            <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>Incoming Video Call</h3>
+            <p className={`mb-6 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+              {employees.find(e => e.id === incomingCall.fromUserId)?.name} is calling you...
+            </p>
+            <div className="flex gap-4">
+              <button 
+                onClick={() => {
+                  acceptInvitation(incomingCall);
+                  setShowVideoCall(true);
+                }}
+                className="flex-1 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+              >
+                Accept
+              </button>
+              <button 
+                onClick={() => {
+                  // rejectInvitation(incomingCall.id);
+                  setIncomingCall(null);
+                }}
+                className="flex-1 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                Decline
               </button>
             </div>
           </div>

@@ -38,7 +38,13 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(() => {
     const savedUser = localStorage.getItem('currentUser');
-    return savedUser ? JSON.parse(savedUser) : null;
+    if (!savedUser) return null;
+    try {
+      return JSON.parse(savedUser);
+    } catch (e) {
+      console.error("Error parsing user from localStorage:", e);
+      return null;
+    }
   });
   const [isFirebaseReady, setIsFirebaseReady] = useState(false);
 

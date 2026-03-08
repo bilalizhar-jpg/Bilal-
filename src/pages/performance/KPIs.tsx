@@ -22,7 +22,13 @@ export default function KPIs() {
   
   const [templates, setTemplates] = useState<KPITemplate[]>(() => {
     const saved = localStorage.getItem('kpi_templates');
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Error parsing kpi_templates:", e);
+      }
+    }
     return [
       {
         id: '1',

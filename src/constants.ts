@@ -17,7 +17,8 @@ import {
   MessageSquare, 
   FileText, 
   Settings, 
-  Briefcase
+  Briefcase,
+  UserPlus
 } from 'lucide-react';
 
 export const ADMIN_MENU_ITEMS = [
@@ -36,6 +37,23 @@ export const ADMIN_MENU_ITEMS = [
   { name: 'Award', icon: Award, path: '/award' },
   { name: 'Department', icon: Building2, path: '/department' },
   { name: 'Employee', icon: Users, path: '/employee' },
+  {
+    name: 'Recruitment',
+    icon: UserPlus,
+    hasSub: true,
+    subItems: [
+      { name: 'Jobs List', path: '/recruitment/jobs-list' },
+      { name: 'Job Posting', path: '/recruitment/job-posting' },
+      { name: 'View Posted Jobs', path: '/recruitment/view-posted-jobs' },
+      { name: 'Search Candidates', path: '/recruitment/search-candidates' },
+      { name: 'Bulk CV Upload', path: '/recruitment/bulk-cv-upload' },
+      { name: 'Offer Letters', path: '/recruitment/offer-letters' },
+      { name: 'Agreements', path: '/recruitment/agreements' },
+      { name: 'Career Page', path: '/recruitment/career-page-settings' },
+      { name: 'View Live Page', path: '/careers' },
+      { name: 'Custom Design', path: '/recruitment/custom-design' }
+    ]
+  },
   {
     name: 'Onboarding',
     icon: UserCheck,

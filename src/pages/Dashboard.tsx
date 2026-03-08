@@ -7,7 +7,9 @@ import {
   X,
   UserX,
   UserMinus,
-  Bell
+  Bell,
+  TrendingUp,
+  Building2
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
@@ -15,6 +17,9 @@ import AdminLayout from '../components/AdminLayout';
 import { useEmployees } from '../context/EmployeeContext';
 import { useAttendance } from '../context/AttendanceContext';
 import { useLeaves } from '../context/LeaveContext';
+import { useCompanyData } from '../context/CompanyDataContext';
+import { useAuth } from '../context/AuthContext';
+import { useSuperAdmin } from '../context/SuperAdminContext';
 import { 
   BarChart, 
   Bar, 
@@ -26,15 +31,22 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell
+  Cell,
+  AreaChart,
+  Area
 } from 'recharts';
 
 export default function Dashboard() {
   const [showLeaveNotification, setShowLeaveNotification] = useState(true);
   const { theme } = useTheme();
+  const { user } = useAuth();
+  const { companies } = useSuperAdmin();
   const { employees } = useEmployees();
   const { attendanceRecords } = useAttendance();
   const { leaveRequests } = useLeaves();
+  const { awards, notices, loans } = useCompanyData();
+
+  const company = useMemo(() => companies.find(c => c.id === user?.companyId), [companies, user?.companyId]);
 
   const activeEmployees = useMemo(() => employees.filter(e => e.status === 'Active'), [employees]);
   
@@ -42,14 +54,12 @@ export default function Dashboard() {
   const recentLeaves = useMemo(() => leaveRequests.slice(0, 4), [leaveRequests]);
   
   const awardedData = useMemo(() => {
-    // Group active employees by department and count them as a mock for "awarded"
-    // or just show top 5 departments
-    const depts = Array.from(new Set(activeEmployees.map(e => e.department)));
-    return depts.slice(0, 5).map(dept => ({
-      name: dept,
-      value: activeEmployees.filter(e => e.department === dept).length * 10 // Mock value
-    }));
-  }, [activeEmployees]);
+    const awardCounts: Record<string, number> = {};
+    awards.forEach(a => {
+      awardCounts[a.awardName] = (awardCounts[a.awardName] || 0) + 1;
+    });
+    return Object.entries(awardCounts).map(([name, value]) => ({ name, value })).slice(0, 5);
+  }, [awards]);
 
   const today = new Date().toISOString().split('T')[0];
   const todayRecords = useMemo(() => attendanceRecords.filter(r => r.date === today), [attendanceRecords, today]);
@@ -89,15 +99,65 @@ export default function Dashboard() {
     });
   }, [activeEmployees, todayRecords]);
 
+  const recruitmentTrajectory = useMemo(() => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const currentYear = new Date().getFullYear();
+    const data = months.map((month, index) => {
+      const count = employees.filter(e => {
+        const joinDate = new Date(e.joiningDate);
+        return joinDate.getFullYear() === currentYear && joinDate.getMonth() === index;
+      }).length;
+      return { name: month, count };
+    });
+    return data;
+  }, [employees]);
+
+  const totalLoanAmount = useMemo(() => {
+    return loans.reduce((sum, loan) => sum + (Number(loan.amount) || 0), 0);
+  }, [loans]);
+
   const recentRecruits = useMemo(() => {
     return [...activeEmployees]
       .sort((a, b) => new Date(b.joiningDate).getTime() - new Date(a.joiningDate).getTime())
       .slice(0, 3);
   }, [activeEmployees]);
 
+  const recentNotices = useMemo(() => notices.slice(0, 3), [notices]);
+
   return (
     <AdminLayout>
       <div className="space-y-8">
+        {/* Welcome Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-500 to-emerald-500 p-0.5 shadow-lg shadow-indigo-500/20">
+              <div className="w-full h-full rounded-[14px] bg-black flex items-center justify-center overflow-hidden">
+                {company?.logo ? (
+                  <img src={company.logo} alt={company.name} className="w-full h-full object-cover" />
+                ) : (
+                  <Building2 className="w-8 h-8 text-white" />
+                )}
+              </div>
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-white tracking-tighter uppercase">{company?.name || 'Enterprise Terminal'}</h1>
+              <div className="flex items-center gap-3 mt-1">
+                <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Active Node</span>
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">System Operator</p>
+              <p className="text-xs font-black text-white uppercase tracking-tight">{user?.name}</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl border border-white/10 bg-white/5 flex items-center justify-center">
+              <Users className="w-5 h-5 text-indigo-400" />
+            </div>
+          </div>
+        </div>
+
         {/* Blinking Leave Notification */}
         <AnimatePresence>
           {showLeaveNotification && pendingLeave && (
@@ -198,13 +258,34 @@ export default function Dashboard() {
             <div className="glass-card p-8 border border-white/5">
               <div className="flex justify-between items-center mb-8">
                 <h2 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Recruitment Trajectory</h2>
-                <select className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-[10px] font-black uppercase tracking-widest outline-none text-white hover:bg-white/10 transition-all">
-                  <option className="bg-slate-900">Yearly Cycle</option>
-                  <option className="bg-slate-900">Monthly Cycle</option>
-                </select>
+                <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
+                  <TrendingUp className="w-3 h-3 text-emerald-400" />
+                  <span className="text-[10px] font-black text-white uppercase tracking-widest">Active Stream</span>
+                </div>
               </div>
-              <div className="h-[250px] w-full flex items-center justify-center border-t border-white/5">
-                <div className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] italic">Data Stream: Inactive</div>
+              <div className="h-[250px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={recruitmentTrajectory}>
+                    <defs>
+                      <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 900 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 900 }} />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'rgba(2, 2, 3, 0.9)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '12px'
+                      }}
+                    />
+                    <Area type="monotone" dataKey="count" stroke="#6366f1" fillOpacity={1} fill="url(#colorCount)" />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
@@ -214,21 +295,25 @@ export default function Dashboard() {
                 <h2 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Excellence Distribution</h2>
               </div>
               <div className="h-[200px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={awardedData} layout="vertical">
-                    <XAxis type="number" hide />
-                    <YAxis dataKey="name" type="category" hide />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'rgba(2, 2, 3, 0.9)',
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        borderRadius: '12px'
-                      }}
-                    />
-                    <Bar dataKey="value" fill="rgba(99, 102, 241, 0.6)" radius={[0, 4, 4, 0]} barSize={24} />
-                  </BarChart>
-                </ResponsiveContainer>
+                {awardedData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={awardedData} layout="vertical">
+                      <XAxis type="number" hide />
+                      <YAxis dataKey="name" type="category" hide />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(2, 2, 3, 0.9)',
+                          backdropFilter: 'blur(10px)',
+                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                          borderRadius: '12px'
+                        }}
+                      />
+                      <Bar dataKey="value" fill="rgba(99, 102, 241, 0.6)" radius={[0, 4, 4, 0]} barSize={24} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] italic">No Awards Recorded</div>
+                )}
               </div>
             </div>
           </div>
@@ -277,19 +362,19 @@ export default function Dashboard() {
                 {recentRecruits.map((rec, i) => (
                   <div key={rec.id} className="flex items-center justify-between gap-4 group">
                     <div className="flex items-center gap-4">
-                      <img src={rec.avatar || `https://picsum.photos/seed/rec${i}/40/40`} className="w-10 h-10 rounded-xl object-cover border border-white/5 group-hover:border-white/20 transition-all" referrerPolicy="no-referrer" />
+                      <img src={rec.avatar || `https://picsum.photos/seed/rec${rec.id}/40/40`} className="w-10 h-10 rounded-xl object-cover border border-white/5 group-hover:border-white/20 transition-all" referrerPolicy="no-referrer" />
                       <div>
                         <div className="text-xs font-black text-white uppercase tracking-tight">{rec.name}</div>
                         <div className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Joined: {rec.joiningDate}</div>
                       </div>
                     </div>
-                    <button className="text-[9px] font-black text-emerald-400 uppercase tracking-widest bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 hover:bg-emerald-500/20 transition-all">Recruit</button>
+                    <Link to="/employees" className="text-[9px] font-black text-emerald-400 uppercase tracking-widest bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 hover:bg-emerald-500/20 transition-all">Profile</Link>
                   </div>
                 ))}
                 {recentRecruits.length === 0 && (
                   <div className="text-center py-6 text-[10px] font-black text-slate-600 uppercase tracking-widest italic">No New Personnel</div>
                 )}
-                <button className="w-full text-center text-[10px] font-black text-slate-500 uppercase tracking-widest mt-4 hover:text-slate-400 transition-colors">Expand View</button>
+                <Link to="/employees" className="block w-full text-center text-[10px] font-black text-slate-500 uppercase tracking-widest mt-4 hover:text-slate-400 transition-colors">Expand View</Link>
               </div>
             </div>
 
@@ -300,17 +385,13 @@ export default function Dashboard() {
                 <Link to="/notice" className="text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:text-indigo-300 transition-colors">View All</Link>
               </div>
               <div className="p-6 space-y-6">
-                {[
-                  { type: 'Govt special', title: 'Eid Holiday', date: '2026-01-31' },
-                  { type: 'General Meeting', title: 'Monthly Staff Meeting', date: '2025-04-06' },
-                  { type: 'Policy', title: 'New Attendance Policy', date: '2025-01-16' },
-                ].map((notice, i) => (
-                  <div key={i} className="flex items-start gap-4 p-3 rounded-2xl hover:bg-white/5 transition-all cursor-pointer group">
+                {recentNotices.map((notice, i) => (
+                  <div key={notice.id} className="flex items-start gap-4 p-3 rounded-2xl hover:bg-white/5 transition-all cursor-pointer group">
                     <div className="bg-indigo-500/10 p-3 rounded-xl border border-indigo-500/20 group-hover:bg-indigo-500/20 transition-all">
                       <Bell className="w-4 h-4 text-indigo-400" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-xs font-black text-white uppercase tracking-tight truncate group-hover:text-indigo-400 transition-colors">{notice.title}</div>
+                      <div className="text-xs font-black text-white uppercase tracking-tight truncate group-hover:text-indigo-400 transition-colors">{notice.description}</div>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{notice.type}</span>
                         <span className="text-[9px] text-slate-700">•</span>
@@ -319,6 +400,9 @@ export default function Dashboard() {
                     </div>
                   </div>
                 ))}
+                {recentNotices.length === 0 && (
+                  <div className="text-center py-6 text-[10px] font-black text-slate-600 uppercase tracking-widest italic">No Active Notices</div>
+                )}
               </div>
             </div>
 
@@ -332,7 +416,7 @@ export default function Dashboard() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={[{ value: 100 }]}
+                        data={[{ value: totalLoanAmount || 1 }]}
                         cx="50%"
                         cy="100%"
                         startAngle={180}
@@ -349,7 +433,7 @@ export default function Dashboard() {
                 </div>
                 <div className="text-center -mt-8">
                   <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Loan Volume</div>
-                  <div className="text-3xl font-black text-white tracking-tighter">$0.00</div>
+                  <div className="text-3xl font-black text-white tracking-tighter">${totalLoanAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
                 </div>
               </div>
             </div>

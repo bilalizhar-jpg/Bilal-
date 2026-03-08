@@ -104,7 +104,7 @@ export default function CareerPageSettings() {
                     <input 
                       type="text" 
                       readOnly
-                      value='<a href="https://info-resume-edge.careers-page.com">Careers</a>'
+                      value={`${window.location.origin}/careers`}
                       className={`flex-1 px-3 py-2 text-sm rounded-lg border outline-none font-mono ${
                         isDark 
                           ? 'bg-slate-800 border-slate-700 text-slate-300' 
@@ -112,7 +112,7 @@ export default function CareerPageSettings() {
                       }`}
                     />
                     <button 
-                      onClick={() => handleCopy('<a href="https://info-resume-edge.careers-page.com">Careers</a>')}
+                      onClick={() => handleCopy(`${window.location.origin}/careers`)}
                       className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors flex items-center gap-2 ${
                         isDark 
                           ? 'border-slate-700 text-slate-300 hover:bg-slate-800' 
@@ -122,6 +122,15 @@ export default function CareerPageSettings() {
                       {copied ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
                       Copy
                     </button>
+                    <a 
+                      href="/careers" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                    >
+                      <LinkIcon className="w-4 h-4" />
+                      View Page
+                    </a>
                   </div>
                 </div>
 
@@ -176,7 +185,7 @@ export default function CareerPageSettings() {
                       <input 
                         type="text" 
                         readOnly
-                        value='<iframe src="https://info-resume-edge.careers-page.com/?include_header=true" style="width:100%; height:100%; border:0px;"></iframe>'
+                        value={`<iframe src="${window.location.origin}/careers?include_header=true" style="width:100%; height:100%; border:0px;"></iframe>`}
                         className={`flex-1 px-3 py-2 text-sm rounded-lg border outline-none font-mono ${
                           isDark 
                             ? 'bg-slate-800 border-slate-700 text-slate-300' 
@@ -184,7 +193,7 @@ export default function CareerPageSettings() {
                         }`}
                       />
                       <button 
-                        onClick={() => handleCopy('<iframe src="https://info-resume-edge.careers-page.com/?include_header=true" style="width:100%; height:100%; border:0px;"></iframe>')}
+                        onClick={() => handleCopy(`<iframe src="${window.location.origin}/careers?include_header=true" style="width:100%; height:100%; border:0px;"></iframe>`)}
                         className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors flex items-center gap-2 ${
                           isDark 
                             ? 'border-slate-700 text-slate-300 hover:bg-slate-800' 

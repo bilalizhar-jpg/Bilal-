@@ -48,7 +48,7 @@ export interface Invitation {
   companyId: string;
   fromUserId: string;
   toUserId: string;
-  type: 'direct' | 'group';
+  type: 'direct' | 'group' | 'videoCall';
   chatId?: string;
   groupName?: string;
   status: 'pending' | 'accepted' | 'rejected';
@@ -188,7 +188,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const sendInvitation = async (toUserId: string, type: 'direct' | 'group', groupName?: string, chatId?: string) => {
+  const sendInvitation = async (toUserId: string, type: 'direct' | 'group' | 'videoCall', groupName?: string, chatId?: string) => {
     if (!user?.companyId || !user?.id) return;
 
     // Check if chat already exists for direct messages
@@ -198,10 +198,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         alert('Chat already exists with this user.');
         return;
       }
-      
-      // Check if invitation already pending
-      // Note: This requires querying invitations sent BY me, which we aren't subscribing to globally, so we'll just check if we can add it.
-      // Ideally we should check server side or query. For now, let's just add it.
     }
 
     try {
@@ -243,16 +239,14 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             const updatedParticipants = [...chat.participants, user.id];
             await updateDoc(chatRef, { participants: updatedParticipants });
           }
-        } else if (invitation.groupName) {
-          // This case might be rare if we create chat first then invite.
-          // Let's assume group creation creates the chat first.
         }
+      } else if (invitation.type === 'videoCall') {
+        // Handle video call acceptance
+        // This will be handled by the UI listening to invitation status
       }
 
       // Update invitation status
       await updateDoc(doc(db, 'invitations', invitation.id), { status: 'accepted' });
-      // Or delete it? User said "after accepting... it will appear". Keeping it as accepted might be useful for history, but deleting keeps it clean.
-      // Let's delete it to keep "pending" list clean.
       await deleteDoc(doc(db, 'invitations', invitation.id));
 
     } catch (error) {

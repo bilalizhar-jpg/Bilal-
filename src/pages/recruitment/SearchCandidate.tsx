@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { Search, Filter, X, Briefcase, MapPin, DollarSign, GraduationCap, Search as SearchIcon, FileText } from 'lucide-react';
-import { getApplications, Application } from '../../utils/applicationStore';
+import { getApplications, subscribeToApplications, Application } from '../../utils/applicationStore';
+import { useAuth } from '../../context/AuthContext';
 
 interface CandidateSearchFilters {
   keyword: string;
@@ -13,6 +14,7 @@ interface CandidateSearchFilters {
 }
 
 export default function SearchCandidate() {
+  const { user } = useAuth();
   const [filters, setFilters] = useState<CandidateSearchFilters>({
     keyword: '',
     location: '',
@@ -28,10 +30,13 @@ export default function SearchCandidate() {
 
   useEffect(() => {
     // Load all applications on mount
-    const apps = getApplications();
-    setAllCandidates(apps);
-    setSearchResults(apps); // Initially show all
-  }, []);
+    const unsubscribe = subscribeToApplications((apps) => {
+      setAllCandidates(apps);
+      setSearchResults(apps); // Initially show all
+    }, user?.companyId);
+
+    return () => unsubscribe();
+  }, [user?.companyId]);
 
   const handleFilterChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>

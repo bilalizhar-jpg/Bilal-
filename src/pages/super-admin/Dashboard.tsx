@@ -4,8 +4,21 @@ import { Building2, Users, UserMinus, AlertTriangle } from 'lucide-react';
 import { useSuperAdmin } from '../../context/SuperAdminContext';
 
 export default function SuperAdminDashboard() {
-  const { companies } = useSuperAdmin();
+  const { companies, loading } = useSuperAdmin();
   
+  if (loading) {
+    return (
+      <SuperAdminLayout>
+        <div className="flex items-center justify-center h-[60vh]">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Synchronizing Data...</p>
+          </div>
+        </div>
+      </SuperAdminLayout>
+    );
+  }
+
   const stats = [
     { name: 'Total Companies', value: companies.length, icon: Building2, color: 'bg-indigo-500' },
     { name: 'Active Companies', value: companies.filter(c => c.status === 'active').length, icon: Users, color: 'bg-emerald-500' },

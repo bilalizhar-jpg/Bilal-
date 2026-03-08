@@ -1,16 +1,26 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { UploadCloud, X, FileText, CheckCircle, AlertCircle } from 'lucide-react';
-import { JOBS } from '../CareerPage'; // Assuming JOBS is exported from here or we need a central store
-
+import { getJobs, subscribeToJobs, Job } from '../../utils/jobStore';
 import { saveApplication } from '../../utils/applicationStore';
+import { useAuth } from '../../context/AuthContext';
 
 export default function BulkCVUpload() {
+  const { user } = useAuth();
   const [selectedJobId, setSelectedJobId] = useState<string>('');
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [jobs, setJobs] = useState<Job[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToJobs((allJobs) => {
+      setJobs(allJobs);
+    }, user?.companyId);
+
+    return () => unsubscribe();
+  }, [user?.companyId]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -38,42 +48,28 @@ export default function BulkCVUpload() {
     setUploadStatus('idle');
 
     try {
-      const selectedJob = JOBS.find(j => j.id === selectedJobId);
+      const selectedJob = jobs.find(j => j.id === selectedJobId);
       if (!selectedJob) throw new Error('Job not found');
 
-      // Simulate upload process and parsing
+      // Simulate upload process
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Process each file and save as an application
-      files.forEach(file => {
-        // Extract a mock name from filename (e.g., "John_Doe_Resume.pdf" -> "John Doe")
-        const candidateName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
-        
-        // Generate mock email based on name
-        const email = `${candidateName.replace(/\s+/g, '.').toLowerCase()}@example.com`;
-        
-        // Generate mock data for search
-        const mockSkills = ['React', 'TypeScript', 'Node.js', 'Python', 'Java', 'SQL', 'AWS', 'Docker'];
-        const randomSkills = mockSkills.sort(() => 0.5 - Math.random()).slice(0, 3 + Math.floor(Math.random() * 4));
-        const mockEducations = ['BSc Computer Science', 'MSc Software Engineering', 'MBA', 'BBA', 'High School'];
-        const randomEducation = mockEducations[Math.floor(Math.random() * mockEducations.length)];
-        const randomSalary = `${Math.floor(Math.random() * 50 + 50)}k - ${Math.floor(Math.random() * 50 + 100)}k`;
-
-        saveApplication({
-          jobId: selectedJob.id,
+      // In a real application, you would parse the files here and send them to your backend.
+      // For now, we just acknowledge the upload.
+      for (const file of files) {
+        await saveApplication({
+          companyId: user?.companyId || 'default',
+          jobId: selectedJobId,
           jobTitle: selectedJob.title,
-          candidateName: candidateName,
-          email: email,
-          phone: `+1 ${Math.floor(Math.random() * 900 + 100)}-${Math.floor(Math.random() * 900 + 100)}-${Math.floor(Math.random() * 9000 + 1000)}`,
+          candidateName: file.name.split('.')[0], // Mock name from filename
+          email: `${file.name.split('.')[0].toLowerCase().replace(/\s+/g, '.')}@example.com`,
+          phone: '+1234567890',
           cvFileName: file.name,
-          skills: randomSkills,
-          education: randomEducation,
-          expectedSalary: randomSalary,
-          location: selectedJob.location,
-          cvText: `This is a mock CV text for ${candidateName}. Skills: ${randomSkills.join(', ')}. Education: ${randomEducation}.`,
-          matchPercentage: Math.floor(Math.random() * 40) + 60, // 60-100%
+          matchPercentage: Math.floor(Math.random() * 40) + 60 // Mock 60-100%
         });
-      });
+      }
+      
+      console.log(`Uploaded ${files.length} files for job ${selectedJobId}`);
       
       setUploadStatus('success');
       setFiles([]);
@@ -102,7 +98,7 @@ export default function BulkCVUpload() {
               required
             >
               <option value="">Select a job...</option>
-              {JOBS.map(job => (
+              {jobs.map(job => (
                 <option key={job.id} value={job.id}>
                   {job.title} - {job.location}
                 </option>

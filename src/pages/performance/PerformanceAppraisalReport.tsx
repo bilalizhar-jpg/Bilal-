@@ -64,7 +64,11 @@ export default function PerformanceAppraisalReport() {
   useEffect(() => {
     const saved = localStorage.getItem('kpi_templates');
     if (saved) {
-      setKpiTemplates(JSON.parse(saved));
+      try {
+        setKpiTemplates(JSON.parse(saved));
+      } catch (e) {
+        console.error("Error parsing kpi_templates:", e);
+      }
     }
   }, []);
 

@@ -34,11 +34,13 @@ import ProjectManagement from './pages/project-management/ProjectManagement';
 import Milestones from './pages/project-management/Milestones';
 import ProjectReports from './pages/project-management/ProjectReports';
 import CareerPage from './pages/CareerPage';
+import ApplyPage from './pages/ApplyPage';
 import Reports from './pages/Reports';
 import RewardPoints from './pages/RewardPoints';
 import CareerPageSettings from './pages/recruitment/CareerPageSettings';
 import JobPosting from './pages/recruitment/JobPosting';
 import JobsList from './pages/recruitment/JobsList';
+import ViewPostedJobs from './pages/recruitment/ViewPostedJobs';
 import JobCandidates from './pages/recruitment/JobCandidates';
 import SearchCandidate from './pages/recruitment/SearchCandidate';
 import BulkCVUpload from './pages/recruitment/BulkCVUpload';
@@ -146,6 +148,8 @@ function AppContent() {
           <Routes location={location}>
             <Route path="/" element={<LandingPage />} />
             <Route path="/careers" element={<CareerPage />} />
+            <Route path="/careers/:companyId" element={<CareerPage />} />
+            <Route path="/careers/:companyId/apply/:jobId" element={<ApplyPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/employee-login" element={<EmployeeLoginPage />} />
@@ -199,6 +203,7 @@ function AppContent() {
             <Route path="/recruitment/career-page-settings" element={<ProtectedRoute allowedRoles={['admin']}><CareerPageSettings /></ProtectedRoute>} />
             <Route path="/recruitment/job-posting" element={<ProtectedRoute allowedRoles={['admin']}><JobPosting /></ProtectedRoute>} />
             <Route path="/recruitment/jobs-list" element={<ProtectedRoute allowedRoles={['admin']}><JobsList /></ProtectedRoute>} />
+            <Route path="/recruitment/view-posted-jobs" element={<ProtectedRoute allowedRoles={['admin']}><ViewPostedJobs /></ProtectedRoute>} />
             <Route path="/recruitment/jobs/:jobId/candidates" element={<ProtectedRoute allowedRoles={['admin']}><JobCandidates /></ProtectedRoute>} />
             <Route path="/recruitment/search-candidates" element={<ProtectedRoute allowedRoles={['admin']}><SearchCandidate /></ProtectedRoute>} />
             <Route path="/recruitment/bulk-cv-upload" element={<ProtectedRoute allowedRoles={['admin']}><BulkCVUpload /></ProtectedRoute>} />
@@ -252,35 +257,38 @@ import { CompanyDataProvider } from './context/CompanyDataContext';
 import { InvoiceProvider } from './context/InvoiceContext';
 import { ChatProvider } from './context/ChatContext';
 import { MarketingProvider } from './context/MarketingContext';
+import { SettingsProvider } from './context/SettingsContext';
 
 export default function App() {
   return (
     <AuthProvider>
-      <SuperAdminProvider>
-        <EmployeeProvider>
-          <AttendanceProvider>
-            <TimeTrackingProvider>
-              <LeaveProvider>
-                <PolicyProvider>
-                  <LetterProvider>
-                    <CompanyDataProvider>
-                      <InvoiceProvider>
-                        <ChatProvider>
-                          <MarketingProvider>
-                            <Router>
-                              <AppContent />
-                            </Router>
-                          </MarketingProvider>
-                        </ChatProvider>
-                      </InvoiceProvider>
-                    </CompanyDataProvider>
-                  </LetterProvider>
-                </PolicyProvider>
-              </LeaveProvider>
-            </TimeTrackingProvider>
-          </AttendanceProvider>
-        </EmployeeProvider>
-      </SuperAdminProvider>
+      <SettingsProvider>
+        <SuperAdminProvider>
+          <EmployeeProvider>
+            <AttendanceProvider>
+              <TimeTrackingProvider>
+                <LeaveProvider>
+                  <PolicyProvider>
+                    <LetterProvider>
+                      <CompanyDataProvider>
+                        <InvoiceProvider>
+                          <ChatProvider>
+                            <MarketingProvider>
+                              <Router>
+                                <AppContent />
+                              </Router>
+                            </MarketingProvider>
+                          </ChatProvider>
+                        </InvoiceProvider>
+                      </CompanyDataProvider>
+                    </LetterProvider>
+                  </PolicyProvider>
+                </LeaveProvider>
+              </TimeTrackingProvider>
+            </AttendanceProvider>
+          </EmployeeProvider>
+        </SuperAdminProvider>
+      </SettingsProvider>
     </AuthProvider>
   );
 }

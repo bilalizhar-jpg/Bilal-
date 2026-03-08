@@ -18,7 +18,8 @@ import {
   MessageCircle,
   Edit2,
   Save,
-  X
+  X,
+  Mail
 } from 'lucide-react';
 import AdminLayout from '../components/AdminLayout';
 import { useTheme } from '../context/ThemeContext';
@@ -53,7 +54,7 @@ interface TrackedEmployee {
   screenshot: string;
   isTracked: boolean;
   phoneNumber?: string;
-  lastAlertSent?: number; // timestamp
+  email?: string;
 }
 
 interface TimeLog {
@@ -80,8 +81,12 @@ export default function TimeTracker() {
   
   // Settings State
   const [idleThresholdMinutes, setIdleThresholdMinutes] = useState(5);
+  const [emailIdleThresholdMinutes, setEmailIdleThresholdMinutes] = useState(5);
   const [autoWhatsAppAlerts, setAutoWhatsAppAlerts] = useState(false);
+  const [autoEmailAlerts, setAutoEmailAlerts] = useState(false);
+  const [headEmail, setHeadEmail] = useState('');
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [alertTimestamps, setAlertTimestamps] = useState<Record<string, { whatsapp?: number, email?: number }>>({});
 
   // Tracked Employees State
   const [employees, setEmployees] = useState<TrackedEmployee[]>([]);
@@ -100,6 +105,7 @@ export default function TimeTracker() {
           department: emp.department,
           avatar: emp.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.name)}&background=random`,
           phoneNumber: emp.mobile,
+          email: emp.email,
         };
 
         if (tracking) {
@@ -176,24 +182,44 @@ export default function TimeTracker() {
 
   // Check for Idle Alert
   useEffect(() => {
-    if (autoWhatsAppAlerts) {
+    if (autoWhatsAppAlerts || autoEmailAlerts) {
       employees.forEach(emp => {
-        if (emp.status === 'Idle' && emp.phoneNumber) {
+        if (emp.status === 'Idle') {
           const [h, m] = emp.idleTime.split(':').map(Number);
           const totalIdleMinutes = h * 60 + m;
+          const now = Date.now();
+          const timestamps = alertTimestamps[emp.id] || {};
+          let updated = false;
+          const newTimestamps = { ...timestamps };
 
-          if (totalIdleMinutes >= idleThresholdMinutes) {
-             const now = Date.now();
-             if (!emp.lastAlertSent || (now - emp.lastAlertSent > 10 * 60 * 1000)) {
+          if (autoWhatsAppAlerts && emp.phoneNumber && totalIdleMinutes >= idleThresholdMinutes) {
+             if (!timestamps.whatsapp || (now - timestamps.whatsapp > 10 * 60 * 1000)) {
                 setAlertMessage(`WhatsApp Alert sent to ${emp.name}: "You have been idle for ${totalIdleMinutes} minutes."`);
-                emp.lastAlertSent = now;
+                newTimestamps.whatsapp = now;
+                updated = true;
                 setTimeout(() => setAlertMessage(null), 5000);
              }
+          }
+
+          if (autoEmailAlerts && emp.email && totalIdleMinutes >= emailIdleThresholdMinutes) {
+             if (!timestamps.email || (now - timestamps.email > 10 * 60 * 1000)) {
+                setAlertMessage(`Email Alert sent to ${emp.email} (CC: ${headEmail || 'Head'}): "You have been idle for ${totalIdleMinutes} minutes."`);
+                newTimestamps.email = now;
+                updated = true;
+                setTimeout(() => setAlertMessage(null), 5000);
+             }
+          }
+
+          if (updated) {
+            setAlertTimestamps(prev => ({
+              ...prev,
+              [emp.id]: newTimestamps
+            }));
           }
         }
       });
     }
-  }, [employees, autoWhatsAppAlerts, idleThresholdMinutes]);
+  }, [employees, autoWhatsAppAlerts, autoEmailAlerts, idleThresholdMinutes, emailIdleThresholdMinutes, headEmail, alertTimestamps]);
 
   const handleExportExcel = () => {
     const ws = XLSX.utils.json_to_sheet(logs);
@@ -499,6 +525,62 @@ export default function TimeTracker() {
                         <span className="text-sm text-slate-500">minutes</span>
                       </div>
                       <p className="text-xs text-slate-500 mt-1">Alert triggers after this duration of inactivity.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Email Alert Settings */}
+              <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm overflow-hidden`}>
+                <div className="p-6 border-b border-slate-100 dark:border-slate-800">
+                  <h3 className="font-bold text-lg text-slate-800 dark:text-white flex items-center gap-2">
+                    <Mail className="w-5 h-5 text-blue-600" />
+                    Email Alert Settings
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-1">Configure automated email alerts for idle time.</p>
+                </div>
+                <div className="p-6 space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-slate-800 dark:text-white">Auto-Send Email Alerts</h4>
+                      <p className="text-xs text-slate-500">Automatically send an email to employee and CC head when idle time exceeds threshold.</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={autoEmailAlerts}
+                        onChange={(e) => setAutoEmailAlerts(e.target.checked)}
+                        className="sr-only peer" 
+                      />
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                    </label>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Idle Time Threshold (Minutes)</label>
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="number" 
+                          min="1"
+                          value={emailIdleThresholdMinutes}
+                          onChange={(e) => setEmailIdleThresholdMinutes(parseInt(e.target.value) || 1)}
+                          className={`w-24 px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                        />
+                        <span className="text-sm text-slate-500">minutes</span>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">Alert triggers after this duration of inactivity.</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Head Email (Auto CC)</label>
+                      <input 
+                        type="email" 
+                        value={headEmail}
+                        onChange={(e) => setHeadEmail(e.target.value)}
+                        placeholder="head@company.com"
+                        className={`w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                      />
+                      <p className="text-xs text-slate-500 mt-1">This email will be CC'd on all idle alerts.</p>
                     </div>
                   </div>
                 </div>

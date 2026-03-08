@@ -21,6 +21,12 @@ export const ALL_MENU_ITEMS = [
   'Procurement', 'Accounts', 'CRM', 'Purchase Dep', 'Settings'
 ];
 
+export interface CompanyAddress {
+  id: string;
+  label: string;
+  address: string;
+}
+
 export interface Company {
   id: string;
   name: string;
@@ -40,6 +46,8 @@ export interface Company {
   website?: string;
   phone?: string;
   address?: string;
+  aboutUs?: string;
+  addresses?: CompanyAddress[];
 }
 
 export interface InvoiceItem {
@@ -67,6 +75,7 @@ export interface Invoice {
 interface SuperAdminContextType {
   companies: Company[];
   invoices: Invoice[];
+  loading: boolean;
   error: string | null;
   addCompany: (company: Omit<Company, 'id' | 'status' | 'blockedMenus' | 'isActive'>) => Promise<void>;
   updateCompany: (company: Company) => void;
@@ -98,6 +107,20 @@ export const SuperAdminProvider = ({ children }: { children: ReactNode }) => {
     // Companies are needed for login, so fetch them always (assuming public read rule)
     const qCompanies = query(collection(db, 'companies'));
     const unsubscribeCompanies = onSnapshot(qCompanies, (snapshot) => {
+      if (snapshot.empty) {
+        // Migration from localStorage if Firestore is empty
+        const migrate = async () => {
+          const savedCompanies = localStorage.getItem('companies');
+          if (savedCompanies) {
+            const companiesData = JSON.parse(savedCompanies) as Company[];
+            for (const company of companiesData) {
+              await setDoc(doc(db, 'companies', company.id), company);
+            }
+          }
+        };
+        migrate();
+      }
+
       const companiesData = snapshot.docs.map(doc => {
         const data = doc.data();
         // Use status as source of truth, default to active if missing
@@ -124,6 +147,18 @@ export const SuperAdminProvider = ({ children }: { children: ReactNode }) => {
     if (user?.role === 'superadmin') {
       const qInvoices = query(collection(db, 'invoices'));
       unsubscribeInvoices = onSnapshot(qInvoices, (snapshot) => {
+        if (snapshot.empty) {
+          const migrate = async () => {
+            const savedInvoices = localStorage.getItem('invoices');
+            if (savedInvoices) {
+              const invoicesData = JSON.parse(savedInvoices) as Invoice[];
+              for (const invoice of invoicesData) {
+                await setDoc(doc(db, 'invoices', invoice.id), invoice);
+              }
+            }
+          };
+          migrate();
+        }
         const invoicesData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Invoice));
         setInvoices(invoicesData);
       }, (err) => {
@@ -248,6 +283,7 @@ export const SuperAdminProvider = ({ children }: { children: ReactNode }) => {
     <SuperAdminContext.Provider value={{ 
       companies, 
       invoices,
+      loading,
       error,
       addCompany, 
       updateCompany, 

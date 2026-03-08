@@ -242,15 +242,21 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
                     <div className="space-y-1">
                       <button
                         onClick={() => toggleMenu(item.name)}
-                        className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 group ${
+                        className={`relative w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 group ${
                           isActive 
-                            ? (isDark ? 'bg-white/10 text-white border border-white/10' : 'bg-indigo-50 text-indigo-700') 
-                            : (isDark ? 'text-slate-500 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900')
+                            ? (isDark ? 'bg-white/5 text-white border border-white/10' : 'bg-white text-indigo-700 shadow-sm border border-slate-200') 
+                            : (isDark ? 'text-slate-500 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-sm')
                         }`}
                       >
+                        {isActive && (
+                          <motion.div 
+                            layoutId="activeIndicator"
+                            className={`absolute left-0 top-2 bottom-2 w-1 rounded-r-full ${isDark ? 'bg-indigo-500' : 'bg-indigo-600'}`}
+                          />
+                        )}
                         <div className="flex items-center gap-4">
                           <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? (isDark ? 'text-indigo-400' : 'text-indigo-600') : ''}`} />
-                          {isSidebarOpen && <span className="font-black text-[10px] uppercase tracking-[0.2em]">{item.name}</span>}
+                          {isSidebarOpen && <span className="font-black text-[14px] uppercase tracking-[0.2em]">{item.name}</span>}
                         </div>
                         {isSidebarOpen && (
                           <motion.div
@@ -273,7 +279,7 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
                               <li key={subItem.name}>
                                 <Link
                                   to={subItem.path}
-                                  className={`block px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${
+                                  className={`block px-6 py-2.5 text-[14px] font-black uppercase tracking-widest rounded-xl transition-all ${
                                     location.pathname === subItem.path
                                       ? (isDark ? 'text-indigo-400 bg-white/5' : 'text-indigo-700 bg-indigo-50/50')
                                       : (isDark ? 'text-slate-500 hover:text-slate-300 hover:bg-white/5' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50')
@@ -290,12 +296,18 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
                   ) : (
                     <Link
                       to={item.path!}
-                      className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group ${
+                      className={`relative flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group ${
                         isActive 
-                          ? (isDark ? 'bg-white/10 text-white border border-white/10 shadow-lg shadow-black/20' : 'bg-indigo-50 text-indigo-700') 
-                          : (isDark ? 'text-slate-500 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900')
+                          ? (isDark ? 'bg-white/5 text-white border border-white/10 shadow-lg shadow-indigo-500/10' : 'bg-white text-indigo-700 shadow-sm border border-slate-200') 
+                          : (isDark ? 'text-slate-500 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-sm')
                       }`}
                     >
+                      {isActive && (
+                        <motion.div 
+                          layoutId="activeIndicator"
+                          className={`absolute left-0 top-2 bottom-2 w-1 rounded-r-full ${isDark ? 'bg-indigo-500' : 'bg-indigo-600'}`}
+                        />
+                      )}
                       <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? (isDark ? 'text-indigo-400' : 'text-indigo-600') : ''}`} />
                       {isSidebarOpen && <span className="font-black text-[10px] uppercase tracking-[0.2em]">{item.name}</span>}
                     </Link>
@@ -312,7 +324,7 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
             className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group ${isDark ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'}`}
           >
             <LogOut className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
-            {isSidebarOpen && <span className="font-black text-[10px] uppercase tracking-[0.2em]">Logout</span>}
+            {isSidebarOpen && <span className="font-black text-[14px] uppercase tracking-[0.2em]">Logout</span>}
           </button>
         </div>
       </aside>

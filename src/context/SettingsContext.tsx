@@ -1,4 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+import { useAuth } from './AuthContext';
+import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
 
 export interface Currency {
   code: string;
@@ -57,125 +61,173 @@ const defaultCurrencies: Currency[] = [
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-  const [languages, setLanguages] = useState<Language[]>(() => {
-    const saved = localStorage.getItem('languages');
+  const { user } = useAuth();
+  const [languages, setLanguages] = useState<Language[]>(defaultLanguages);
+  const [language, setLanguageState] = useState<Language>(defaultLanguages[0]);
+  const [currencies, setCurrencies] = useState<Currency[]>(defaultCurrencies);
+  const [currency, setCurrencyState] = useState<Currency>(defaultCurrencies[0]);
+  const [tax, setTaxState] = useState<number>(10);
+  const [timeZone, setTimeZoneState] = useState<string>(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  const [colorPalette, setColorPaletteState] = useState<{ text: string; background: string }>({ text: '#000000', background: '#ffffff' });
+  const [timeFormat, setTimeFormatState] = useState<'12h' | '24h'>('12h');
+  const [systemInstruction, setSystemInstructionState] = useState<string>('You are a helpful assistant.');
+  const [loading, setLoading] = useState(true);
+
+  const safeParse = (item: string | null, fallback: any) => {
+    if (!item) return fallback;
     try {
-      return saved ? JSON.parse(saved) : defaultLanguages;
+      return JSON.parse(item);
     } catch (e) {
-      localStorage.removeItem('languages');
-      return defaultLanguages;
+      console.error("Error parsing JSON from localStorage:", e);
+      return fallback;
     }
-  });
-  const [language, setLanguageState] = useState<Language>(() => {
-    const saved = localStorage.getItem('language');
+  };
+
+  useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    const settingsId = user.companyId || user.id;
+    const docRef = doc(db, 'settings', settingsId);
+
+    const unsubscribe = onSnapshot(docRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        if (data.languages) setLanguages(data.languages);
+        if (data.language) setLanguageState(data.language);
+        if (data.currencies) setCurrencies(data.currencies);
+        if (data.currency) setCurrencyState(data.currency);
+        if (data.tax !== undefined) setTaxState(data.tax);
+        if (data.timeZone) setTimeZoneState(data.timeZone);
+        if (data.colorPalette) setColorPaletteState(data.colorPalette);
+        if (data.timeFormat) setTimeFormatState(data.timeFormat);
+        if (data.systemInstruction) setSystemInstructionState(data.systemInstruction);
+      } else {
+        // Migration from localStorage if Firestore document doesn't exist
+        const migrate = async () => {
+          const savedLanguages = localStorage.getItem('languages');
+          const savedLanguage = localStorage.getItem('language');
+          const savedCurrencies = localStorage.getItem('currencies');
+          const savedCurrency = localStorage.getItem('currency');
+          const savedTax = localStorage.getItem('tax');
+          const savedTimeZone = localStorage.getItem('timeZone');
+          const savedColorPalette = localStorage.getItem('colorPalette');
+          const savedTimeFormat = localStorage.getItem('timeFormat');
+          const savedSystemInstruction = localStorage.getItem('systemInstruction');
+
+          const initialSettings = {
+            languages: safeParse(savedLanguages, defaultLanguages),
+            language: safeParse(savedLanguage, defaultLanguages[0]),
+            currencies: safeParse(savedCurrencies, defaultCurrencies),
+            currency: safeParse(savedCurrency, defaultCurrencies[0]),
+            tax: savedTax ? parseFloat(savedTax) : 10,
+            timeZone: savedTimeZone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+            colorPalette: safeParse(savedColorPalette, { text: '#000000', background: '#ffffff' }),
+            timeFormat: (savedTimeFormat as any) || '12h',
+            systemInstruction: savedSystemInstruction || 'You are a helpful assistant.',
+            companyId: user.companyId || null,
+            userId: user.id
+          };
+
+          try {
+            await setDoc(docRef, initialSettings);
+          } catch (error) {
+            console.error("Error migrating settings:", error);
+          }
+        };
+        migrate();
+      }
+      setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'settings');
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  const updateSettings = async (updates: any) => {
+    if (!user) return;
+    const settingsId = user.companyId || user.id;
     try {
-      return saved ? JSON.parse(saved) : defaultLanguages[0];
-    } catch (e) {
-      localStorage.removeItem('language');
-      return defaultLanguages[0];
+      await setDoc(doc(db, 'settings', settingsId), updates, { merge: true });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, 'settings');
     }
-  });
+  };
 
-  const [currencies, setCurrencies] = useState<Currency[]>(() => {
-    const saved = localStorage.getItem('currencies');
-    try {
-      return saved ? JSON.parse(saved) : defaultCurrencies;
-    } catch (e) {
-      localStorage.removeItem('currencies');
-      return defaultCurrencies;
-    }
-  });
-  const [currency, setCurrencyState] = useState<Currency>(() => {
-    const saved = localStorage.getItem('currency');
-    try {
-      return saved ? JSON.parse(saved) : defaultCurrencies[0];
-    } catch (e) {
-      localStorage.removeItem('currency');
-      return defaultCurrencies[0];
-    }
-  });
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
+    updateSettings({ language: lang });
+  };
 
-  const [tax, setTaxState] = useState<number>(() => {
-    const saved = localStorage.getItem('tax');
-    return saved ? parseFloat(saved) : 10;
-  });
+  const addLanguage = (lang: Language) => {
+    const newLanguages = [...languages, lang];
+    setLanguages(newLanguages);
+    updateSettings({ languages: newLanguages });
+  };
 
-  const [timeZone, setTimeZoneState] = useState<string>(() => {
-    const saved = localStorage.getItem('timeZone');
-    return saved || Intl.DateTimeFormat().resolvedOptions().timeZone;
-  });
+  const updateLanguage = (code: string, lang: Language) => {
+    const newLanguages = languages.map(l => l.code === code ? lang : l);
+    setLanguages(newLanguages);
+    updateSettings({ languages: newLanguages });
+  };
 
-  const [colorPalette, setColorPaletteState] = useState<{ text: string; background: string }>(() => {
-    const saved = localStorage.getItem('colorPalette');
-    try {
-      return saved ? JSON.parse(saved) : { text: '#000000', background: '#ffffff' };
-    } catch (e) {
-      localStorage.removeItem('colorPalette');
-      return { text: '#000000', background: '#ffffff' };
-    }
-  });
+  const deleteLanguage = (code: string) => {
+    const newLanguages = languages.filter(l => l.code !== code);
+    setLanguages(newLanguages);
+    updateSettings({ languages: newLanguages });
+  };
 
-  const [timeFormat, setTimeFormatState] = useState<'12h' | '24h'>(() => {
-    const saved = localStorage.getItem('timeFormat');
-    return (saved as '12h' | '24h') || '12h';
-  });
+  const setCurrency = (curr: Currency) => {
+    setCurrencyState(curr);
+    updateSettings({ currency: curr });
+  };
 
-  const [systemInstruction, setSystemInstructionState] = useState<string>(() => {
-    const saved = localStorage.getItem('systemInstruction');
-    return saved || 'You are a helpful assistant.';
-  });
+  const addCurrency = (curr: Currency) => {
+    const newCurrencies = [...currencies, curr];
+    setCurrencies(newCurrencies);
+    updateSettings({ currencies: newCurrencies });
+  };
 
-  useEffect(() => {
-    localStorage.setItem('languages', JSON.stringify(languages));
-  }, [languages]);
+  const updateCurrency = (code: string, curr: Currency) => {
+    const newCurrencies = currencies.map(c => c.code === code ? curr : c);
+    setCurrencies(newCurrencies);
+    updateSettings({ currencies: newCurrencies });
+  };
 
-  useEffect(() => {
-    localStorage.setItem('language', JSON.stringify(language));
-  }, [language]);
+  const deleteCurrency = (code: string) => {
+    const newCurrencies = currencies.filter(c => c.code !== code);
+    setCurrencies(newCurrencies);
+    updateSettings({ currencies: newCurrencies });
+  };
 
-  useEffect(() => {
-    localStorage.setItem('currencies', JSON.stringify(currencies));
-  }, [currencies]);
+  const setTax = (newTax: number) => {
+    setTaxState(newTax);
+    updateSettings({ tax: newTax });
+  };
 
-  useEffect(() => {
-    localStorage.setItem('currency', JSON.stringify(currency));
-  }, [currency]);
+  const setTimeZone = (tz: string) => {
+    setTimeZoneState(tz);
+    updateSettings({ timeZone: tz });
+  };
 
-  useEffect(() => {
-    localStorage.setItem('tax', tax.toString());
-  }, [tax]);
+  const setColorPalette = (palette: { text: string; background: string }) => {
+    setColorPaletteState(palette);
+    updateSettings({ colorPalette: palette });
+  };
 
-  useEffect(() => {
-    localStorage.setItem('timeZone', timeZone);
-  }, [timeZone]);
+  const setTimeFormat = (format: '12h' | '24h') => {
+    setTimeFormatState(format);
+    updateSettings({ timeFormat: format });
+  };
 
-  useEffect(() => {
-    localStorage.setItem('colorPalette', JSON.stringify(colorPalette));
-  }, [colorPalette]);
-
-  useEffect(() => {
-    localStorage.setItem('timeFormat', timeFormat);
-  }, [timeFormat]);
-
-  useEffect(() => {
-    localStorage.setItem('systemInstruction', systemInstruction);
-  }, [systemInstruction]);
-
-  const setLanguage = (lang: Language) => setLanguageState(lang);
-  const addLanguage = (lang: Language) => setLanguages(prev => [...prev, lang]);
-  const updateLanguage = (code: string, lang: Language) => setLanguages(prev => prev.map(l => l.code === code ? lang : l));
-  const deleteLanguage = (code: string) => setLanguages(prev => prev.filter(l => l.code !== code));
-
-  const setCurrency = (curr: Currency) => setCurrencyState(curr);
-  const addCurrency = (curr: Currency) => setCurrencies(prev => [...prev, curr]);
-  const updateCurrency = (code: string, curr: Currency) => setCurrencies(prev => prev.map(c => c.code === code ? curr : c));
-  const deleteCurrency = (code: string) => setCurrencies(prev => prev.filter(c => c.code !== code));
-
-  const setTax = (newTax: number) => setTaxState(newTax);
-  const setTimeZone = (tz: string) => setTimeZoneState(tz);
-  const setColorPalette = (palette: { text: string; background: string }) => setColorPaletteState(palette);
-  const setTimeFormat = (format: '12h' | '24h') => setTimeFormatState(format);
-  const setSystemInstruction = (instruction: string) => setSystemInstructionState(instruction);
+  const setSystemInstruction = (instruction: string) => {
+    setSystemInstructionState(instruction);
+    updateSettings({ systemInstruction: instruction });
+  };
 
   return (
     <SettingsContext.Provider

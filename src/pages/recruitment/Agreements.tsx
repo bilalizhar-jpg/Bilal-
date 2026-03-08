@@ -14,13 +14,7 @@ interface Template {
 export default function Agreements() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const [templates, setTemplates] = useState<Template[]>([
-    {
-      id: '1',
-      name: 'Standard Employment Agreement',
-      content: '<h2>Employment Agreement</h2><p>This Agreement is made between [Company Name] and [Employee Name].</p><p>1. Position: [Job Title]</p><p>2. Compensation: [Salary]</p><p>Signatures:<br/><br/>___________________<br/>Employer<br/><br/>___________________<br/>Employee</p>'
-    }
-  ]);
+  const [templates, setTemplates] = useState<Template[]>([]);
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);

@@ -270,6 +270,23 @@
       },
       "required": ["id", "companyId", "projectId", "title"]
     },
+    "Milestone": {
+      "title": "Milestone",
+      "description": "A milestone within a project",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "projectId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "dueDate": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "Completed"] },
+        "cost": { "type": "number" },
+        "progress": { "type": "number" }
+      },
+      "required": ["id", "companyId", "projectId", "title"]
+    },
     "Sale": {
       "title": "Sale",
       "description": "A sale record for commission tracking",
@@ -392,6 +409,48 @@
         "companyId": { "type": "string" }
       },
       "required": ["id", "companyId"]
+    },
+    "Job": {
+      "title": "Job",
+      "description": "A job posting",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "title": { "type": "string" },
+        "location": { "type": "string" },
+        "type": { "type": "string" },
+        "workplace": { "type": "string" },
+        "salary": { "type": "string" },
+        "description": { "type": "string" },
+        "gender": { "type": "string" },
+        "nationality": { "type": "string" },
+        "experience": { "type": "string" },
+        "customQuestions": { "type": "array" },
+        "status": { "type": "string", "enum": ["draft", "published"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "companyId", "title", "status"]
+    },
+    "Application": {
+      "title": "Application",
+      "description": "A job application",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "jobId": { "type": "string" },
+        "jobTitle": { "type": "string" },
+        "candidateName": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "cvFileName": { "type": "string" },
+        "cvText": { "type": "string" },
+        "appliedAt": { "type": "string" },
+        "stage": { "type": "string" },
+        "customQuestionAnswers": { "type": "array" },
+        "matchPercentage": { "type": "number" }
+      },
+      "required": ["id", "jobId", "candidateName", "email", "stage"]
     }
   },
   "firestore": {
@@ -459,6 +518,10 @@
       "schema": "Task",
       "description": "Collection of tasks"
     },
+    "/milestones/{milestoneId}": {
+      "schema": "Milestone",
+      "description": "Collection of milestones"
+    },
     "/sales/{saleId}": {
       "schema": "Sale",
       "description": "Collection of sales"
@@ -490,6 +553,14 @@
     "/payrolls/{payrollId}": {
       "schema": "Payroll",
       "description": "Collection of payrolls"
+    },
+    "/hr_jobs/{jobId}": {
+      "schema": "Job",
+      "description": "Collection of job postings"
+    },
+    "/hr_applications/{applicationId}": {
+      "schema": "Application",
+      "description": "Collection of job applications"
     }
   }
 }

@@ -40,6 +40,8 @@ import { useTheme } from '../context/ThemeContext';
 import { ADMIN_MENU_ITEMS } from '../constants';
 import SuperAdminLayout from './SuperAdminLayout';
 
+import { getJobs, subscribeToJobs } from '../utils/jobStore';
+
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
@@ -54,6 +56,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const { companies } = useSuperAdmin();
   const isDark = theme === 'dark';
   const isDashboard = location.pathname === '/dashboard';
+
+  // Calculate live jobs count for Recruitment section
+  const [liveJobsCount, setLiveJobsCount] = useState(0);
+
+  React.useEffect(() => {
+    const unsubscribe = subscribeToJobs((jobs) => {
+      setLiveJobsCount(jobs.filter(j => j.status === 'published').length);
+    }, user?.companyId);
+
+    return () => unsubscribe();
+  }, [user?.companyId]);
 
   // If Super Admin is impersonating, wrap in SuperAdminLayout instead
   if (user?.role === 'superadmin') {
@@ -151,7 +164,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       )}
 
       {/* Sidebar */}
-      <aside className={`${isSidebarOpen ? 'w-72' : 'w-24'} relative z-30 flex flex-col transition-all duration-500 shrink-0 border-r ${isDark ? 'bg-black/40 border-white/5 backdrop-blur-3xl' : 'bg-white/80 border-slate-200 backdrop-blur-xl'}`}>
+      <aside className={`${isSidebarOpen ? 'w-80' : 'w-24'} relative z-30 flex flex-col transition-all duration-500 shrink-0 border-r ${isDark ? 'bg-black/40 border-white/5 backdrop-blur-3xl' : 'bg-white/80 border-slate-200 backdrop-blur-xl'}`}>
         <div className={`p-6 flex items-center gap-4 border-b ${isDark ? 'border-white/5' : 'border-slate-100'} h-20`}>
           <motion.div 
             whileHover={{ rotate: 5, scale: 1.05 }}
@@ -208,7 +221,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       >
                         <div className="flex items-center gap-4">
                           <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? (isDark ? 'text-indigo-400' : 'text-indigo-600') : ''}`} />
-                          {isSidebarOpen && <span className="font-black text-[10px] uppercase tracking-[0.2em]">{item.name}</span>}
+                          {isSidebarOpen && (
+                            <div className="flex items-center gap-2 w-full justify-between">
+                              <span className="font-black text-xs uppercase tracking-[0.2em]">{item.name}</span>
+                              {item.name === 'Recruitment' && liveJobsCount > 0 && (
+                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-600'}`}>
+                                  {liveJobsCount}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
                         {isSidebarOpen && (
                           <motion.div
@@ -231,7 +253,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                               <li key={subItem.name}>
                                 <Link
                                   to={subItem.path}
-                                  className={`block px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${
+                                  className={`block px-6 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all ${
                                     location.pathname === subItem.path
                                       ? (isDark ? 'text-indigo-400 bg-white/5' : 'text-indigo-700 bg-indigo-50/50')
                                       : (isDark ? 'text-slate-500 hover:text-slate-300 hover:bg-white/5' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50')
@@ -255,7 +277,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       }`}
                     >
                       <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? (isDark ? 'text-indigo-400' : 'text-indigo-600') : ''}`} />
-                      {isSidebarOpen && <span className="font-black text-[10px] uppercase tracking-[0.2em]">{item.name}</span>}
+                      {isSidebarOpen && <span className="font-black text-xs uppercase tracking-[0.2em]">{item.name}</span>}
                     </Link>
                   )}
                 </li>
@@ -270,7 +292,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group ${isDark ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'}`}
           >
             <LogOut className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
-            {isSidebarOpen && <span className="font-black text-[10px] uppercase tracking-[0.2em]">Logout</span>}
+            {isSidebarOpen && <span className="font-black text-xs uppercase tracking-[0.2em]">Logout</span>}
           </button>
         </div>
       </aside>
@@ -286,6 +308,33 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             >
               <Menu className="w-5 h-5" />
             </motion.button>
+            
+            {/* Active Page Title */}
+            <div className="hidden md:block">
+              <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                {(() => {
+                  const activeItem = filteredMenuItems.find(item => 
+                    location.pathname === item.path || 
+                    (item.hasSub && item.subItems?.some(sub => location.pathname === sub.path)) ||
+                    (item.name === 'Recruitment' && location.pathname.startsWith('/recruitment/'))
+                  );
+                  
+                  if (activeItem?.name === 'Recruitment' || location.pathname.startsWith('/recruitment/')) {
+                    return (
+                      <span className="flex items-center gap-2">
+                        Recruitment
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                          {liveJobsCount} Live Jobs
+                        </span>
+                      </span>
+                    );
+                  }
+                  
+                  return activeItem?.name || 'Dashboard';
+                })()}
+              </h2>
+            </div>
+
             <div className="h-6 w-px bg-white/10 hidden md:block" />
             <div className="hidden md:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
               <Activity className="w-3 h-3 text-emerald-500" />

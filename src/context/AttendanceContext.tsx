@@ -51,13 +51,13 @@ export const AttendanceProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
+    if (!user?.companyId) {
       setAttendanceRecords([]);
       setLoading(false);
       return;
     }
 
-    const q = query(collection(db, 'attendance'));
+    const q = query(collection(db, 'attendance'), where('companyId', '==', user.companyId));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const recordsData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as AttendanceRecord));
       setAttendanceRecords(recordsData);

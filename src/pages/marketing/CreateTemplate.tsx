@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Type, Image as ImageIcon, Link as LinkIcon, Save, Eye, Send, GripVertical, Settings,
   PlaySquare, Code, Hexagon, Share2, Code2, Minus, ShoppingBag, Menu, Square, Trash2, X, Upload,
@@ -6,13 +6,20 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import Editor from 'react-simple-wysiwyg';
+import { useAuth } from '../../context/AuthContext';
+import { useSuperAdmin } from '../../context/SuperAdminContext';
 
 export default function CreateTemplate() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { companies } = useSuperAdmin();
   const [templateName, setTemplateName] = useState('New Campaign Template');
   const [activeTab, setActiveTab] = useState<'blocks' | 'sections' | 'saved'>('blocks');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingBlockId, setUploadingBlockId] = useState<string | null>(null);
+
+  const currentCompany = companies.find(c => c.id === user?.companyId);
+  const companyName = currentCompany?.name || 'Info Resume Edge';
   
   const [blocks, setBlocks] = useState([
     { id: 'logo-1', type: 'logo', content: 'Logo' },
@@ -28,11 +35,21 @@ export default function CreateTemplate() {
     { id: 'text-2', type: 'text', content: 'Start by replacing the full-width header and main images with your own, or use a solid color background.' },
     { id: 'button-1', type: 'button', content: 'Call to action', url: '#' },
     { id: 'footer-1', type: 'footer', content: {
-      company: 'Info Resume Edge',
-      address: 'Johar Town, 54500, Lahore',
+      company: companyName,
+      address: currentCompany?.address || 'Johar Town, 54500, Lahore',
       email: 'EMAIL'
     }}
   ]);
+
+  useEffect(() => {
+    if (currentCompany) {
+      setBlocks(prev => prev.map(b => 
+        b.type === 'footer' 
+          ? { ...b, content: { ...b.content as any, company: currentCompany.name, address: currentCompany.address || (b.content as any).address } }
+          : b
+      ));
+    }
+  }, [currentCompany]);
 
   const [activeBlock, setActiveBlock] = useState<string | null>(null);
   const [draggedItem, setDraggedItem] = useState<any>(null);

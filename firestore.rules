@@ -48,6 +48,9 @@ service cloud.firestore {
     match /projects/{document=**} { allow read: if true; allow write: if true; }
     match /assets/{document=**} { allow read: if true; allow write: if true; }
     match /tasks/{document=**} { allow read: if true; allow write: if true; }
+    match /hr_jobs/{document=**} { allow read: if true; allow write: if true; }
+    match /hr_applications/{document=**} { allow read: if true; allow write: if true; }
+    match /milestones/{document=**} { allow read: if true; allow write: if true; }
     match /sales/{document=**} { allow read: if true; allow write: if true; }
     match /payrollBatches/{document=**} { allow read: if true; allow write: if true; }
     match /salaryRecords/{document=**} { allow read: if true; allow write: if true; }
@@ -58,6 +61,7 @@ service cloud.firestore {
     match /marketing_campaigns/{document=**} { allow read: if true; allow write: if true; }
     match /marketing_logs/{document=**} { allow read: if true; allow write: if true; }
     match /marketing_lists/{document=**} { allow read: if true; allow write: if true; }
+    match /settings/{document=**} { allow read: if true; allow write: if true; }
 
     // Users (Super Admin) - Keep restricted
     match /users/{userId} {

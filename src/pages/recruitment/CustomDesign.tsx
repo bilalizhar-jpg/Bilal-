@@ -14,13 +14,7 @@ interface Template {
 export default function CustomDesign() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const [templates, setTemplates] = useState<Template[]>([
-    {
-      id: '1',
-      name: 'Custom Letter Example',
-      content: '<h2>Custom Letter</h2><p>Dear [Name],</p><p>This is a custom designed letter.</p><p>Sincerely,<br/>[Your Name]</p>'
-    }
-  ]);
+  const [templates, setTemplates] = useState<Template[]>([]);
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);

@@ -1,11 +1,26 @@
+import { 
+  collection, 
+  addDoc, 
+  updateDoc, 
+  doc, 
+  getDocs, 
+  query, 
+  where,
+  onSnapshot
+} from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../firebase';
+
 export interface Application {
   id: string;
+  companyId: string;
   jobId: string;
   jobTitle: string;
   candidateName: string;
   email: string;
   phone: string;
   cvFileName: string;
+  cvUrl?: string;
   stage: 'New Candidates' | 'Interested' | 'Shortlisted' | 'Client Submission' | 'Client Interview' | 'Offered' | 'Hired' | 'Dropped';
   appliedAt: string;
   matchPercentage?: number;
@@ -14,34 +29,60 @@ export interface Application {
   expectedSalary?: string;
   location?: string;
   cvText?: string;
+  customQuestionAnswer?: string;
+  customQuestionAnswers?: { question: string; answer: string }[];
+  mcqAnswers?: { 
+    questionId: string; 
+    question: string; 
+    selectedOptionId: string; 
+    selectedOptionText: string; 
+    isCorrect: boolean 
+  }[];
 }
 
-const STORAGE_KEY = 'hr_applications';
+const COLLECTION_NAME = 'hr_applications';
 
-export const getApplications = (): Application[] => {
-  const data = localStorage.getItem(STORAGE_KEY);
-  return data ? JSON.parse(data) : [];
+export const getApplications = async (companyId?: string): Promise<Application[]> => {
+  const appsRef = collection(db, COLLECTION_NAME);
+  const q = companyId ? query(appsRef, where('companyId', '==', companyId)) : appsRef;
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({
+    ...doc.data(),
+    id: doc.id
+  } as Application));
 };
 
-export const saveApplication = (application: Omit<Application, 'id' | 'stage' | 'appliedAt'>) => {
-  const applications = getApplications();
-  const newApplication: Application = {
+export const subscribeToApplications = (callback: (applications: Application[]) => void, companyId?: string) => {
+  const appsRef = collection(db, COLLECTION_NAME);
+  const q = companyId ? query(appsRef, where('companyId', '==', companyId)) : appsRef;
+  
+  return onSnapshot(q, (snapshot) => {
+    const applications = snapshot.docs.map(doc => ({
+      ...doc.data(),
+      id: doc.id
+    } as Application));
+    callback(applications);
+  });
+};
+
+export const saveApplication = async (application: Omit<Application, 'id' | 'stage' | 'appliedAt'>) => {
+  const newApplication = {
     ...application,
-    id: Math.random().toString(36).substr(2, 9),
-    stage: 'New Candidates',
+    stage: 'New Candidates' as const,
     appliedAt: new Date().toISOString(),
     matchPercentage: application.matchPercentage || Math.floor(Math.random() * 60) + 40, // Mock 40-100%
   };
-  applications.push(newApplication);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(applications));
-  return newApplication;
+  const docRef = await addDoc(collection(db, COLLECTION_NAME), newApplication);
+  return { ...newApplication, id: docRef.id };
 };
 
-export const updateApplicationStage = (id: string, stage: Application['stage']) => {
-  const applications = getApplications();
-  const index = applications.findIndex(app => app.id === id);
-  if (index !== -1) {
-    applications[index].stage = stage;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(applications));
-  }
+export const updateApplicationStage = async (id: string, stage: Application['stage']) => {
+  const docRef = doc(db, COLLECTION_NAME, id);
+  await updateDoc(docRef, { stage });
+};
+
+export const uploadCV = async (companyId: string, jobId: string, file: File): Promise<string> => {
+  const fileRef = ref(storage, `companies/${companyId}/jobs/${jobId}/applications/${Date.now()}_${file.name}`);
+  await uploadBytes(fileRef, file);
+  return getDownloadURL(fileRef);
 };
