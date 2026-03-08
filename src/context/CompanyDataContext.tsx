@@ -28,6 +28,7 @@ interface CompanyDataContextType {
   assets: DataEntity[];
   tasks: DataEntity[];
   sales: DataEntity[];
+  milestones: DataEntity[];
   loans: DataEntity[];
   payrolls: DataEntity[];
   payrollBatches: DataEntity[];
@@ -59,6 +60,7 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
   const [assets, setAssets] = useState<DataEntity[]>([]);
   const [tasks, setTasks] = useState<DataEntity[]>([]);
   const [sales, setSales] = useState<DataEntity[]>([]);
+  const [milestones, setMilestones] = useState<DataEntity[]>([]);
   const [loans, setLoans] = useState<DataEntity[]>([]);
   const [payrolls, setPayrolls] = useState<DataEntity[]>([]);
   const [payrollBatches, setPayrollBatches] = useState<DataEntity[]>([]);
@@ -81,6 +83,7 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
       { name: 'assets', setter: setAssets },
       { name: 'tasks', setter: setTasks },
       { name: 'sales', setter: setSales },
+      { name: 'milestones', setter: setMilestones },
       { name: 'loans', setter: setLoans },
       { name: 'payrolls', setter: setPayrolls },
       { name: 'payrollBatches', setter: setPayrollBatches },
@@ -139,6 +142,7 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
       assets, 
       tasks,
       sales,
+      milestones,
       loans,
       payrolls,
       payrollBatches,

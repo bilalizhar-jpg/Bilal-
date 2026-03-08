@@ -49,7 +49,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [openMenus, setOpenMenus] = useState<string[]>([]);
   const location = useLocation();
   const navigate = useNavigate();
-  const { theme } = useTheme();
+  const { theme, portalDesign } = useTheme();
   const { logout, user } = useAuth();
   const { companies } = useSuperAdmin();
   const isDark = theme === 'dark';
@@ -81,27 +81,72 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       {/* Immersive Background Atmosphere */}
       {isDark && (
         <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-          <motion.div 
-            animate={{ 
-              scale: [1, 1.1, 1],
-              opacity: [0.2, 0.3, 0.2],
-              x: [0, 30, 0],
-              y: [0, 20, 0]
-            }}
-            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-            className="absolute top-[-10%] left-[-5%] w-[50%] h-[50%] rounded-full bg-indigo-600/10 blur-[120px]" 
-          />
-          <motion.div 
-            animate={{ 
-              scale: [1.1, 1, 1.1],
-              opacity: [0.1, 0.2, 0.1],
-              x: [0, -20, 0],
-              y: [0, -10, 0]
-            }}
-            transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-            className="absolute bottom-[-10%] right-[-5%] w-[50%] h-[50%] rounded-full bg-emerald-600/10 blur-[120px]" 
-          />
-          <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:32px_32px]" />
+          {portalDesign === 'cosmic' && (
+            <>
+              <motion.div 
+                animate={{ 
+                  scale: [1, 1.1, 1],
+                  opacity: [0.2, 0.3, 0.2],
+                  x: [0, 30, 0],
+                  y: [0, 20, 0]
+                }}
+                transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                className="absolute top-[-10%] left-[-5%] w-[50%] h-[50%] rounded-full bg-indigo-600/10 blur-[120px]" 
+              />
+              <motion.div 
+                animate={{ 
+                  scale: [1.1, 1, 1.1],
+                  opacity: [0.1, 0.2, 0.1],
+                  x: [0, -20, 0],
+                  y: [0, -10, 0]
+                }}
+                transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+                className="absolute bottom-[-10%] right-[-5%] w-[50%] h-[50%] rounded-full bg-emerald-600/10 blur-[120px]" 
+              />
+              <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:32px_32px]" />
+            </>
+          )}
+
+          {portalDesign === 'aurora' && (
+            <>
+              <motion.div 
+                animate={{ 
+                  scale: [1, 1.2, 1],
+                  opacity: [0.3, 0.5, 0.3],
+                  rotate: [0, 45, 0]
+                }}
+                transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute top-[-20%] right-[-10%] w-[70%] h-[70%] rounded-full bg-purple-600/20 blur-[100px]" 
+              />
+              <motion.div 
+                animate={{ 
+                  scale: [1.2, 1, 1.2],
+                  opacity: [0.3, 0.5, 0.3],
+                  rotate: [0, -45, 0]
+                }}
+                transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute bottom-[-20%] left-[-10%] w-[70%] h-[70%] rounded-full bg-cyan-500/20 blur-[100px]" 
+              />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:24px_24px]" />
+            </>
+          )}
+
+          {portalDesign === 'cyber' && (
+            <>
+              <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_50%_200px,#3b82f615,transparent)]" />
+              <motion.div
+                animate={{ opacity: [0.3, 0.6, 0.3] }}
+                transition={{ duration: 4, repeat: Infinity }}
+                className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent"
+              />
+              <motion.div
+                animate={{ opacity: [0.3, 0.6, 0.3] }}
+                transition={{ duration: 4, repeat: Infinity, delay: 2 }}
+                className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"
+              />
+            </>
+          )}
         </div>
       )}
 

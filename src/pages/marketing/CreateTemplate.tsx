@@ -1,14 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
-  Type, Image as ImageIcon, Link as LinkIcon, Save, Eye, Send, GripVertical, Settings, ArrowLeft,
-  PlaySquare, Code, Hexagon, Share2, Code2, Minus, ShoppingBag, Menu, Square, Trash2, X
+  Type, Image as ImageIcon, Link as LinkIcon, Save, Eye, Send, GripVertical, Settings,
+  PlaySquare, Code, Hexagon, Share2, Code2, Minus, ShoppingBag, Menu, Square, Trash2, X, Upload,
+  Facebook, Twitter, Instagram, Linkedin, Youtube
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import Editor from 'react-simple-wysiwyg';
 
 export default function CreateTemplate() {
   const navigate = useNavigate();
   const [templateName, setTemplateName] = useState('New Campaign Template');
   const [activeTab, setActiveTab] = useState<'blocks' | 'sections' | 'saved'>('blocks');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingBlockId, setUploadingBlockId] = useState<string | null>(null);
   
   const [blocks, setBlocks] = useState([
     { id: 'logo-1', type: 'logo', content: 'Logo' },
@@ -43,24 +47,28 @@ export default function CreateTemplate() {
     if (activeBlock === id) setActiveBlock(null);
   };
 
+  const [showToast, setShowToast] = useState(false);
+
   const handleSaveTemplate = () => {
-    alert(`Template "${templateName}" saved successfully!`);
+    // In a real app, this would save to a backend
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
   };
 
   const blockTypes = [
     { id: 'title', icon: Type, label: 'Title', defaultContent: 'New Title' },
     { id: 'text', icon: Menu, label: 'Text', defaultContent: 'Enter your text here...' },
     { id: 'image', icon: ImageIcon, label: 'Image', defaultContent: '' },
-    { id: 'video', icon: PlaySquare, label: 'Video', defaultContent: '' },
+    { id: 'video', icon: PlaySquare, label: 'Video', defaultContent: { url: '' } },
     { id: 'button', icon: Square, label: 'Button', defaultContent: 'Click Me' },
-    { id: 'dynamic', icon: Code, label: 'Dynamic content', defaultContent: '{{dynamic_content}}' },
+    { id: 'dynamic', icon: Code, label: 'Dynamic content', defaultContent: '{{user.firstName}}' },
     { id: 'logo', icon: Hexagon, label: 'Logo', defaultContent: 'Your Logo' },
-    { id: 'social', icon: Share2, label: 'Social', defaultContent: '' },
+    { id: 'social', icon: Share2, label: 'Social', defaultContent: { facebook: '', twitter: '', instagram: '', linkedin: '' } },
     { id: 'html', icon: Code2, label: 'HTML', defaultContent: '<div>Custom HTML</div>' },
     { id: 'divider', icon: Minus, label: 'Divider', defaultContent: '' },
-    { id: 'product', icon: ShoppingBag, label: 'Product', defaultContent: '' },
-    { id: 'navigation', icon: Menu, label: 'Navigation', defaultContent: '' },
-    { id: 'spacer', icon: Square, label: 'Spacer', dashed: true, defaultContent: '' },
+    { id: 'product', icon: ShoppingBag, label: 'Product', defaultContent: { image: '', title: 'Product Name', price: '$99.99', buttonText: 'Buy Now', url: '#' } },
+    { id: 'navigation', icon: Menu, label: 'Navigation', defaultContent: [{ label: 'Home', url: '#' }, { label: 'Shop', url: '#' }, { label: 'Contact', url: '#' }] },
+    { id: 'spacer', icon: Square, label: 'Spacer', dashed: true, defaultContent: { height: 40 } },
   ];
 
   const handleDragStart = (e: React.DragEvent, type: string, isNew: boolean, index?: number) => {
@@ -90,8 +98,12 @@ export default function CreateTemplate() {
       };
       newBlocks.splice(dropIndex, 0, newBlock);
     } else {
-      const [removed] = newBlocks.splice(draggedItem.index, 1);
-      newBlocks.splice(dropIndex, 0, removed);
+      const dragIndex = draggedItem.index;
+      if (dragIndex === dropIndex) return;
+      
+      const [removed] = newBlocks.splice(dragIndex, 1);
+      const insertIndex = dropIndex > dragIndex ? dropIndex - 1 : dropIndex;
+      newBlocks.splice(insertIndex, 0, removed);
     }
     
     setBlocks(newBlocks);
@@ -111,16 +123,40 @@ export default function CreateTemplate() {
     setDraggedItem(null);
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && uploadingBlockId) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        handleBlockEdit(uploadingBlockId, reader.result as string);
+        setUploadingBlockId(null);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerImageUpload = (blockId: string) => {
+    setUploadingBlockId(blockId);
+    fileInputRef.current?.click();
+  };
+
   return (
     <div className="space-y-6 h-[calc(100vh-8rem)] flex flex-col">
-      <div className="flex justify-between items-center shrink-0">
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={() => navigate(-1)}
-            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
+        <div className="flex justify-between items-center shrink-0">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => navigate('/marketing/campaigns')}
+              className="px-4 py-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            >
+              Back to Menu
+            </button>
+            <button 
+              onClick={() => navigate('/dashboard')}
+              className="px-4 py-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            >
+              Back to Dashboard
+            </button>
+          </div>
           <div>
             <input 
               type="text" 
@@ -130,8 +166,7 @@ export default function CreateTemplate() {
             />
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Drag and drop blocks to build your email</p>
           </div>
-        </div>
-        <div className="flex gap-2">
+          <div className="flex gap-2">
           <button 
             onClick={() => setIsPreviewOpen(true)}
             className="px-4 py-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2"
@@ -156,6 +191,13 @@ export default function CreateTemplate() {
         </div>
       </div>
 
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleImageUpload} 
+        accept="image/*" 
+        className="hidden" 
+      />
       <div className="flex-1 flex gap-6 overflow-hidden">
         {/* Sidebar Tools */}
         <div className="w-80 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shrink-0 flex flex-col">
@@ -236,13 +278,28 @@ export default function CreateTemplate() {
                 {/* Block Content */}
                 <div className="p-4">
                   {block.type === 'logo' && (
-                    <div className="text-center py-4">
-                      <input 
-                        type="text" 
-                        value={block.content as string}
-                        onChange={(e) => handleBlockEdit(block.id, e.target.value)}
-                        className="inline-block bg-slate-600 text-white text-3xl font-bold py-3 px-8 rounded-md text-center border-none focus:ring-2 focus:ring-indigo-500 outline-none"
-                      />
+                    <div className="text-center py-4 relative group/logo">
+                      {block.content && (block.content as string).startsWith('data:image') || (block.content as string).startsWith('http') ? (
+                        <img src={block.content as string} alt="Logo" className="max-h-16 mx-auto" />
+                      ) : (
+                        <input 
+                          type="text" 
+                          value={block.content as string}
+                          onChange={(e) => handleBlockEdit(block.id, e.target.value)}
+                          className="inline-block bg-slate-600 text-white text-3xl font-bold py-3 px-8 rounded-md text-center border-none focus:ring-2 focus:ring-indigo-500 outline-none"
+                        />
+                      )}
+                      {activeBlock === block.id && (
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-opacity bg-black/5">
+                          <button 
+                            onClick={() => triggerImageUpload(block.id)}
+                            className="px-3 py-1.5 bg-white text-slate-900 rounded-md text-xs font-medium shadow-sm border border-slate-200 flex items-center gap-1"
+                          >
+                            <Upload className="w-3 h-3" />
+                            Upload Logo
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                   {block.type === 'title' && (
@@ -264,7 +321,13 @@ export default function CreateTemplate() {
                       )}
                       {activeBlock === block.id && (
                         <div className="absolute inset-0 bg-black/5 flex items-center justify-center">
-                          <button className="px-4 py-2 bg-white text-slate-900 rounded-md text-sm font-medium shadow-sm border border-slate-200">Change Image</button>
+                          <button 
+                            onClick={() => triggerImageUpload(block.id)}
+                            className="px-4 py-2 bg-white text-slate-900 rounded-md text-sm font-medium shadow-sm border border-slate-200 flex items-center gap-2"
+                          >
+                            <Upload className="w-4 h-4" />
+                            Change Image
+                          </button>
                         </div>
                       )}
                     </div>
@@ -288,12 +351,13 @@ export default function CreateTemplate() {
                     </div>
                   )}
                   {block.type === 'text' && (
-                    <textarea 
-                      value={block.content as string}
-                      onChange={(e) => handleBlockEdit(block.id, e.target.value)}
-                      rows={3}
-                      className="w-full text-slate-600 dark:text-slate-300 bg-transparent border-none focus:ring-2 focus:ring-indigo-500 p-2 outline-none resize-none text-center rounded"
-                    />
+                    <div className="w-full text-slate-600 dark:text-slate-300 bg-transparent border-none focus-within:ring-2 focus-within:ring-indigo-500 p-2 outline-none rounded" onClick={(e) => e.stopPropagation()}>
+                      <Editor 
+                        value={block.content as string} 
+                        onChange={(e) => handleBlockEdit(block.id, e.target.value)}
+                        containerProps={{ style: { border: 'none', minHeight: '100px' } }}
+                      />
+                    </div>
                   )}
                   {block.type === 'button' && (
                     <div className="text-center py-4">
@@ -315,9 +379,254 @@ export default function CreateTemplate() {
                       <p>You've received this email because you've subscribed to our newsletter.</p>
                     </div>
                   )}
-                  {['video', 'dynamic', 'social', 'html', 'product', 'navigation', 'spacer'].includes(block.type) && (
-                    <div className="bg-slate-100 dark:bg-slate-800 p-8 text-center text-slate-500 dark:text-slate-400 border border-dashed border-slate-300 dark:border-slate-600 rounded">
-                      [{block.type.toUpperCase()} BLOCK] - {block.content as string}
+                  {block.type === 'video' && (
+                    <div className="relative group/video">
+                      {!(block.content as any)?.url ? (
+                        <div className="bg-slate-100 dark:bg-slate-800 p-8 text-center border border-dashed border-slate-300 dark:border-slate-600 rounded">
+                          <PlaySquare className="w-12 h-12 mx-auto text-slate-400 mb-2" />
+                          <p className="text-sm text-slate-500">Video Block</p>
+                        </div>
+                      ) : (
+                        <div className="aspect-video bg-slate-900 flex items-center justify-center relative rounded overflow-hidden">
+                          <PlaySquare className="w-16 h-16 text-white opacity-80" />
+                          <div className="absolute bottom-2 left-2 text-xs text-white bg-black/50 px-2 py-1 rounded">
+                            {(block.content as any).url}
+                          </div>
+                        </div>
+                      )}
+                      {activeBlock === block.id && (
+                        <div className="mt-2 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded shadow-sm text-left">
+                          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Video URL (YouTube, Vimeo, etc.)</label>
+                          <input 
+                            type="text" 
+                            value={(block.content as any)?.url || ''}
+                            onChange={(e) => handleBlockEdit(block.id, { ...(block.content as any), url: e.target.value })}
+                            placeholder="https://..."
+                            className="w-full text-sm border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white p-2"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {block.type === 'social' && (
+                    <div className="text-center py-4">
+                      <div className="flex justify-center gap-4">
+                        {['facebook', 'twitter', 'instagram', 'linkedin'].map(network => {
+                          const url = (block.content as any)?.[network] || '';
+                          const isActive = !!url;
+                          const Icon = network === 'facebook' ? Facebook : network === 'twitter' ? Twitter : network === 'instagram' ? Instagram : Linkedin;
+                          return (
+                            <a key={network} href={url || '#'} onClick={e => e.preventDefault()} className={`w-10 h-10 rounded-full flex items-center justify-center ${isActive ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400' : 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500'}`}>
+                              <Icon className="w-5 h-5" />
+                            </a>
+                          );
+                        })}
+                      </div>
+                      {activeBlock === block.id && (
+                        <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg grid grid-cols-2 gap-3 text-left">
+                          {['facebook', 'twitter', 'instagram', 'linkedin'].map(network => (
+                            <div key={`input-${network}`}>
+                              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 capitalize">{network}</label>
+                              <input 
+                                type="text" 
+                                value={(block.content as any)?.[network] || ''}
+                                onChange={(e) => handleBlockEdit(block.id, { ...(block.content as any), [network]: e.target.value })}
+                                placeholder="URL..."
+                                className="w-full text-xs border-slate-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white p-1.5"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {block.type === 'html' && (
+                    <div>
+                      {activeBlock === block.id ? (
+                        <div className="p-2 text-left">
+                          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Custom HTML</label>
+                          <textarea 
+                            value={block.content as string}
+                            onChange={(e) => handleBlockEdit(block.id, e.target.value)}
+                            className="w-full text-sm font-mono border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white h-32 p-2"
+                          />
+                        </div>
+                      ) : (
+                        <div 
+                          className="min-h-[50px]"
+                          dangerouslySetInnerHTML={{ __html: block.content as string }}
+                        />
+                      )}
+                    </div>
+                  )}
+                  {block.type === 'navigation' && (
+                    <div className="py-4">
+                      <div className="flex justify-center gap-6">
+                        {((block.content as any[]) || []).map((navItem, i) => (
+                          <a key={i} href={navItem.url || '#'} onClick={e => e.preventDefault()} className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">
+                            {navItem.label}
+                          </a>
+                        ))}
+                      </div>
+                      {activeBlock === block.id && (
+                        <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg space-y-3">
+                          {((block.content as any[]) || []).map((navItem, i) => (
+                            <div key={i} className="flex gap-2 items-center">
+                              <input 
+                                type="text" 
+                                value={navItem.label}
+                                onChange={(e) => {
+                                  const newNav = [...(block.content as any[])];
+                                  newNav[i].label = e.target.value;
+                                  handleBlockEdit(block.id, newNav);
+                                }}
+                                placeholder="Label"
+                                className="w-1/3 text-xs border-slate-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white p-1.5"
+                              />
+                              <input 
+                                type="text" 
+                                value={navItem.url}
+                                onChange={(e) => {
+                                  const newNav = [...(block.content as any[])];
+                                  newNav[i].url = e.target.value;
+                                  handleBlockEdit(block.id, newNav);
+                                }}
+                                placeholder="URL"
+                                className="flex-1 text-xs border-slate-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white p-1.5"
+                              />
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const newNav = [...(block.content as any[])];
+                                  newNav.splice(i, 1);
+                                  handleBlockEdit(block.id, newNav);
+                                }}
+                                className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleBlockEdit(block.id, [...(block.content as any[]), { label: 'New Link', url: '#' }]);
+                            }}
+                            className="text-xs font-medium text-indigo-600 hover:text-indigo-700"
+                          >
+                            + Add Link
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {block.type === 'product' && (
+                    <div className="p-4 flex flex-col sm:flex-row gap-6 items-center sm:items-start">
+                      <div className="w-32 h-32 shrink-0 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center relative group/productimg">
+                        {(block.content as any)?.image ? (
+                          <img src={(block.content as any).image} alt="Product" className="w-full h-full object-cover rounded-lg" />
+                        ) : (
+                          <ShoppingBag className="w-8 h-8 text-slate-400" />
+                        )}
+                        {activeBlock === block.id && (
+                          <div className="absolute inset-0 bg-black/10 flex items-center justify-center opacity-0 group-hover/productimg:opacity-100 transition-opacity rounded-lg">
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                triggerImageUpload(block.id);
+                              }}
+                              className="p-2 bg-white rounded-full shadow-sm text-slate-700 hover:text-indigo-600"
+                            >
+                              <Upload className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 text-center sm:text-left w-full">
+                        {activeBlock === block.id ? (
+                          <div className="space-y-2">
+                            <input 
+                              type="text" 
+                              value={(block.content as any)?.title || ''}
+                              onChange={(e) => handleBlockEdit(block.id, { ...(block.content as any), title: e.target.value })}
+                              className="w-full text-lg font-bold border-slate-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white p-1.5"
+                              placeholder="Product Title"
+                            />
+                            <input 
+                              type="text" 
+                              value={(block.content as any)?.price || ''}
+                              onChange={(e) => handleBlockEdit(block.id, { ...(block.content as any), price: e.target.value })}
+                              className="w-full text-md text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 rounded dark:bg-slate-700 p-1.5"
+                              placeholder="Price"
+                            />
+                            <div className="flex gap-2">
+                              <input 
+                                type="text" 
+                                value={(block.content as any)?.buttonText || ''}
+                                onChange={(e) => handleBlockEdit(block.id, { ...(block.content as any), buttonText: e.target.value })}
+                                className="w-1/2 text-sm border-slate-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white p-1.5"
+                                placeholder="Button Text"
+                              />
+                              <input 
+                                type="text" 
+                                value={(block.content as any)?.url || ''}
+                                onChange={(e) => handleBlockEdit(block.id, { ...(block.content as any), url: e.target.value })}
+                                className="w-1/2 text-sm border-slate-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white p-1.5"
+                                placeholder="Button URL"
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">{(block.content as any)?.title}</h3>
+                            <p className="text-md text-slate-600 dark:text-slate-300 mb-4">{(block.content as any)?.price}</p>
+                            <a href={(block.content as any)?.url || '#'} onClick={e => e.preventDefault()} className="inline-block px-6 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium">
+                              {(block.content as any)?.buttonText}
+                            </a>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {block.type === 'spacer' && (
+                    <div className="relative">
+                      <div style={{ height: `${(block.content as any)?.height || 40}px` }} className="w-full"></div>
+                      {activeBlock === block.id && (
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-800 p-2 rounded shadow-lg border border-slate-200 dark:border-slate-700 flex items-center gap-2 z-20" onClick={e => e.stopPropagation()}>
+                          <label className="text-xs font-medium text-slate-600 dark:text-slate-300">Height (px):</label>
+                          <input 
+                            type="number" 
+                            value={(block.content as any)?.height || 40}
+                            onChange={(e) => handleBlockEdit(block.id, { height: parseInt(e.target.value) || 10 })}
+                            className="w-20 text-xs border-slate-300 dark:border-slate-600 rounded dark:bg-slate-700 dark:text-white p-1"
+                            min="10"
+                            max="200"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {block.type === 'dynamic' && (
+                    <div className="p-4 text-center">
+                      <div className="inline-block px-4 py-2 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50 rounded font-mono text-sm">
+                        {block.content as string}
+                      </div>
+                      {activeBlock === block.id && (
+                        <div className="mt-4 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded shadow-sm max-w-xs mx-auto text-left">
+                          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Select Variable</label>
+                          <select 
+                            value={block.content as string}
+                            onChange={(e) => handleBlockEdit(block.id, e.target.value)}
+                            className="w-full text-sm border-slate-300 dark:border-slate-600 rounded-md dark:bg-slate-700 dark:text-white p-2"
+                          >
+                            <option value="{{user.firstName}}">User First Name</option>
+                            <option value="{{user.lastName}}">User Last Name</option>
+                            <option value="{{user.email}}">User Email</option>
+                            <option value="{{company.name}}">Company Name</option>
+                            <option value="{{unsubscribeUrl}}">Unsubscribe URL</option>
+                          </select>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -376,9 +685,13 @@ export default function CreateTemplate() {
                   <div key={block.id} className="p-4">
                     {block.type === 'logo' && (
                       <div className="text-center py-4">
-                        <div className="inline-block bg-slate-600 text-white text-3xl font-bold py-3 px-8 rounded-md">
-                          {block.content as string}
-                        </div>
+                        {block.content && (block.content as string).startsWith('data:image') || (block.content as string).startsWith('http') ? (
+                          <img src={block.content as string} alt="Logo" className="max-h-16 mx-auto" />
+                        ) : (
+                          <div className="inline-block bg-slate-600 text-white text-3xl font-bold py-3 px-8 rounded-md">
+                            {block.content as string}
+                          </div>
+                        )}
                       </div>
                     )}
                     {block.type === 'title' && (
@@ -412,7 +725,10 @@ export default function CreateTemplate() {
                       </div>
                     )}
                     {block.type === 'text' && (
-                      <p className="text-slate-600 dark:text-slate-300 text-center whitespace-pre-wrap">{block.content as string}</p>
+                      <div 
+                        className="text-slate-600 dark:text-slate-300 text-center whitespace-pre-wrap"
+                        dangerouslySetInnerHTML={{ __html: block.content as string }}
+                      />
                     )}
                     {block.type === 'button' && (
                       <div className="text-center py-4">
@@ -431,9 +747,79 @@ export default function CreateTemplate() {
                         <p>You've received this email because you've subscribed to our newsletter.</p>
                       </div>
                     )}
-                    {['video', 'dynamic', 'social', 'html', 'product', 'navigation', 'spacer'].includes(block.type) && (
-                      <div className="bg-slate-100 dark:bg-slate-800 p-8 text-center text-slate-500 dark:text-slate-400 border border-dashed border-slate-300 dark:border-slate-600 rounded">
-                        [{block.type.toUpperCase()} BLOCK] - {block.content as string}
+                    {block.type === 'video' && (
+                      <div className="flex justify-center">
+                        {!(block.content as any)?.url ? (
+                          <div className="bg-slate-100 dark:bg-slate-800 w-full h-48 flex items-center justify-center text-slate-400">Video Placeholder</div>
+                        ) : (
+                          <div className="aspect-video bg-slate-900 flex items-center justify-center relative rounded overflow-hidden w-full max-w-lg">
+                            <PlaySquare className="w-16 h-16 text-white opacity-80" />
+                            <div className="absolute bottom-2 left-2 text-xs text-white bg-black/50 px-2 py-1 rounded">
+                              {(block.content as any).url}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {block.type === 'social' && (
+                      <div className="text-center py-4">
+                        <div className="flex justify-center gap-4">
+                          {['facebook', 'twitter', 'instagram', 'linkedin'].map(network => {
+                            const url = (block.content as any)?.[network] || '';
+                            if (!url) return null;
+                            const Icon = network === 'facebook' ? Facebook : network === 'twitter' ? Twitter : network === 'instagram' ? Instagram : Linkedin;
+                            return (
+                              <a key={network} href={url} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full flex items-center justify-center bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
+                                <Icon className="w-5 h-5" />
+                              </a>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    {block.type === 'html' && (
+                      <div 
+                        className="min-h-[50px]"
+                        dangerouslySetInnerHTML={{ __html: block.content as string }}
+                      />
+                    )}
+                    {block.type === 'navigation' && (
+                      <div className="py-4">
+                        <div className="flex justify-center gap-6">
+                          {((block.content as any[]) || []).map((navItem, i) => (
+                            <a key={i} href={navItem.url || '#'} className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600">
+                              {navItem.label}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {block.type === 'product' && (
+                      <div className="p-4 flex flex-col sm:flex-row gap-6 items-center sm:items-start">
+                        <div className="w-32 h-32 shrink-0 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center">
+                          {(block.content as any)?.image ? (
+                            <img src={(block.content as any).image} alt="Product" className="w-full h-full object-cover rounded-lg" />
+                          ) : (
+                            <ShoppingBag className="w-8 h-8 text-slate-400" />
+                          )}
+                        </div>
+                        <div className="flex-1 text-center sm:text-left">
+                          <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">{(block.content as any)?.title}</h3>
+                          <p className="text-md text-slate-600 dark:text-slate-300 mb-4">{(block.content as any)?.price}</p>
+                          <a href={(block.content as any)?.url || '#'} className="inline-block px-6 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium">
+                            {(block.content as any)?.buttonText}
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                    {block.type === 'spacer' && (
+                      <div style={{ height: `${(block.content as any)?.height || 40}px` }} className="w-full"></div>
+                    )}
+                    {block.type === 'dynamic' && (
+                      <div className="p-4 text-center">
+                        <div className="inline-block px-4 py-2 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50 rounded font-mono text-sm">
+                          {block.content as string}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -441,6 +827,14 @@ export default function CreateTemplate() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {showToast && (
+        <div className="fixed bottom-4 right-4 bg-emerald-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in z-50">
+          <Save className="w-5 h-5" />
+          <span className="font-medium">Template "{templateName}" saved successfully!</span>
         </div>
       )}
     </div>

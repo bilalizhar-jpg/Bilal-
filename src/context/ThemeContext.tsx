@@ -14,7 +14,17 @@ export const palettes: ColorPalette[] = [
   { id: 'rose', name: 'Rose', primary: '#e11d48' },
   { id: 'amber', name: 'Amber', primary: '#d97706' },
   { id: 'sky', name: 'Sky', primary: '#0284c7' },
+  { id: 'violet', name: 'Violet', primary: '#7c3aed' },
+  { id: 'fuchsia', name: 'Fuchsia', primary: '#c026d3' },
+  { id: 'teal', name: 'Teal', primary: '#0d9488' },
+  { id: 'cyan', name: 'Cyan', primary: '#0891b2' },
+  { id: 'orange', name: 'Orange', primary: '#ea580c' },
+  { id: 'pink', name: 'Pink', primary: '#db2777' },
+  { id: 'lime', name: 'Lime', primary: '#65a30d' },
+  { id: 'slate', name: 'Slate', primary: '#475569' },
 ];
+
+export type PortalDesign = 'cosmic' | 'aurora' | 'cyber';
 
 interface ThemeContextType {
   theme: Theme;
@@ -22,6 +32,8 @@ interface ThemeContextType {
   colorPalette: string;
   setColorPalette: (id: string) => void;
   palettes: ColorPalette[];
+  portalDesign: PortalDesign;
+  setPortalDesign: (design: PortalDesign) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -35,6 +47,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [colorPalette, setColorPaletteState] = useState<string>(() => {
     const saved = localStorage.getItem('colorPalette');
     return saved || 'indigo';
+  });
+
+  const [portalDesign, setPortalDesignState] = useState<PortalDesign>(() => {
+    const saved = localStorage.getItem('portalDesign');
+    return (saved as PortalDesign) || 'cosmic';
   });
 
   useEffect(() => {
@@ -53,6 +70,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('colorPalette', colorPalette);
   }, [colorPalette]);
 
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.setAttribute('data-design', portalDesign);
+    localStorage.setItem('portalDesign', portalDesign);
+  }, [portalDesign]);
+
   const toggleTheme = () => {
     setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
   };
@@ -61,8 +84,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setColorPaletteState(id);
   };
 
+  const setPortalDesign = (design: PortalDesign) => {
+    setPortalDesignState(design);
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, colorPalette, setColorPalette, palettes }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, colorPalette, setColorPalette, palettes, portalDesign, setPortalDesign }}>
       {children}
     </ThemeContext.Provider>
   );

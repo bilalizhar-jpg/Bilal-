@@ -31,6 +31,8 @@ import ProcurementHistory from './pages/procurement/ProcurementHistory';
 import ProcurementSettings from './pages/procurement/ProcurementSettings';
 import AssetManagement from './pages/assets/AssetManagement';
 import ProjectManagement from './pages/project-management/ProjectManagement';
+import Milestones from './pages/project-management/Milestones';
+import ProjectReports from './pages/project-management/ProjectReports';
 import CareerPage from './pages/CareerPage';
 import Reports from './pages/Reports';
 import RewardPoints from './pages/RewardPoints';
@@ -190,6 +192,8 @@ function AppContent() {
             <Route path="/procurement/settings" element={<ProtectedRoute allowedRoles={['admin']}><ProcurementSettings /></ProtectedRoute>} />
             <Route path="/assets/management" element={<ProtectedRoute allowedRoles={['admin']}><AssetManagement /></ProtectedRoute>} />
             <Route path="/project-management" element={<ProtectedRoute allowedRoles={['admin']}><ProjectManagement /></ProtectedRoute>} />
+            <Route path="/project-management/milestones" element={<ProtectedRoute allowedRoles={['admin']}><Milestones /></ProtectedRoute>} />
+            <Route path="/project-management/reports" element={<ProtectedRoute allowedRoles={['admin']}><ProjectReports /></ProtectedRoute>} />
             <Route path="/reports" element={<ProtectedRoute allowedRoles={['admin']}><Reports /></ProtectedRoute>} />
             <Route path="/reward-points" element={<ProtectedRoute allowedRoles={['admin']}><RewardPoints /></ProtectedRoute>} />
             <Route path="/recruitment/career-page-settings" element={<ProtectedRoute allowedRoles={['admin']}><CareerPageSettings /></ProtectedRoute>} />
@@ -247,6 +251,7 @@ import { LetterProvider } from './context/LetterContext';
 import { CompanyDataProvider } from './context/CompanyDataContext';
 import { InvoiceProvider } from './context/InvoiceContext';
 import { ChatProvider } from './context/ChatContext';
+import { MarketingProvider } from './context/MarketingContext';
 
 export default function App() {
   return (
@@ -261,9 +266,11 @@ export default function App() {
                     <CompanyDataProvider>
                       <InvoiceProvider>
                         <ChatProvider>
-                          <Router>
-                            <AppContent />
-                          </Router>
+                          <MarketingProvider>
+                            <Router>
+                              <AppContent />
+                            </Router>
+                          </MarketingProvider>
                         </ChatProvider>
                       </InvoiceProvider>
                     </CompanyDataProvider>

@@ -79,7 +79,16 @@ export const ADMIN_MENU_ITEMS = [
     ]
   },
   { name: 'Assets', icon: Laptop, path: '/assets/management' },
-  { name: 'Project Management', icon: ClipboardList, path: '/project-management' },
+  { 
+    name: 'Project Management', 
+    icon: ClipboardList, 
+    hasSub: true,
+    subItems: [
+      { name: 'Projects', path: '/project-management' },
+      { name: 'Milestone', path: '/project-management/milestones' },
+      { name: 'Reports', path: '/project-management/reports' }
+    ]
+  },
   { name: 'Marketing', icon: MessageSquare, hasSub: true, subItems: [
       { name: 'Email Database', path: '/marketing/lists' },
       { name: 'Campaigns', path: '/marketing/campaigns' },
@@ -89,7 +98,6 @@ export const ADMIN_MENU_ITEMS = [
   },
   { name: 'Reports', icon: FileText, path: '/reports' },
   { name: 'Reward Points', icon: Target, path: '/reward-points' },
-  { name: 'Setup Rules', icon: Settings, path: '/setup-rules' },
   { name: 'Message', icon: MessageSquare, path: '/message' },
   { name: 'Supply Chain Management', icon: Briefcase, path: '#' },
   { name: 'Procurement', icon: Briefcase, hasSub: true, subItems: [
@@ -103,6 +111,7 @@ export const ADMIN_MENU_ITEMS = [
   { name: 'Purchase Dep', icon: Briefcase, path: '#' },
   { name: 'Settings', icon: Settings, hasSub: true, subItems: [
       { name: 'General Settings', path: '/settings' },
+      { name: 'Setup Rules', path: '/setup-rules' },
       { name: 'Roles & Permissions', path: '/role-management' },
       { name: 'Menu Permissions', path: '/permissions' }
     ]

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Send, Users, Mail, Clock, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useMarketing } from '../../context/MarketingContext';
 
 export default function SendCampaign() {
   const navigate = useNavigate();
+  const { emailLists, addCampaign, addCampaignLog } = useMarketing();
   const [formData, setFormData] = useState({
     senderName: 'HRM Pro Team',
     senderEmail: 'hello@hrmpro.com',
@@ -17,19 +19,50 @@ export default function SendCampaign() {
   const [isSending, setIsSending] = useState(false);
   const [isSent, setIsSent] = useState(false);
 
-  const lists = [
-    { id: 1, name: 'Q1 Newsletter Subscribers', count: 1250 },
-    { id: 2, name: 'Promotions', count: 3420 },
-    { id: 3, name: 'General Contacts', count: 850 },
-  ];
+  const lists = emailLists;
 
-  const handleSend = () => {
+  const handleSend = async () => {
     setIsSending(true);
-    // Simulate sending process
-    setTimeout(() => {
-      setIsSending(false);
-      setIsSent(true);
-    }, 2000);
+    
+    // Create the campaign
+    const campaignId = await addCampaign({
+      name: formData.subject,
+      date: new Date().toISOString(),
+      subject: formData.subject,
+      senderName: formData.senderName,
+      senderEmail: formData.senderEmail,
+      listId: formData.list,
+      status: formData.schedule === 'now' ? 'Sent' : 'Scheduled',
+      scheduleDate: formData.date,
+      scheduleTime: formData.time
+    });
+
+    // Simulate sending process and creating logs
+    if (campaignId) {
+      const selectedList = lists.find(l => l.name === formData.list);
+      const count = selectedList ? selectedList.count : 0;
+      
+      // Create some dummy logs for the campaign
+      const statuses: ('Opened' | 'Clicked' | 'Bounced' | 'Unsubscribed' | 'Delivered' | 'Spam')[] = ['Opened', 'Clicked', 'Delivered', 'Bounced', 'Unsubscribed', 'Spam'];
+      
+      // Just create a few sample logs to show in the report
+      const numLogs = Math.min(count, 10); 
+      for (let i = 0; i < numLogs; i++) {
+        const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+        await addCampaignLog({
+          campaignId,
+          recipientName: `Recipient ${i + 1}`,
+          recipientEmail: `recipient${i + 1}@example.com`,
+          status: randomStatus,
+          opens: randomStatus === 'Opened' || randomStatus === 'Clicked' ? Math.floor(Math.random() * 3) + 1 : 0,
+          clicks: randomStatus === 'Clicked' ? Math.floor(Math.random() * 2) + 1 : 0,
+          lastActivity: new Date(Date.now() - Math.floor(Math.random() * 10000000)).toISOString()
+        });
+      }
+    }
+
+    setIsSending(false);
+    setIsSent(true);
   };
 
   if (isSent) {

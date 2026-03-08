@@ -1,0 +1,221 @@
+import React, { useMemo } from 'react';
+import AdminLayout from '../../components/AdminLayout';
+import { useTheme } from '../../context/ThemeContext';
+import { useCompanyData } from '../../context/CompanyDataContext';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer, 
+  PieChart, 
+  Pie, 
+  Cell,
+  LineChart,
+  Line
+} from 'recharts';
+import { Download, Filter, Calendar } from 'lucide-react';
+
+export default function ProjectReports() {
+  const { theme } = useTheme();
+  const { projects, milestones, tasks } = useCompanyData();
+  const isDark = theme === 'dark';
+
+  // --- Data Processing for Charts ---
+
+  // 1. Project Status Distribution
+  const projectStatusData = useMemo(() => {
+    const statusCounts: Record<string, number> = {};
+    projects.forEach((p: any) => {
+      const status = p.status || 'Unknown';
+      statusCounts[status] = (statusCounts[status] || 0) + 1;
+    });
+    return Object.keys(statusCounts).map(status => ({
+      name: status,
+      value: statusCounts[status]
+    }));
+  }, [projects]);
+
+  // 2. Milestone Completion Status
+  const milestoneStatusData = useMemo(() => {
+    const statusCounts: Record<string, number> = {};
+    milestones.forEach((m: any) => {
+      const status = m.status || 'Pending';
+      statusCounts[status] = (statusCounts[status] || 0) + 1;
+    });
+    return Object.keys(statusCounts).map(status => ({
+      name: status,
+      value: statusCounts[status]
+    }));
+  }, [milestones]);
+
+  // 3. Projects by Priority (assuming priority exists, otherwise mock or derive)
+  const projectPriorityData = useMemo(() => {
+    const priorityCounts: Record<string, number> = {};
+    projects.forEach((p: any) => {
+        // Fallback if priority isn't a direct field, or use a mock logic if needed
+        // For now, let's assume 'priority' might exist or we default to 'Medium'
+        const priority = p.priority || 'Medium'; 
+        priorityCounts[priority] = (priorityCounts[priority] || 0) + 1;
+    });
+    return Object.keys(priorityCounts).map(priority => ({
+        name: priority,
+        value: priorityCounts[priority]
+    }));
+  }, [projects]);
+
+    // 4. Task Completion by Project (Top 5 Projects)
+    const taskCompletionByProject = useMemo(() => {
+        const projectTaskStats: Record<string, { total: number, completed: number }> = {};
+        
+        tasks.forEach((t: any) => {
+            if (!t.projectId) return;
+            if (!projectTaskStats[t.projectId]) {
+                const project = projects.find(p => p.id === t.projectId);
+                projectTaskStats[t.projectId] = { total: 0, completed: 0 };
+            }
+            
+            projectTaskStats[t.projectId].total += 1;
+            if (t.status === 'Completed') {
+                projectTaskStats[t.projectId].completed += 1;
+            }
+        });
+
+        return Object.keys(projectTaskStats).map(projectId => {
+            const project = projects.find(p => p.id === projectId);
+            const stats = projectTaskStats[projectId];
+            return {
+                name: project ? project.companyName : 'Unknown', // Using companyName as project name based on previous context
+                completed: stats.completed,
+                remaining: stats.total - stats.completed
+            };
+        }).slice(0, 5); // Top 5
+    }, [tasks, projects]);
+
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+
+  return (
+    <AdminLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Project Reports</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Home &gt; Project Management &gt; Reports</p>
+          </div>
+          <div className="flex gap-2">
+             <button className={`px-4 py-2 rounded-lg text-sm font-medium border flex items-center gap-2 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-700'}`}>
+              <Calendar className="w-4 h-4" />
+              Last 30 Days
+            </button>
+            <button className={`px-4 py-2 rounded-lg text-sm font-medium border flex items-center gap-2 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-700'}`}>
+              <Filter className="w-4 h-4" />
+              Filter
+            </button>
+            <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-indigo-700">
+              <Download className="w-4 h-4" />
+              Export PDF
+            </button>
+          </div>
+        </div>
+
+        {/* Key Metrics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className={`p-4 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm`}>
+                <h3 className="text-slate-500 text-xs font-bold uppercase mb-2">Total Projects</h3>
+                <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{projects.length}</p>
+            </div>
+            <div className={`p-4 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm`}>
+                <h3 className="text-slate-500 text-xs font-bold uppercase mb-2">Active Milestones</h3>
+                <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                    {milestones.filter((m: any) => m.status === 'In Progress').length}
+                </p>
+            </div>
+             <div className={`p-4 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm`}>
+                <h3 className="text-slate-500 text-xs font-bold uppercase mb-2">Completed Tasks</h3>
+                <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                     {tasks.filter((t: any) => t.status === 'Completed').length}
+                </p>
+            </div>
+             <div className={`p-4 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm`}>
+                <h3 className="text-slate-500 text-xs font-bold uppercase mb-2">Pending Tasks</h3>
+                <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                     {tasks.filter((t: any) => t.status !== 'Completed').length}
+                </p>
+            </div>
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          {/* Project Status Distribution */}
+          <div className={`p-6 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm`}>
+            <h3 className={`text-lg font-bold mb-6 ${isDark ? 'text-white' : 'text-slate-800'}`}>Project Status Distribution</h3>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={projectStatusData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {projectStatusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#fff', borderColor: isDark ? '#334155' : '#e2e8f0', color: isDark ? '#fff' : '#000' }} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Milestone Status */}
+          <div className={`p-6 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm`}>
+            <h3 className={`text-lg font-bold mb-6 ${isDark ? 'text-white' : 'text-slate-800'}`}>Milestone Status</h3>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={milestoneStatusData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#334155' : '#e2e8f0'} />
+                  <XAxis dataKey="name" stroke={isDark ? '#94a3b8' : '#64748b'} />
+                  <YAxis stroke={isDark ? '#94a3b8' : '#64748b'} />
+                  <Tooltip contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#fff', borderColor: isDark ? '#334155' : '#e2e8f0', color: isDark ? '#fff' : '#000' }} />
+                  <Legend />
+                  <Bar dataKey="value" fill="#82ca9d" name="Milestones" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+           {/* Task Completion by Project */}
+           <div className={`p-6 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm lg:col-span-2`}>
+            <h3 className={`text-lg font-bold mb-6 ${isDark ? 'text-white' : 'text-slate-800'}`}>Task Completion by Project (Top 5)</h3>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={taskCompletionByProject}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#334155' : '#e2e8f0'} />
+                  <XAxis dataKey="name" stroke={isDark ? '#94a3b8' : '#64748b'} />
+                  <YAxis stroke={isDark ? '#94a3b8' : '#64748b'} />
+                  <Tooltip contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#fff', borderColor: isDark ? '#334155' : '#e2e8f0', color: isDark ? '#fff' : '#000' }} />
+                  <Legend />
+                  <Bar dataKey="completed" stackId="a" fill="#10b981" name="Completed Tasks" />
+                  <Bar dataKey="remaining" stackId="a" fill="#f59e0b" name="Remaining Tasks" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </AdminLayout>
+  );
+}

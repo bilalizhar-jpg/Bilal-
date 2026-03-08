@@ -12,7 +12,7 @@ export default function SetupRules() {
     timeZone, setTimeZone
   } = useSettings();
 
-  const { theme, toggleTheme, colorPalette, setColorPalette, palettes } = useTheme();
+  const { theme, toggleTheme, colorPalette, setColorPalette, palettes, portalDesign, setPortalDesign } = useTheme();
 
   const [editingLang, setEditingLang] = useState<string | null>(null);
   const [editLangData, setEditLangData] = useState<Language>({ code: '', name: '' });
@@ -344,6 +344,42 @@ export default function SetupRules() {
                       title={palette.name}
                     >
                       {colorPalette === palette.id && <div className="w-3 h-3 bg-white rounded-full mix-blend-difference" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Portal Design</label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[
+                    { id: 'cosmic', name: 'Cosmic', desc: 'Deep space atmosphere with soft glows' },
+                    { id: 'aurora', name: 'Aurora', desc: 'Vibrant northern lights gradients' },
+                    { id: 'cyber', name: 'Cyber', desc: 'High-tech neon grid aesthetic' }
+                  ].map((design) => (
+                    <button
+                      key={design.id}
+                      onClick={() => setPortalDesign(design.id as any)}
+                      className={`relative overflow-hidden rounded-xl p-4 border-2 text-left transition-all ${
+                        portalDesign === design.id 
+                          ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-400' 
+                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                      }`}
+                    >
+                      <div className={`absolute inset-0 opacity-10 ${
+                        design.id === 'cosmic' ? 'bg-gradient-to-br from-indigo-500 to-purple-500' :
+                        design.id === 'aurora' ? 'bg-gradient-to-tr from-emerald-400 to-cyan-500' :
+                        'bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:16px_16px]'
+                      }`} />
+                      <div className="relative z-10">
+                        <h3 className={`font-semibold ${portalDesign === design.id ? 'text-indigo-700 dark:text-indigo-300' : 'text-gray-900 dark:text-white'}`}>
+                          {design.name}
+                        </h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{design.desc}</p>
+                      </div>
+                      {portalDesign === design.id && (
+                        <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-indigo-500 dark:bg-indigo-400" />
+                      )}
                     </button>
                   ))}
                 </div>
