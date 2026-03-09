@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Building2, Menu, Maximize2, RefreshCw, Search, ChevronRight, LayoutDashboard,
   Users, Settings, LogOut, ChevronDown, ArrowLeft, Home, CreditCard, Shield,
-  Activity, User
+  Activity, User, Sun, Moon
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
@@ -20,7 +20,7 @@ export default function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
   const [openMenus, setOpenMenus] = useState<string[]>([]);
   const location = useLocation();
   const navigate = useNavigate();
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const { logout, user, impersonateCompany } = useAuth();
   const { companies } = useSuperAdmin();
   const isDark = theme === 'dark';
@@ -43,10 +43,10 @@ export default function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
   ];
 
   return (
-    <div className={`min-h-screen flex relative overflow-hidden ${isDark ? 'bg-[#020203] text-white' : 'bg-slate-50 text-slate-900'}`}>
+    <div className={`min-h-screen flex relative overflow-hidden print:overflow-visible ${isDark ? 'bg-[#020203] text-white' : 'bg-slate-50 text-slate-900'}`}>
       {/* Immersive Background Atmosphere */}
       {isDark && (
-        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="fixed inset-0 pointer-events-none overflow-hidden print:hidden z-0">
           <motion.div 
             animate={{ 
               scale: [1, 1.1, 1],
@@ -71,7 +71,7 @@ export default function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
         </div>
       )}
 
-      <aside className={`${isSidebarOpen ? 'w-72' : 'w-24'} relative z-30 flex flex-col transition-all duration-500 shrink-0 border-r ${isDark ? 'bg-black/40 border-white/5 backdrop-blur-3xl' : 'bg-white/80 border-slate-200 backdrop-blur-xl'}`}>
+      <aside className={`${isSidebarOpen ? 'w-72' : 'w-24'} relative z-30 flex flex-col transition-all duration-500 shrink-0 border-r print:hidden ${isDark ? 'bg-black/40 border-white/5 backdrop-blur-3xl' : 'bg-white/80 border-slate-200 backdrop-blur-xl'}`}>
         <div className={`p-6 flex items-center gap-4 border-b ${isDark ? 'border-white/5' : 'border-slate-100'} h-20`}>
           <motion.div 
             whileHover={{ rotate: 5, scale: 1.05 }}
@@ -227,8 +227,8 @@ export default function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10">
-        <header className={`h-20 relative z-20 flex items-center justify-between px-8 border-b ${isDark ? 'bg-black/20 border-white/5 backdrop-blur-3xl' : 'bg-white/80 border-slate-200 backdrop-blur-xl'}`}>
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden print:overflow-visible relative z-10">
+        <header className={`h-20 relative z-20 flex items-center justify-between px-8 border-b print:hidden ${isDark ? 'bg-black/20 border-white/5 backdrop-blur-3xl' : 'bg-white/80 border-slate-200 backdrop-blur-xl'}`}>
           <div className="flex items-center gap-6">
             <motion.button 
               whileTap={{ scale: 0.9 }}
@@ -267,6 +267,14 @@ export default function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
           <div className="flex items-center gap-6">
             <motion.button 
               whileTap={{ scale: 0.9 }}
+              onClick={toggleTheme}
+              className={`p-2.5 rounded-xl transition-all ${isDark ? 'hover:bg-white/5 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-600'}`}
+              aria-label="Toggle theme"
+            >
+              {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+            </motion.button>
+            <motion.button 
+              whileTap={{ scale: 0.9 }}
               className={`p-2.5 rounded-xl transition-all ${isDark ? 'hover:bg-white/5 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-600'}`}
             >
               <Maximize2 className="w-5 h-5" />
@@ -298,7 +306,7 @@ export default function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
           </div>
         </header>
 
-        <div className="flex-1 overflow-auto p-8 custom-scrollbar">
+        <div className="flex-1 overflow-auto print:overflow-visible p-8 custom-scrollbar">
           <div className="max-w-[1600px] mx-auto">
             <AnimatePresence mode="wait">
               <motion.div

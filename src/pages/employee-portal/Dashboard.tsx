@@ -36,6 +36,36 @@ export default function EmployeeDashboard() {
           <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mt-1">Terminal Status: Operational</p>
         </div>
 
+        {/* Notifications */}
+        {currentEmployee?.notifications && currentEmployee.notifications.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`glass-card p-6 border ${isDark ? 'border-white/5' : 'border-slate-200'}`}
+          >
+            <h3 className={`text-[10px] font-black ${isDark ? 'text-white' : 'text-slate-900'} uppercase tracking-[0.2em] mb-6 flex items-center gap-2`}>
+              <Bell className="w-4 h-4 text-indigo-400" />
+              System Notifications
+            </h3>
+            <div className="space-y-4">
+              {currentEmployee.notifications.map((notification, idx) => (
+                <div key={idx} className={`flex items-center justify-between p-4 ${isDark ? 'bg-white/5 border-white/5' : 'bg-slate-100 border-slate-200'} rounded-xl border group hover:bg-white/10 transition-all`}>
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                      <Bell className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        {notification}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
         {/* Chat Invitations */}
         {invitations.length > 0 && (
           <motion.div 

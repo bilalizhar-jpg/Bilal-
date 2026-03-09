@@ -48,6 +48,7 @@ export interface Employee {
   rewardPoints?: number;
   isTracked?: boolean;
   allowedMenus?: string[];
+  notifications?: string[];
 }
 
 interface EmployeeContextType {

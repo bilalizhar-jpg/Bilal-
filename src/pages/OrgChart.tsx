@@ -48,7 +48,8 @@ import {
   FolderOpen,
   X
 } from 'lucide-react';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
+import { Document, Packer, Paragraph, ImageRun } from 'docx';
 import jsPDF from 'jspdf';
 import AdminLayout from '../components/AdminLayout';
 import { useTheme } from '../context/ThemeContext';
@@ -193,62 +194,110 @@ const OrgChartContent = () => {
     }
   };
 
-  const handleSaveProject = () => {
-    if (reactFlowInstance) {
-      const flow = reactFlowInstance.toObject();
-      const json = JSON.stringify(flow);
-      const blob = new Blob([json], { type: 'application/json' });
+  const captureChart = async (): Promise<string | null> => {
+    if (!reactFlowWrapper.current) return null;
+    
+    try {
+      // Temporarily hide controls for cleaner capture
+      const controls = reactFlowWrapper.current.querySelector('.react-flow__controls') as HTMLElement;
+      const minimap = reactFlowWrapper.current.querySelector('.react-flow__minimap') as HTMLElement;
+      const panel = reactFlowWrapper.current.querySelector('.react-flow__panel') as HTMLElement;
+      
+      if (controls) controls.style.display = 'none';
+      if (minimap) minimap.style.display = 'none';
+      if (panel) panel.style.display = 'none';
+
+      const dataUrl = await toPng(reactFlowWrapper.current, {
+        backgroundColor: isDark ? '#020617' : '#f8fafc',
+        pixelRatio: 2,
+        style: {
+          width: '100%',
+          height: '100%',
+        }
+      });
+      
+      // Restore controls
+      if (controls) controls.style.display = '';
+      if (minimap) minimap.style.display = '';
+      if (panel) panel.style.display = '';
+
+      return dataUrl;
+    } catch (error) {
+      console.error('Error capturing chart:', error);
+      return null;
+    }
+  };
+
+  const handleSaveProject = async () => {
+    const dataUrl = await captureChart();
+    if (!dataUrl) {
+      alert('Failed to capture chart.');
+      return;
+    }
+
+    try {
+      // Convert base64 to array buffer
+      const base64Data = dataUrl.replace(/^data:image\/png;base64,/, "");
+      const binaryString = window.atob(base64Data);
+      const len = binaryString.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+
+      // Create Word document
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: [
+            new Paragraph({
+              children: [
+                new ImageRun({
+                  data: bytes,
+                  type: 'png',
+                  transformation: {
+                    width: 600,
+                    height: 600 * (reactFlowWrapper.current!.offsetHeight / reactFlowWrapper.current!.offsetWidth),
+                  },
+                }),
+              ],
+            }),
+          ],
+        }],
+      });
+
+      const blob = await Packer.toBlob(doc);
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'org-chart-project.json';
+      link.download = 'org-chart.docx';
       link.click();
       URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error saving Word document:', error);
+      alert('Failed to save Word document.');
     }
   };
 
   const handleExportPDF = async () => {
-    if (reactFlowWrapper.current) {
-      // Find the viewport element which contains the nodes
-      const viewport = reactFlowWrapper.current.querySelector('.react-flow__viewport') as HTMLElement;
+    const dataUrl = await captureChart();
+    if (!dataUrl || !reactFlowWrapper.current) {
+      alert('Failed to capture chart.');
+      return;
+    }
+
+    try {
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: [reactFlowWrapper.current.offsetWidth * 2, reactFlowWrapper.current.offsetHeight * 2]
+      });
       
-      if (viewport) {
-        try {
-          // Temporarily hide controls for cleaner capture
-          const controls = reactFlowWrapper.current.querySelector('.react-flow__controls') as HTMLElement;
-          const minimap = reactFlowWrapper.current.querySelector('.react-flow__minimap') as HTMLElement;
-          const panel = reactFlowWrapper.current.querySelector('.react-flow__panel') as HTMLElement;
-          
-          if (controls) controls.style.display = 'none';
-          if (minimap) minimap.style.display = 'none';
-          if (panel) panel.style.display = 'none';
-
-          const canvas = await html2canvas(reactFlowWrapper.current, {
-            scale: 2, // Higher resolution
-            useCORS: true,
-            logging: false,
-            backgroundColor: isDark ? '#020617' : '#f8fafc' // Match theme background
-          });
-          
-          // Restore controls
-          if (controls) controls.style.display = '';
-          if (minimap) minimap.style.display = '';
-          if (panel) panel.style.display = '';
-
-          const imgData = canvas.toDataURL('image/png');
-          const pdf = new jsPDF({
-            orientation: 'landscape',
-            unit: 'px',
-            format: [canvas.width, canvas.height]
-          });
-          
-          pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-          pdf.save('org-chart.pdf');
-        } catch (error) {
-          console.error('Error generating PDF:', error);
-          alert('Failed to generate PDF.');
-        }
-      }
+      pdf.addImage(dataUrl, 'PNG', 0, 0, reactFlowWrapper.current.offsetWidth * 2, reactFlowWrapper.current.offsetHeight * 2);
+      pdf.save('org-chart.pdf');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF.');
     }
   };
 
@@ -278,45 +327,38 @@ const OrgChartContent = () => {
   };
 
   const handlePrint = async () => {
-    if (reactFlowWrapper.current) {
-      // Find the viewport element which contains the nodes
-      const viewport = reactFlowWrapper.current.querySelector('.react-flow__viewport') as HTMLElement;
-      
-      if (viewport) {
-        try {
-          const canvas = await html2canvas(reactFlowWrapper.current, {
-            ignoreElements: (element) => {
-              // Ignore controls and minimap for print
-              return element.classList.contains('react-flow__controls') || 
-                     element.classList.contains('react-flow__minimap') ||
-                     element.classList.contains('react-flow__panel');
-            }
-          });
-          
-          const imgData = canvas.toDataURL('image/png');
-          const printWindow = window.open('', '_blank');
-          if (printWindow) {
-            printWindow.document.write(`
-              <html>
-                <head>
-                  <title>Print Org Chart</title>
-                  <style>
-                    body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-                    img { max-width: 100%; max-height: 100%; }
-                  </style>
-                </head>
-                <body>
-                  <img src="${imgData}" onload="window.print();window.close()" />
-                </body>
-              </html>
-            `);
-            printWindow.document.close();
-          }
-        } catch (error) {
-          console.error('Error printing:', error);
-          alert('Failed to generate print image.');
-        }
+    const dataUrl = await captureChart();
+    if (!dataUrl) {
+      alert('Failed to capture chart.');
+      return;
+    }
+
+    try {
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(`
+          <html>
+            <head>
+              <title>Print Org Chart</title>
+              <style>
+                body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: white; }
+                img { max-width: 100%; height: auto; }
+                @media print {
+                  @page { margin: 0; size: landscape; }
+                  body { margin: 1cm; }
+                }
+              </style>
+            </head>
+            <body>
+              <img src="${dataUrl}" onload="window.print();window.close()" />
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
       }
+    } catch (error) {
+      console.error('Error printing:', error);
+      alert('Failed to generate print image.');
     }
   };
 
@@ -503,8 +545,8 @@ const OrgChartContent = () => {
           <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300" title="Load Project (JSON)">
             <Upload className="w-4 h-4" /> Load
           </button>
-          <button onClick={handleSaveProject} className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300" title="Save Project (JSON)">
-            <FileJson className="w-4 h-4" /> Save
+          <button onClick={handleSaveProject} className="flex items-center gap-2 px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300" title="Save Project (Word)">
+            <FileText className="w-4 h-4" /> Save
           </button>
           <button onClick={handleExportPDF} className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 text-white rounded text-sm font-medium hover:bg-indigo-700" title="Export as PDF">
             <Download className="w-4 h-4" /> Export PDF

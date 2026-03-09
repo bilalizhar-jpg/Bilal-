@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import AdminLayout from '../components/AdminLayout';
 import { useCompanyData } from '../context/CompanyDataContext';
+import { useChat } from '../context/ChatContext';
 
 interface Notice {
   id: string;
@@ -22,6 +23,7 @@ interface Notice {
 
 export default function NoticeBoard() {
   const { notices, addEntity, updateEntity, deleteEntity } = useCompanyData();
+  const { invitations } = useChat();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNotice, setEditingNotice] = useState<Notice | null>(null);
@@ -56,7 +58,26 @@ export default function NoticeBoard() {
     }
   };
 
-  const filteredNotices = notices.filter(n => 
+  const isNear = (date: Date) => {
+    const now = new Date();
+    const diff = date.getTime() - now.getTime();
+    return diff > 0 && diff < 15 * 60 * 1000; // 15 minutes
+  };
+
+  const videoCallNotices = invitations
+    .filter(inv => inv.type === 'videoCall' && inv.scheduledTime)
+    .map(inv => ({
+      id: inv.id,
+      type: 'Video Call',
+      description: `Video call scheduled for ${new Date(inv.scheduledTime.toDate()).toLocaleString()}`,
+      date: new Date(inv.scheduledTime.toDate()).toISOString().split('T')[0],
+      by: inv.fromUserId,
+      isScheduled: true
+    }));
+
+  const allNotices = [...notices, ...videoCallNotices];
+
+  const filteredNotices = allNotices.filter(n => 
     n.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
     n.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
     n.by.toLowerCase().includes(searchTerm.toLowerCase())
@@ -122,7 +143,7 @@ export default function NoticeBoard() {
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {filteredNotices.map((notice, idx) => (
-                  <tr key={notice.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                  <tr key={notice.id} className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors ${(notice as any).isScheduled && isNear(new Date((notice as any).date)) ? 'animate-pulse bg-red-100 dark:bg-red-900/20' : ''}`}>
                     <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{idx + 1}</td>
                     <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800 font-medium">{(notice as any).type}</td>
                     <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{(notice as any).description}</td>
@@ -130,22 +151,26 @@ export default function NoticeBoard() {
                     <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">{(notice as any).by}</td>
                     <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400">
                       <div className="flex gap-1">
-                        <button 
-                          onClick={() => {
-                            setEditingNotice(notice as any);
-                            setFormData(notice as any);
-                            setIsModalOpen(true);
-                          }}
-                          className="p-1.5 text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 rounded border border-indigo-100 dark:border-indigo-800 hover:bg-indigo-100"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(notice.id)}
-                          className="p-1.5 text-red-600 bg-red-50 dark:bg-red-900/20 rounded border border-red-100 dark:border-red-800 hover:bg-red-100"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        {! (notice as any).isScheduled && (
+                          <>
+                            <button 
+                              onClick={() => {
+                                setEditingNotice(notice as any);
+                                setFormData(notice as any);
+                                setIsModalOpen(true);
+                              }}
+                              className="p-1.5 text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 rounded border border-indigo-100 dark:border-indigo-800 hover:bg-indigo-100"
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(notice.id)}
+                              className="p-1.5 text-red-600 bg-red-50 dark:bg-red-900/20 rounded border border-red-100 dark:border-red-800 hover:bg-red-100"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

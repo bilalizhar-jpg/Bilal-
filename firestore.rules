@@ -62,6 +62,10 @@ service cloud.firestore {
     match /marketing_logs/{document=**} { allow read: if true; allow write: if true; }
     match /marketing_lists/{document=**} { allow read: if true; allow write: if true; }
     match /settings/{document=**} { allow read: if true; allow write: if true; }
+    match /trainingPrograms/{document=**} { allow read: if true; allow write: if true; }
+    match /procurementRequests/{document=**} { allow read: if true; allow write: if true; }
+    match /procurementSettings/{document=**} { allow read: if true; allow write: if true; }
+    match /appraisals/{document=**} { allow read: if true; allow write: if true; }
 
     // Users (Super Admin) - Keep restricted
     match /users/{userId} {

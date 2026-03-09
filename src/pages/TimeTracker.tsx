@@ -270,7 +270,7 @@ export default function TimeTracker() {
             </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1">Monitor employee activity, screen time, and productivity.</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 print:hidden">
             <div className="bg-white dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700 flex">
               <button 
                 onClick={() => setActiveTab('dashboard')}
@@ -402,7 +402,7 @@ export default function TimeTracker() {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-6"
             >
-              <div className={`p-4 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm flex flex-wrap gap-4 items-end`}>
+              <div className={`p-4 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm flex flex-wrap gap-4 items-end print:hidden`}>
                 <div>
                   <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Employee</label>
                   <select 
@@ -432,8 +432,8 @@ export default function TimeTracker() {
                 </div>
               </div>
 
-              <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm overflow-hidden`}>
-                <div className="overflow-x-auto">
+              <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm overflow-hidden print:overflow-visible print:shadow-none print:border-none`}>
+                <div className="overflow-x-auto print:overflow-visible">
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} border-b border-slate-100 dark:border-slate-800`}>

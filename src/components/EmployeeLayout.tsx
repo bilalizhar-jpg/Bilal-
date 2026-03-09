@@ -19,7 +19,9 @@ import {
   Home,
   LogOut,
   User,
-  Activity
+  Activity,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
@@ -38,7 +40,7 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
   const [openMenus, setOpenMenus] = useState<string[]>([]);
   const location = useLocation();
   const navigate = useNavigate();
-  const { theme, portalDesign } = useTheme();
+  const { theme, toggleTheme, portalDesign } = useTheme();
   const { colorPalette, timeFormat } = useSettings();
   const { user, logout } = useAuth();
   const { employees } = useEmployees();
@@ -119,10 +121,10 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
   });
 
   return (
-    <div className={`min-h-screen flex relative overflow-hidden ${isDark ? 'bg-[#020203] text-white' : 'bg-slate-50 text-slate-900'}`} style={layoutStyle}>
+    <div className={`min-h-screen flex relative overflow-hidden print:overflow-visible ${isDark ? 'bg-[#020203] text-white' : 'bg-slate-50 text-slate-900'}`} style={layoutStyle}>
       {/* Immersive Background Atmosphere */}
       {isDark && (
-        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="fixed inset-0 pointer-events-none overflow-hidden print:hidden z-0">
           {portalDesign === 'cosmic' && (
             <>
               <motion.div 
@@ -193,17 +195,17 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
       )}
 
       {/* Sidebar */}
-      <aside className={`${isSidebarOpen ? 'w-72' : 'w-24'} relative z-30 flex flex-col transition-all duration-500 shrink-0 border-r ${isDark ? 'bg-black/40 border-white/5 backdrop-blur-3xl' : 'bg-white/80 border-slate-200 backdrop-blur-xl'}`}>
+      <aside className={`${isSidebarOpen ? 'w-72 md:w-80 lg:w-96' : 'w-24 md:w-28'} relative z-30 flex flex-col transition-all duration-500 shrink-0 border-r print:hidden ${isDark ? 'bg-black/40 border-white/5 backdrop-blur-3xl' : 'bg-white/80 border-slate-200 backdrop-blur-xl'}`}>
         <div className={`p-6 flex items-center gap-4 border-b ${isDark ? 'border-white/5' : 'border-slate-100'} h-20`}>
           <motion.div 
             whileHover={{ rotate: 5, scale: 1.05 }}
-            className="bg-gradient-to-tr from-indigo-500 to-emerald-500 p-0.5 rounded-xl shrink-0 overflow-hidden w-10 h-10 flex items-center justify-center shadow-lg"
+            className="bg-gradient-to-tr from-indigo-500 to-emerald-500 p-0.5 rounded-xl shrink-0 overflow-hidden w-12 h-12 md:w-14 md:h-14 flex items-center justify-center shadow-lg"
           >
             <div className="w-full h-full rounded-[10px] bg-black flex items-center justify-center overflow-hidden">
               {company?.logo ? (
                 <img src={company.logo} alt="Logo" className="w-full h-full object-cover" />
               ) : (
-                <Building2 className="w-6 h-6 text-white" />
+                <Building2 className="w-7 h-7 md:w-8 md:h-8 text-white" />
               )}
             </div>
           </motion.div>
@@ -211,7 +213,7 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
             <motion.span 
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              className={`font-display font-black text-xl tracking-tighter truncate uppercase ${isDark ? 'text-white' : 'text-slate-800'}`}
+              className={`font-display font-black text-xl md:text-2xl lg:text-3xl tracking-tighter truncate uppercase ${isDark ? 'text-white' : 'text-slate-800'}`}
             >
               {company?.name || 'Employee Portal'}
             </motion.span>
@@ -224,7 +226,7 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
             <input 
               type="text" 
               placeholder={isSidebarOpen ? "SEARCH PROTOCOL..." : ""} 
-              className={`w-full pl-12 pr-4 py-3 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'} border rounded-2xl text-[10px] font-black tracking-widest focus:ring-1 focus:ring-indigo-500 outline-none transition-all uppercase`}
+              className={`w-full pl-12 pr-4 py-3 md:py-4 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'} border rounded-2xl text-xs md:text-sm font-black tracking-widest focus:ring-1 focus:ring-indigo-500 outline-none transition-all uppercase`}
             />
           </div>
         </div>
@@ -242,7 +244,7 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
                     <div className="space-y-1">
                       <button
                         onClick={() => toggleMenu(item.name)}
-                        className={`relative w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 group ${
+                        className={`relative w-full flex items-center justify-between px-4 py-4 md:py-5 rounded-2xl transition-all duration-300 group ${
                           isActive 
                             ? (isDark ? 'bg-white/5 text-white border border-white/10' : 'bg-white text-indigo-700 shadow-sm border border-slate-200') 
                             : (isDark ? 'text-slate-500 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-sm')
@@ -254,16 +256,16 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
                             className={`absolute left-0 top-2 bottom-2 w-1 rounded-r-full ${isDark ? 'bg-indigo-500' : 'bg-indigo-600'}`}
                           />
                         )}
-                        <div className="flex items-center gap-4">
-                          <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? (isDark ? 'text-indigo-400' : 'text-indigo-600') : ''}`} />
-                          {isSidebarOpen && <span className="font-black text-[14px] uppercase tracking-[0.2em]">{item.name}</span>}
+                        <div className="flex items-center gap-4 md:gap-6">
+                          <Icon className={`w-6 h-6 md:w-7 md:h-7 transition-transform duration-300 group-hover:scale-110 ${isActive ? (isDark ? 'text-indigo-400' : 'text-indigo-600') : ''}`} />
+                          {isSidebarOpen && <span className="font-black text-sm md:text-base lg:text-lg uppercase tracking-[0.15em]">{item.name}</span>}
                         </div>
                         {isSidebarOpen && (
                           <motion.div
                             animate={{ rotate: isOpen ? 180 : 0 }}
                             transition={{ duration: 0.3 }}
                           >
-                            <ChevronDown className="w-4 h-4 opacity-50" />
+                            <ChevronDown className="w-5 h-5 md:w-6 md:h-6 opacity-50" />
                           </motion.div>
                         )}
                       </button>
@@ -279,7 +281,7 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
                               <li key={subItem.name}>
                                 <Link
                                   to={subItem.path}
-                                  className={`block px-6 py-2.5 text-[14px] font-black uppercase tracking-widest rounded-xl transition-all ${
+                                  className={`block px-6 py-3 md:py-4 text-sm md:text-base lg:text-lg font-black uppercase tracking-widest rounded-xl transition-all ${
                                     location.pathname === subItem.path
                                       ? (isDark ? 'text-indigo-400 bg-white/5' : 'text-indigo-700 bg-indigo-50/50')
                                       : (isDark ? 'text-slate-500 hover:text-slate-300 hover:bg-white/5' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50')
@@ -296,7 +298,7 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
                   ) : (
                     <Link
                       to={item.path!}
-                      className={`relative flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group ${
+                      className={`relative flex items-center gap-4 md:gap-6 px-4 py-4 md:py-5 rounded-2xl transition-all duration-300 group ${
                         isActive 
                           ? (isDark ? 'bg-white/5 text-white border border-white/10 shadow-lg shadow-indigo-500/10' : 'bg-white text-indigo-700 shadow-sm border border-slate-200') 
                           : (isDark ? 'text-slate-500 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-sm')
@@ -308,8 +310,8 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
                           className={`absolute left-0 top-2 bottom-2 w-1 rounded-r-full ${isDark ? 'bg-indigo-500' : 'bg-indigo-600'}`}
                         />
                       )}
-                      <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? (isDark ? 'text-indigo-400' : 'text-indigo-600') : ''}`} />
-                      {isSidebarOpen && <span className="font-black text-[10px] uppercase tracking-[0.2em]">{item.name}</span>}
+                      <Icon className={`w-6 h-6 md:w-7 md:h-7 transition-transform duration-300 group-hover:scale-110 ${isActive ? (isDark ? 'text-indigo-400' : 'text-indigo-600') : ''}`} />
+                      {isSidebarOpen && <span className="font-black text-sm md:text-base lg:text-lg uppercase tracking-[0.15em]">{item.name}</span>}
                     </Link>
                   )}
                 </li>
@@ -321,17 +323,17 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
         <div className="p-6 border-t border-white/5">
           <button 
             onClick={handleLogout}
-            className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group ${isDark ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'}`}
+            className={`w-full flex items-center gap-4 md:gap-6 px-4 py-4 md:py-5 rounded-2xl transition-all duration-300 group ${isDark ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'}`}
           >
-            <LogOut className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
-            {isSidebarOpen && <span className="font-black text-[14px] uppercase tracking-[0.2em]">Logout</span>}
+            <LogOut className="w-6 h-6 md:w-7 md:h-7 transition-transform group-hover:-translate-x-1" />
+            {isSidebarOpen && <span className="font-black text-sm md:text-base lg:text-lg uppercase tracking-[0.15em]">Logout</span>}
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10">
-        <header className={`h-20 relative z-20 flex items-center justify-between px-8 border-b ${isDark ? 'bg-black/20 border-white/5 backdrop-blur-3xl' : 'bg-white/80 border-slate-200 backdrop-blur-xl'}`}>
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden print:overflow-visible relative z-10">
+        <header className={`h-20 relative z-20 flex items-center justify-between px-8 border-b print:hidden ${isDark ? 'bg-black/20 border-white/5 backdrop-blur-3xl' : 'bg-white/80 border-slate-200 backdrop-blur-xl'}`}>
           <div className="flex items-center gap-6">
             <motion.button 
               whileTap={{ scale: 0.9 }}
@@ -341,17 +343,25 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
               <Menu className="w-5 h-5" />
             </motion.button>
             <div className="h-6 w-px bg-white/10 hidden md:block" />
-            <div className="hidden md:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-              <Activity className="w-3 h-3 text-emerald-500" />
+            <div className="hidden md:flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-500">
+              <Activity className="w-4 h-4 text-emerald-500" />
               System Status: <span className="text-emerald-500 animate-pulse">Operational</span>
             </div>
           </div>
           
           <div className="flex items-center gap-6">
+            <motion.button 
+              whileTap={{ scale: 0.9 }}
+              onClick={toggleTheme}
+              className={`p-2.5 rounded-xl transition-all ${isDark ? 'hover:bg-white/5 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-600'}`}
+              aria-label="Toggle theme"
+            >
+              {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+            </motion.button>
             <div className="flex items-center gap-4 pl-6 border-l border-white/10">
               <div className="text-right hidden sm:block">
-                <p className={`text-[10px] font-black uppercase tracking-widest ${isDark ? 'text-white' : 'text-slate-700'}`}>{currentEmployee?.name || user?.name || 'Employee'}</p>
-                <p className={`text-[9px] font-mono uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>{currentEmployee?.designation || 'Protocol Officer'}</p>
+                <p className={`text-xs md:text-sm font-black uppercase tracking-widest ${isDark ? 'text-white' : 'text-slate-700'}`}>{currentEmployee?.name || user?.name || 'Employee'}</p>
+                <p className={`text-[10px] md:text-xs font-mono uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>{currentEmployee?.designation || 'Protocol Officer'}</p>
               </div>
               <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-500 to-emerald-500 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-500" />
@@ -374,7 +384,7 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
           </div>
         </header>
 
-        <div className="flex-1 overflow-auto p-8 custom-scrollbar">
+        <div className="flex-1 overflow-auto print:overflow-visible p-8 custom-scrollbar">
           <div className="max-w-[1600px] mx-auto">
             <AnimatePresence mode="wait">
               <motion.div
@@ -389,18 +399,18 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
                     <motion.button
                       whileHover={{ x: -4 }}
                       onClick={() => navigate(-1)}
-                      className={`flex items-center gap-3 px-5 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border ${
+                      className={`flex items-center gap-3 px-5 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all border ${
                         isDark 
                           ? 'text-white bg-white/5 border-white/10 hover:bg-white/10' 
                           : 'text-slate-600 bg-white border-slate-200 hover:bg-slate-50'
                       } shadow-sm`}
                     >
-                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <ArrowLeft className="w-4 h-4" />
                       Protocol Return
                     </motion.button>
                     <Link
                       to="/employee-portal/dashboard"
-                      className={`flex items-center gap-3 px-5 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border ${
+                      className={`flex items-center gap-3 px-5 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all border ${
                         isDark 
                           ? 'text-white bg-white/5 border-white/10 hover:bg-white/10' 
                           : 'text-slate-600 bg-white border-slate-200 hover:bg-slate-50'

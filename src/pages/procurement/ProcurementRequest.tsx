@@ -8,10 +8,13 @@ import {
   Edit3, 
   Send,
   FileText,
-  Mail
+  Mail,
+  Loader2
 } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
+import { useCompanyData } from '../../context/CompanyDataContext';
+import { useNavigate } from 'react-router-dom';
 
 interface RequestItem {
   id: string;
@@ -22,13 +25,16 @@ interface RequestItem {
 
 export default function ProcurementRequest() {
   const { theme } = useTheme();
+  const { addEntity } = useCompanyData();
   const isDark = theme === 'dark';
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [requestData, setRequestData] = useState({
-    employeeName: 'John Doe',
-    employeeId: 'EMP001',
-    department: 'Engineering',
+    employeeName: '',
+    employeeId: '',
+    department: '',
     requestDate: new Date().toISOString().split('T')[0],
     priority: 'Normal',
     status: 'Pending',
@@ -36,8 +42,7 @@ export default function ProcurementRequest() {
   });
 
   const [items, setItems] = useState<RequestItem[]>([
-    { id: '1', itemName: 'Stationery - Pens', quantity: 10, description: 'Blue ink ballpoint pens' },
-    { id: '2', itemName: 'Computer Item - Mouse', quantity: 1, description: 'Ergonomic wireless mouse' },
+    { id: '1', itemName: '', quantity: 1, description: '' },
   ]);
 
   const handleDataChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -57,10 +62,55 @@ export default function ProcurementRequest() {
     setItems(items.map(item => item.id === id ? { ...item, [field]: value } : item));
   };
 
-  const handleSendRequest = () => {
-    // Simulate sending email
-    alert(`Request sent to HR (${requestData.hrEmail}) successfully!`);
-    setIsEditing(false);
+  const handleSaveRequest = async () => {
+    if (!requestData.employeeName || items.some(item => !item.itemName)) {
+      alert("Please fill in all required fields (Employee Name and Item Names)");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const payload = {
+        ...requestData,
+        items,
+        createdAt: new Date().toISOString(),
+      };
+      await addEntity('procurementRequests', payload);
+      alert("Procurement request saved successfully!");
+      setIsEditing(false);
+      navigate('/procurement/history');
+    } catch (error) {
+      console.error("Error saving procurement request:", error);
+      alert("Failed to save request");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSendRequest = async () => {
+    if (!requestData.employeeName || items.some(item => !item.itemName)) {
+      alert("Please fill in all required fields before sending");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const payload = {
+        ...requestData,
+        items,
+        status: 'Sent',
+        sentAt: new Date().toISOString(),
+      };
+      await addEntity('procurementRequests', payload);
+      alert(`Request sent to HR (${requestData.hrEmail}) successfully!`);
+      setIsEditing(false);
+      navigate('/procurement/history');
+    } catch (error) {
+      console.error("Error sending procurement request:", error);
+      alert("Failed to send request");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -82,10 +132,19 @@ export default function ProcurementRequest() {
               {isEditing ? 'Save Draft' : 'Edit Request'}
             </button>
             <button 
-              onClick={handleSendRequest}
-              className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-emerald-700"
+              onClick={handleSaveRequest}
+              disabled={isSaving}
+              className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700 disabled:opacity-50"
             >
-              <Mail className="w-4 h-4" />
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Save Request
+            </button>
+            <button 
+              onClick={handleSendRequest}
+              disabled={isSaving}
+              className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-emerald-700 disabled:opacity-50"
+            >
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
               Send to HR
             </button>
           </div>

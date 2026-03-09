@@ -11,6 +11,9 @@ import {
   Search
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 import AdminLayout from '../components/AdminLayout';
 import { useCompanyData } from '../context/CompanyDataContext';
@@ -89,6 +92,46 @@ export default function DepartmentList() {
     await updateEntity('departments', id, { isDeleted: false, deletedAt: null });
   };
 
+  const handleExportExcel = () => {
+    const exportData = filteredDepartments.map((dept, index) => ({
+      'Sl': index + 1,
+      'Department Name': dept.name,
+      'Head of Department': dept.head,
+      'Status': dept.status
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Departments");
+    XLSX.writeFile(wb, "Departments_List.xlsx");
+  };
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    
+    doc.setFontSize(16);
+    doc.text("Departments List", 14, 20);
+    
+    const tableColumn = ["Sl", "Department Name", "Head of Department", "Status"];
+    const tableRows = filteredDepartments.map((dept, index) => [
+      index + 1,
+      dept.name,
+      dept.head,
+      dept.status
+    ]);
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 30,
+      theme: 'grid',
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [79, 70, 229] }
+    });
+
+    doc.save("Departments_List.pdf");
+  };
+
   const filteredDepartments = departments.filter(d => {
     const matchesSearch = d.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          d.head.toLowerCase().includes(searchTerm.toLowerCase());
@@ -124,8 +167,8 @@ export default function DepartmentList() {
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1">
-                  <button className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5"><FileSpreadsheet className="w-3.5 h-3.5" /> Excel</button>
-                  <button className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5"><FilePdf className="w-3.5 h-3.5" /> PDF</button>
+                  <button onClick={handleExportExcel} className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838] transition-colors"><FileSpreadsheet className="w-3.5 h-3.5" /> Excel</button>
+                  <button onClick={handleExportPDF} className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838] transition-colors"><FilePdf className="w-3.5 h-3.5" /> PDF</button>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-slate-600">Search:</span>

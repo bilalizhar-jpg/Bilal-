@@ -2,8 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { UploadCloud, X, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import { getJobs, subscribeToJobs, Job } from '../../utils/jobStore';
-import { saveApplication } from '../../utils/applicationStore';
+import { saveApplication, uploadCV } from '../../utils/applicationStore';
 import { useAuth } from '../../context/AuthContext';
+import { evaluateCVMatch } from '../../utils/cvMatcher';
 
 export default function BulkCVUpload() {
   const { user } = useAuth();
@@ -57,15 +58,53 @@ export default function BulkCVUpload() {
       // In a real application, you would parse the files here and send them to your backend.
       // For now, we just acknowledge the upload.
       for (const file of files) {
+        let matchPercentage = Math.floor(Math.random() * 40) + 60;
+        let cvUrl = '';
+        let extractedInfo: any = {};
+        let cvText = '';
+        
+        try {
+          cvUrl = await uploadCV(user?.companyId || 'default', selectedJobId, file);
+        } catch (uploadError) {
+          console.error("Failed to upload CV for", file.name, uploadError);
+        }
+        
+        try {
+          const result = await evaluateCVMatch(
+            file,
+            selectedJob.description || '',
+            selectedJob.title
+          );
+          matchPercentage = result.matchPercentage;
+          extractedInfo = result.extractedInfo;
+          cvText = result.cvText;
+        } catch (matchError) {
+          console.error("Failed to calculate match percentage for", file.name, matchError);
+        }
+
+        let candidateEmail = extractedInfo.email;
+        if (!candidateEmail && cvText) {
+          const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+          const matches = cvText.match(emailRegex);
+          if (matches && matches.length > 0) {
+            candidateEmail = matches[0];
+          }
+        }
+
         await saveApplication({
           companyId: user?.companyId || 'default',
           jobId: selectedJobId,
           jobTitle: selectedJob.title,
-          candidateName: file.name.split('.')[0], // Mock name from filename
-          email: `${file.name.split('.')[0].toLowerCase().replace(/\s+/g, '.')}@example.com`,
-          phone: '+1234567890',
+          candidateName: extractedInfo.name || file.name.split('.')[0],
+          email: candidateEmail || `${file.name.split('.')[0].toLowerCase().replace(/\s+/g, '.')}@example.com`,
+          phone: extractedInfo.phone || '+1234567890',
           cvFileName: file.name,
-          matchPercentage: Math.floor(Math.random() * 40) + 60 // Mock 60-100%
+          cvUrl: cvUrl,
+          matchPercentage: matchPercentage,
+          skills: extractedInfo.skills || [],
+          education: extractedInfo.education || '',
+          location: extractedInfo.location || '',
+          cvText: cvText
         });
       }
       

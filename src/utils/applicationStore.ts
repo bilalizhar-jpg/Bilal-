@@ -83,6 +83,6 @@ export const updateApplicationStage = async (id: string, stage: Application['sta
 
 export const uploadCV = async (companyId: string, jobId: string, file: File): Promise<string> => {
   const fileRef = ref(storage, `companies/${companyId}/jobs/${jobId}/applications/${Date.now()}_${file.name}`);
-  await uploadBytes(fileRef, file);
+  await uploadBytes(fileRef, file, { contentType: file.type });
   return getDownloadURL(fileRef);
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   Plus, 
@@ -8,49 +8,109 @@ import {
   Edit3, 
   Trash2,
   Filter,
-  FileText
+  FileText,
+  Loader2
 } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
 import { Link } from 'react-router-dom';
+import { getAppraisals, deleteAppraisal, AppraisalRecord } from '../../utils/appraisalStore';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
-interface AppraisalRecord {
-  id: string;
-  employeeName: string;
-  employeeId: string;
-  department: string;
-  appraisalDate: string;
-  period: string;
-  score: number;
-  status: 'Draft' | 'Completed';
+// Add type definition for jspdf-autotable
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+  }
 }
-
-const initialRecords: AppraisalRecord[] = [
-  { id: '1', employeeName: 'John Doe', employeeId: 'EMP001', department: 'Engineering', appraisalDate: '2026-02-20', period: 'Annual 2025', score: 85, status: 'Completed' },
-  { id: '2', employeeName: 'Jane Smith', employeeId: 'EMP002', department: 'Design', appraisalDate: '2026-02-25', period: 'Annual 2025', score: 92, status: 'Completed' },
-  { id: '3', employeeName: 'Robert Johnson', employeeId: 'EMP003', department: 'Marketing', appraisalDate: '2026-02-27', period: 'Annual 2025', score: 78, status: 'Draft' },
-];
 
 export default function PerformanceAppraisalList() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const [searchTerm, setSearchTerm] = useState('');
-  const [records, setRecords] = useState<AppraisalRecord[]>(initialRecords);
+  const [records, setRecords] = useState<AppraisalRecord[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleDelete = (id: string) => {
+  useEffect(() => {
+    fetchRecords();
+  }, []);
+
+  const fetchRecords = async () => {
+    setLoading(true);
+    try {
+      const data = await getAppraisals();
+      setRecords(data);
+    } catch (error) {
+      console.error("Error fetching appraisals:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this appraisal record?')) {
-      setRecords(records.filter(r => r.id !== id));
+      try {
+        await deleteAppraisal(id);
+        setRecords(records.filter(r => r.id !== id));
+      } catch (error) {
+        alert("Failed to delete record");
+      }
     }
   };
 
   const handleDownload = (format: string) => {
-    alert(`Downloading appraisal list as ${format}`);
+    if (records.length === 0) {
+      alert("No data to export");
+      return;
+    }
+
+    const exportData = records.map((r, idx) => ({
+      'Sl': idx + 1,
+      'Employee Name': r.employeeName,
+      'Employee ID': r.employeeId,
+      'Department': r.department,
+      'Appraisal Date': r.appraisalDate,
+      'Period': r.period,
+      'Score': `${r.score}%`,
+      'Status': r.status
+    }));
+
+    if (format === 'CSV' || format === 'Excel') {
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Appraisals");
+      XLSX.writeFile(wb, `Appraisal_List_${new Date().toISOString().split('T')[0]}.${format === 'CSV' ? 'csv' : 'xlsx'}`);
+    } else if (format === 'PDF') {
+      const doc = new jsPDF();
+      doc.text("Performance Appraisal List", 14, 15);
+      
+      const tableColumn = ["Sl", "Employee Name", "Employee ID", "Department", "Appraisal Date", "Period", "Score", "Status"];
+      const tableRows = exportData.map(item => [
+        item.Sl,
+        item['Employee Name'],
+        item['Employee ID'],
+        item.Department,
+        item['Appraisal Date'],
+        item.Period,
+        item.Score,
+        item.Status
+      ]);
+
+      doc.autoTable({
+        head: [tableColumn],
+        body: tableRows,
+        startY: 20,
+      });
+      doc.save(`Appraisal_List_${new Date().toISOString().split('T')[0]}.pdf`);
+    }
   };
 
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center no-print">
           <h2 className="text-xl font-bold text-slate-800 dark:text-white">Performance Appraisal List</h2>
           <Link 
             to="/performance/appraisal-report"
@@ -62,7 +122,7 @@ export default function PerformanceAppraisalList() {
         </div>
 
         {/* Filter Card */}
-        <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm overflow-hidden`}>
+        <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm overflow-hidden no-print`}>
           <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
             <h2 className="font-bold text-slate-800 dark:text-white">Filter Appraisals</h2>
             <button className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838]">
@@ -93,7 +153,7 @@ export default function PerformanceAppraisalList() {
         {/* Table Card */}
         <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm overflow-hidden`}>
           <div className="p-6 space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-4 no-print">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-slate-500">Show</span>
                 <select className={`border rounded px-2 py-1 text-sm ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}>
@@ -124,11 +184,26 @@ export default function PerformanceAppraisalList() {
                     <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Period</th>
                     <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Score</th>
                     <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Status</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Action</th>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase no-print">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {records.filter(r => r.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) || r.employeeId.toLowerCase().includes(searchTerm.toLowerCase())).map((record, idx) => (
+                  {loading ? (
+                    <tr>
+                      <td colSpan={9} className="px-4 py-8 text-center">
+                        <div className="flex flex-col items-center gap-2">
+                          <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+                          <p className="text-sm text-slate-500">Loading appraisals...</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : records.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="px-4 py-8 text-center text-slate-500 text-sm">
+                        No appraisal records found.
+                      </td>
+                    </tr>
+                  ) : records.filter(r => r.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) || r.employeeId.toLowerCase().includes(searchTerm.toLowerCase())).map((record, idx) => (
                     <tr key={record.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                       <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{idx + 1}</td>
                       <td className="px-4 py-3 text-sm font-medium text-slate-800 dark:text-white">{record.employeeName}</td>
@@ -153,7 +228,7 @@ export default function PerformanceAppraisalList() {
                           {record.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm">
+                      <td className="px-4 py-3 text-sm no-print">
                         <div className="flex gap-2">
                           <Link 
                             to={`/performance/appraisal-report?id=${record.id}`}

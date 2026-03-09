@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
-import { useChat, Chat } from '../../context/ChatContext';
+import { useChat, Chat, Invitation } from '../../context/ChatContext';
 import { useEmployees } from '../../context/EmployeeContext';
 import { useAuth } from '../../context/AuthContext';
 import { Search, Hash, Plus, Send, Video, Info, MoreVertical, Smile, Paperclip, X, Trash2, Users, UserPlus, MessageSquare, Phone } from 'lucide-react';
@@ -16,7 +16,9 @@ export default function Messages() {
   const [newMessage, setNewMessage] = useState('');
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showVideoCall, setShowVideoCall] = useState(false);
+  const [scheduledTime, setScheduledTime] = useState('');
   const [incomingCall, setIncomingCall] = useState<Invitation | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -84,6 +86,16 @@ export default function Messages() {
           <div className={`p-4 border-b ${isDark ? 'border-slate-800' : 'border-slate-200'} flex justify-between items-center`}>
             <h2 className={`font-bold text-lg ${isDark ? 'text-white' : 'text-slate-800'}`}>Messages</h2>
             <div className="flex gap-1">
+              <button 
+                onClick={() => {
+                  // Logic to start a video call with a selected user or show a list
+                  alert('Select a user to start a video call');
+                }}
+                title="Start Video Call"
+                className={`p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-800 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+              >
+                <Video className="w-4 h-4" />
+              </button>
               <button 
                 onClick={() => setShowCreateGroupModal(true)}
                 title="Create Group"
@@ -167,15 +179,7 @@ export default function Messages() {
               </div>
               <div className="flex items-center gap-2">
                 <button 
-                  onClick={() => {
-                    if (activeChat) {
-                      const otherUserId = activeChat.participants.find(p => p !== user?.id);
-                      if (otherUserId) {
-                        sendInvitation(otherUserId, 'videoCall');
-                        alert('Video call invitation sent!');
-                      }
-                    }
-                  }}
+                  onClick={() => setShowScheduleModal(true)}
                   className={`p-3 rounded-full ${isDark ? 'bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30' : 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200'} transition-all`}
                   title="Start Video Call"
                 >
@@ -331,7 +335,47 @@ export default function Messages() {
         />
       )}
 
-      {/* Video Call Modal (Simulated) */}
+      {/* Schedule Video Call Modal */}
+      {showScheduleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className={`w-full max-w-md p-6 rounded-xl shadow-xl ${isDark ? 'bg-slate-900 border border-slate-800' : 'bg-white'}`}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Schedule Video Call</h3>
+              <button onClick={() => setShowScheduleModal(false)} className="text-slate-500 hover:text-slate-700">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Select Date and Time</label>
+              <input
+                type="datetime-local"
+                value={scheduledTime}
+                onChange={(e) => setScheduledTime(e.target.value)}
+                className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'} focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+              />
+            </div>
+
+            <button
+              onClick={() => {
+                if (activeChat && scheduledTime) {
+                  const otherUserId = activeChat.participants.find(p => p !== user?.id);
+                  if (otherUserId) {
+                    sendInvitation(otherUserId, 'videoCall', undefined, undefined, new Date(scheduledTime));
+                    alert('Video call invitation sent!');
+                    setShowScheduleModal(false);
+                    setScheduledTime('');
+                  }
+                }
+              }}
+              disabled={!scheduledTime}
+              className="w-full py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+            >
+              Send Invitation
+            </button>
+          </div>
+        </div>
+      )}
       {showVideoCall && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
           <div className="relative w-full max-w-4xl aspect-video bg-slate-900 rounded-xl overflow-hidden shadow-2xl border border-slate-800">

@@ -34,6 +34,8 @@ interface CompanyDataContextType {
   payrollBatches: DataEntity[];
   salaryRecords: DataEntity[];
   orgChartTemplates: DataEntity[];
+  procurementRequests: DataEntity[];
+  procurementSettings: DataEntity[];
   loading: boolean;
   addEntity: (collectionName: string, data: any) => Promise<void>;
   updateEntity: (collectionName: string, id: string, data: any) => Promise<void>;
@@ -66,6 +68,8 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
   const [payrollBatches, setPayrollBatches] = useState<DataEntity[]>([]);
   const [salaryRecords, setSalaryRecords] = useState<DataEntity[]>([]);
   const [orgChartTemplates, setOrgChartTemplates] = useState<DataEntity[]>([]);
+  const [procurementRequests, setProcurementRequests] = useState<DataEntity[]>([]);
+  const [procurementSettings, setProcurementSettings] = useState<DataEntity[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -88,7 +92,9 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
       { name: 'payrolls', setter: setPayrolls },
       { name: 'payrollBatches', setter: setPayrollBatches },
       { name: 'salaryRecords', setter: setSalaryRecords },
-      { name: 'orgChartTemplates', setter: setOrgChartTemplates }
+      { name: 'orgChartTemplates', setter: setOrgChartTemplates },
+      { name: 'procurementRequests', setter: setProcurementRequests },
+      { name: 'procurementSettings', setter: setProcurementSettings }
     ];
 
     const unsubscribes = collections.map(({ name, setter }) => {
@@ -148,6 +154,8 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
       payrollBatches,
       salaryRecords,
       orgChartTemplates,
+      procurementRequests,
+      procurementSettings,
       loading,
       addEntity,
       updateEntity,

@@ -17,6 +17,16 @@ import {
 import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
 import { useCompanyData } from '../../context/CompanyDataContext';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+
+// Add type definition for jspdf-autotable
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF;
+  }
+}
 
 interface Asset {
   id: string;
@@ -38,7 +48,12 @@ export default function AssetManagement() {
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this asset record?')) {
-      await deleteEntity('assets', id);
+      try {
+        await deleteEntity('assets', id);
+      } catch (error) {
+        console.error("Error deleting asset:", error);
+        alert("Failed to delete asset record. Please try again.");
+      }
     }
   };
 
@@ -58,6 +73,51 @@ export default function AssetManagement() {
     await addEntity('assets', newAsset);
   };
 
+  const handleDownload = (format: string) => {
+    if (assets.length === 0) {
+      alert("No data to export");
+      return;
+    }
+
+    const exportData = assets.map((a, idx) => ({
+      'Sl': idx + 1,
+      'Asset Type': a.assetType,
+      'Asset Name': a.assetName,
+      'Serial Number': a.serialNumber,
+      'Assigned To': a.assignedTo || 'Unassigned',
+      'Assigned Date': a.assignedDate || '-',
+      'Status': a.status
+    }));
+
+    if (format === 'CSV' || format === 'Excel') {
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Assets");
+      XLSX.writeFile(wb, `Asset_Inventory_${new Date().toISOString().split('T')[0]}.${format === 'CSV' ? 'csv' : 'xlsx'}`);
+    } else if (format === 'PDF') {
+      const doc = new jsPDF();
+      doc.text("Company Asset Inventory", 14, 15);
+      
+      const tableColumn = ["Sl", "Asset Type", "Asset Name", "Serial Number", "Assigned To", "Assigned Date", "Status"];
+      const tableRows = exportData.map(item => [
+        item.Sl,
+        item['Asset Type'],
+        item['Asset Name'],
+        item['Serial Number'],
+        item['Assigned To'],
+        item['Assigned Date'],
+        item.Status
+      ]);
+
+      doc.autoTable({
+        head: [tableColumn],
+        body: tableRows,
+        startY: 20,
+      });
+      doc.save(`Asset_Inventory_${new Date().toISOString().split('T')[0]}.pdf`);
+    }
+  };
+
   const getAssetIcon = (type: string) => {
     switch (type) {
       case 'Computer': return <Laptop className="w-4 h-4" />;
@@ -73,7 +133,7 @@ export default function AssetManagement() {
       <div className="space-y-6 pb-12">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold text-slate-800 dark:text-white">Company Asset Management</h2>
-          <div className="flex gap-2">
+          <div className="flex gap-2 no-print">
             <button 
               onClick={handleAddNew}
               className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-indigo-700"
@@ -81,7 +141,10 @@ export default function AssetManagement() {
               <Plus className="w-4 h-4" />
               Add New Asset
             </button>
-            <button className="bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-slate-700">
+            <button 
+              onClick={() => window.print()}
+              className="bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-slate-700"
+            >
               <Printer className="w-4 h-4" />
               Print Inventory
             </button>
@@ -97,7 +160,7 @@ export default function AssetManagement() {
         </div>
 
         {/* Search & Filter */}
-        <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm p-4 flex flex-wrap items-center gap-4`}>
+        <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm p-4 flex flex-wrap items-center justify-between gap-4 no-print`}>
           <div className="flex-1 min-w-[200px] relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input 
@@ -108,10 +171,15 @@ export default function AssetManagement() {
               className={`w-full pl-10 pr-4 py-2 border rounded-md text-sm outline-none focus:ring-1 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
             />
           </div>
-          <button className={`flex items-center gap-2 px-4 py-2 border rounded-md text-sm font-medium ${isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
-            <Filter className="w-4 h-4" />
-            Filter
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => handleDownload('CSV')} className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838]">CSV</button>
+            <button onClick={() => handleDownload('Excel')} className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838]">Excel</button>
+            <button onClick={() => handleDownload('PDF')} className="bg-red-600 text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-red-700">PDF</button>
+            <button className={`flex items-center gap-2 px-4 py-2 border rounded-md text-sm font-medium ${isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
+              <Filter className="w-4 h-4" />
+              Filter
+            </button>
+          </div>
         </div>
 
         {/* Assets Table */}
@@ -126,7 +194,7 @@ export default function AssetManagement() {
                   <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Assigned To</th>
                   <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Assigned Date</th>
                   <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Status</th>
-                  <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase text-right">Action</th>
+                  <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase text-right no-print">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -208,7 +276,7 @@ export default function AssetManagement() {
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-sm text-right">
+                    <td className="px-4 py-3 text-sm text-right no-print">
                       <div className="flex justify-end gap-2">
                         <button 
                           onClick={() => setEditingId(editingId === asset.id ? null : asset.id)}

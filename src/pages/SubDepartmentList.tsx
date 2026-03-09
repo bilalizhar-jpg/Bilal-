@@ -31,6 +31,10 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
 import AdminLayout from '../components/AdminLayout';
 import { useTheme } from '../context/ThemeContext';
 import { useCompanyData } from '../context/CompanyDataContext';
@@ -111,6 +115,46 @@ export default function SubDepartmentList() {
     await updateEntity('subDepartments', id, { isDeleted: false, deletedAt: null });
   };
 
+  const handleExportExcel = () => {
+    const exportData = filteredSubDepartments.map((sub, index) => ({
+      'Sl': index + 1,
+      'Sub Department Name': sub.name,
+      'Department Name': sub.parentDept,
+      'Status': sub.status
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "SubDepartments");
+    XLSX.writeFile(wb, "SubDepartments_List.xlsx");
+  };
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    
+    doc.setFontSize(16);
+    doc.text("Sub Departments List", 14, 20);
+    
+    const tableColumn = ["Sl", "Sub Department Name", "Department Name", "Status"];
+    const tableRows = filteredSubDepartments.map((sub, index) => [
+      index + 1,
+      sub.name,
+      sub.parentDept,
+      sub.status
+    ]);
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 30,
+      theme: 'grid',
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [79, 70, 229] }
+    });
+
+    doc.save("SubDepartments_List.pdf");
+  };
+
   const filteredSubDepartments = subDepartments.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          s.parentDept.toLowerCase().includes(searchTerm.toLowerCase());
@@ -146,8 +190,8 @@ export default function SubDepartmentList() {
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1">
-                  <button className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5"><FileSpreadsheet className="w-3.5 h-3.5" /> Excel</button>
-                  <button className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5"><FilePdf className="w-3.5 h-3.5" /> PDF</button>
+                  <button onClick={handleExportExcel} className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838] transition-colors"><FileSpreadsheet className="w-3.5 h-3.5" /> Excel</button>
+                  <button onClick={handleExportPDF} className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838] transition-colors"><FilePdf className="w-3.5 h-3.5" /> PDF</button>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-slate-600">Search:</span>

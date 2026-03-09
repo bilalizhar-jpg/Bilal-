@@ -26,8 +26,16 @@ export default function JobCandidates() {
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [fromEmail, setFromEmail] = useState('adamrecruiterz@gmail.com');
+  const [toEmail, setToEmail] = useState('');
   const [emailSubject, setEmailSubject] = useState('');
   const [emailBody, setEmailBody] = useState('');
+
+  useEffect(() => {
+    if (user?.email) {
+      setFromEmail(user.email);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!user?.companyId || !jobId) return;
@@ -80,6 +88,20 @@ export default function JobCandidates() {
 
   const openEmailModal = () => {
     if (selectedApp) {
+      // Try to extract email from CV text if not present or if it's a placeholder
+      let targetEmail = selectedApp.email;
+      const isPlaceholder = targetEmail?.includes('@example.com') || targetEmail?.includes('placeholder.com');
+      
+      if ((!targetEmail || isPlaceholder) && selectedApp.cvText) {
+        const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+        const matches = selectedApp.cvText.match(emailRegex);
+        if (matches && matches.length > 0) {
+          // Filter out common false positives if any, or just take the first one
+          targetEmail = matches[0];
+        }
+      }
+      
+      setToEmail(targetEmail || '');
       setEmailSubject(`Regarding your application for ${selectedApp.jobTitle}`);
       setEmailBody(`Dear ${selectedApp.candidateName},\n\nThank you for your application for the ${selectedApp.jobTitle} position.\n\nBest regards,\nHR Team`);
       setIsEmailModalOpen(true);
@@ -94,7 +116,7 @@ export default function JobCandidates() {
 
   const handleSendEmail = () => {
     // In a real application, this would send an email via an API
-    alert(`Email sent to ${selectedApp?.email} with subject: ${emailSubject}`);
+    alert(`Email sent from ${fromEmail} to ${toEmail} with subject: ${emailSubject}`);
     closeEmailModal();
   };
 
@@ -236,7 +258,13 @@ export default function JobCandidates() {
                   Email Candidate
                 </button>
                 <button 
-                  onClick={() => alert(`Downloading ${selectedApp.cvFileName}...`)}
+                  onClick={() => {
+                    if (selectedApp.cvUrl) {
+                      window.open(selectedApp.cvUrl, '_blank');
+                    } else {
+                      alert(`CV file not available for download.`);
+                    }
+                  }}
                   className="flex items-center gap-2 px-3 py-1.5 border border-slate-300 text-slate-700 rounded text-sm font-medium hover:bg-slate-50 transition-colors"
                 >
                   <Download className="w-4 h-4" />
@@ -324,20 +352,28 @@ export default function JobCandidates() {
 
               {/* CV Preview Area */}
               <div className="flex-1 bg-slate-200 p-6 overflow-y-auto flex items-center justify-center relative">
-                <div className="bg-white w-full max-w-2xl min-h-[800px] shadow-sm p-12 flex flex-col items-center justify-center text-slate-400 border border-slate-300">
-                  <FileText className="w-16 h-16 mb-4 text-slate-300" />
-                  <p className="text-lg font-medium text-slate-500">CV Preview</p>
-                  <p className="text-sm mt-2">{selectedApp.cvFileName}</p>
-                  <p className="text-xs mt-4 max-w-md text-center">
-                    In a real application, this area would render the PDF or DOCX file using a library like react-pdf or by rendering an iframe if the file is hosted.
-                  </p>
-                  {selectedApp.cvText && (
-                    <div className="mt-8 p-4 bg-slate-50 border border-slate-200 rounded text-sm text-slate-600 text-left w-full max-w-lg">
-                      <h5 className="font-semibold mb-2">Extracted Content (Mock):</h5>
-                      <p>{selectedApp.cvText}</p>
-                    </div>
-                  )}
-                </div>
+                {selectedApp.cvUrl ? (
+                  <iframe
+                    src={selectedApp.cvFileName.toLowerCase().endsWith('.pdf') ? selectedApp.cvUrl : `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(selectedApp.cvUrl)}`}
+                    className="w-full h-full min-h-[800px] bg-white shadow-sm border border-slate-300"
+                    title="CV Preview"
+                  />
+                ) : (
+                  <div className="bg-white w-full max-w-2xl min-h-[800px] shadow-sm p-12 flex flex-col items-center justify-center text-slate-400 border border-slate-300">
+                    <FileText className="w-16 h-16 mb-4 text-slate-300" />
+                    <p className="text-lg font-medium text-slate-500">CV Preview</p>
+                    <p className="text-sm mt-2">{selectedApp.cvFileName}</p>
+                    <p className="text-xs mt-4 max-w-md text-center">
+                      CV file is not available for preview.
+                    </p>
+                    {selectedApp.cvText && (
+                      <div className="mt-8 p-4 bg-slate-50 border border-slate-200 rounded text-sm text-slate-600 text-left w-full max-w-lg">
+                        <h5 className="font-semibold mb-2">Extracted Content (Mock):</h5>
+                        <p>{selectedApp.cvText}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -360,16 +396,22 @@ export default function JobCandidates() {
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">From</label>
-                <input type="text" value="adamrecruiterz@gmail.com" disabled className="w-full px-3 py-2 border border-slate-300 rounded-md bg-slate-50 text-slate-500 text-sm" />
+                <input 
+                  type="email" 
+                  value={fromEmail} 
+                  onChange={(e) => setFromEmail(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:border-[#1976d2] focus:ring-1 focus:ring-[#1976d2] outline-none text-sm" 
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">To</label>
-                <div className="flex items-center gap-2 px-3 py-2 border border-slate-300 rounded-md bg-slate-50">
-                  <span className="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-bold shrink-0">
-                    {selectedApp.candidateName.substring(0, 2).toUpperCase()}
-                  </span>
-                  <span className="text-sm text-slate-700">{selectedApp.candidateName} &lt;{selectedApp.email}&gt;</span>
-                </div>
+                <input 
+                  type="email" 
+                  value={toEmail} 
+                  onChange={(e) => setToEmail(e.target.value)}
+                  placeholder="Recipient Email"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md focus:border-[#1976d2] focus:ring-1 focus:ring-[#1976d2] outline-none text-sm" 
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Job</label>

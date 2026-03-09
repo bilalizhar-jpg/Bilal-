@@ -26,6 +26,7 @@ import CompanyPayroll from './pages/payroll/CompanyPayroll';
 import PerformanceAppraisalList from './pages/performance/PerformanceAppraisalList';
 import PerformanceAppraisalReport from './pages/performance/PerformanceAppraisalReport';
 import KPIs from './pages/performance/KPIs';
+import Training from './pages/performance/Training';
 import ProcurementRequest from './pages/procurement/ProcurementRequest';
 import ProcurementHistory from './pages/procurement/ProcurementHistory';
 import ProcurementSettings from './pages/procurement/ProcurementSettings';
@@ -80,6 +81,7 @@ import EmployeeProcurement from './pages/employee-portal/Procurement';
 import EmployeeRecruitment from './pages/employee-portal/Recruitment';
 import EmployeeMarketing from './pages/employee-portal/Marketing';
 import EmployeeMessages from './pages/employee-portal/Messages';
+import EmployeeTraining from './pages/employee-portal/EmployeeTraining';
 import EmployeeCompanyPolicies from './pages/employee-portal/CompanyPolicies';
 
 import { AnimatePresence, motion } from 'motion/react';
@@ -191,6 +193,7 @@ function AppContent() {
             <Route path="/performance/kpis" element={<ProtectedRoute allowedRoles={['admin']}><KPIs /></ProtectedRoute>} />
             <Route path="/performance/appraisal-list" element={<ProtectedRoute allowedRoles={['admin']}><PerformanceAppraisalList /></ProtectedRoute>} />
             <Route path="/performance/appraisal-report" element={<ProtectedRoute allowedRoles={['admin']}><PerformanceAppraisalReport /></ProtectedRoute>} />
+            <Route path="/performance/training" element={<ProtectedRoute allowedRoles={['admin']}><Training /></ProtectedRoute>} />
             <Route path="/procurement/request" element={<ProtectedRoute allowedRoles={['admin']}><ProcurementRequest /></ProtectedRoute>} />
             <Route path="/procurement/history" element={<ProtectedRoute allowedRoles={['admin']}><ProcurementHistory /></ProtectedRoute>} />
             <Route path="/procurement/settings" element={<ProtectedRoute allowedRoles={['admin']}><ProcurementSettings /></ProtectedRoute>} />
@@ -237,6 +240,7 @@ function AppContent() {
             <Route path="/employee-portal/recruitment" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeRecruitment /></ProtectedRoute>} />
             <Route path="/employee-portal/marketing" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeMarketing /></ProtectedRoute>} />
             <Route path="/employee-portal/messages" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeMessages /></ProtectedRoute>} />
+            <Route path="/employee-portal/training" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeTraining /></ProtectedRoute>} />
             <Route path="/employee-portal/policies" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeCompanyPolicies /></ProtectedRoute>} />
 
             <Route path="*" element={<ProtectedRoute allowedRoles={['admin']}><Dashboard /></ProtectedRoute>} />
@@ -257,6 +261,7 @@ import { CompanyDataProvider } from './context/CompanyDataContext';
 import { InvoiceProvider } from './context/InvoiceContext';
 import { ChatProvider } from './context/ChatContext';
 import { MarketingProvider } from './context/MarketingContext';
+import { TrainingProvider } from './context/TrainingContext';
 import { SettingsProvider } from './context/SettingsContext';
 
 export default function App() {
@@ -265,27 +270,29 @@ export default function App() {
       <SettingsProvider>
         <SuperAdminProvider>
           <EmployeeProvider>
-            <AttendanceProvider>
-              <TimeTrackingProvider>
-                <LeaveProvider>
-                  <PolicyProvider>
-                    <LetterProvider>
-                      <CompanyDataProvider>
-                        <InvoiceProvider>
-                          <ChatProvider>
-                            <MarketingProvider>
-                              <Router>
-                                <AppContent />
-                              </Router>
-                            </MarketingProvider>
-                          </ChatProvider>
-                        </InvoiceProvider>
-                      </CompanyDataProvider>
-                    </LetterProvider>
-                  </PolicyProvider>
-                </LeaveProvider>
-              </TimeTrackingProvider>
-            </AttendanceProvider>
+            <TrainingProvider>
+              <AttendanceProvider>
+                <TimeTrackingProvider>
+                  <LeaveProvider>
+                    <PolicyProvider>
+                      <LetterProvider>
+                        <CompanyDataProvider>
+                          <InvoiceProvider>
+                            <ChatProvider>
+                              <MarketingProvider>
+                                <Router>
+                                  <AppContent />
+                                </Router>
+                              </MarketingProvider>
+                            </ChatProvider>
+                          </InvoiceProvider>
+                        </CompanyDataProvider>
+                      </LetterProvider>
+                    </PolicyProvider>
+                  </LeaveProvider>
+                </TimeTrackingProvider>
+              </AttendanceProvider>
+            </TrainingProvider>
           </EmployeeProvider>
         </SuperAdminProvider>
       </SettingsProvider>

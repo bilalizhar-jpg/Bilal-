@@ -93,7 +93,8 @@ export const ADMIN_MENU_ITEMS = [
   { name: 'Performance', icon: Target, hasSub: true, subItems: [
       { name: 'KPI Templates', path: '/performance/kpis' },
       { name: 'Appraisal List', path: '/performance/appraisal-list' },
-      { name: 'Appraisal Report', path: '/performance/appraisal-report' }
+      { name: 'Appraisal Report', path: '/performance/appraisal-report' },
+      { name: 'Training', path: '/performance/training' }
     ]
   },
   { name: 'Assets', icon: Laptop, path: '/assets/management' },

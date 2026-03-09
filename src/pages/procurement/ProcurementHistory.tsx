@@ -1,27 +1,48 @@
 import React, { useState } from 'react';
-import { Search, Download, Filter } from 'lucide-react';
+import { Search, Download, Filter, Loader2, Trash2 } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
-
-interface ProcurementHistoryRecord {
-  id: string;
-  itemName: string;
-  quantity: number;
-  requestDate: string;
-  status: 'Approved' | 'Rejected' | 'Pending';
-  department: string;
-}
-
-const initialHistory: ProcurementHistoryRecord[] = [
-  { id: '1', itemName: 'MacBook Pro', quantity: 2, requestDate: '2026-02-15', status: 'Approved', department: 'Engineering' },
-  { id: '2', itemName: 'Office Chairs', quantity: 10, requestDate: '2026-02-10', status: 'Approved', department: 'HR' },
-  { id: '3', itemName: 'Whiteboard Markers', quantity: 50, requestDate: '2026-02-05', status: 'Rejected', department: 'Design' },
-];
+import { useCompanyData } from '../../context/CompanyDataContext';
+import * as XLSX from 'xlsx';
 
 export default function ProcurementHistory() {
   const { theme } = useTheme();
+  const { procurementRequests, loading, deleteEntity } = useCompanyData();
   const isDark = theme === 'dark';
   const [searchTerm, setSearchTerm] = useState('');
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this request?')) {
+      try {
+        await deleteEntity('procurementRequests', id);
+      } catch (error) {
+        console.error("Error deleting request:", error);
+        alert("Failed to delete request");
+      }
+    }
+  };
+
+  const handleExport = () => {
+    if (procurementRequests.length === 0) {
+      alert("No data to export");
+      return;
+    }
+
+    const exportData = procurementRequests.map((req, idx) => ({
+      'Sl': idx + 1,
+      'Employee': req.employeeName,
+      'Department': req.department,
+      'Items': req.items.map((i: any) => `${i.itemName} (${i.quantity})`).join(', '),
+      'Date': req.requestDate,
+      'Priority': req.priority,
+      'Status': req.status
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Procurement History");
+    XLSX.writeFile(wb, `Procurement_History_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
 
   return (
     <AdminLayout>
@@ -30,7 +51,10 @@ export default function ProcurementHistory() {
           <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
             <h2 className="font-bold text-slate-800 dark:text-white">Procurement Request History</h2>
             <div className="flex gap-2">
-              <button className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838]">
+              <button 
+                onClick={handleExport}
+                className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838]"
+              >
                 <Download className="w-3.5 h-3.5" />
                 Export
               </button>
@@ -55,27 +79,59 @@ export default function ProcurementHistory() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} border-b border-slate-100 dark:border-slate-800`}>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Item Name</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Quantity</th>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Employee</th>
                     <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Department</th>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Items</th>
                     <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Request Date</th>
                     <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Status</th>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {initialHistory.filter(h => h.itemName.toLowerCase().includes(searchTerm.toLowerCase())).map((item) => (
+                  {loading ? (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-8 text-center">
+                        <div className="flex flex-col items-center gap-2">
+                          <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+                          <p className="text-sm text-slate-500">Loading history...</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : procurementRequests.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-8 text-center text-slate-500 text-sm">
+                        No procurement requests found.
+                      </td>
+                    </tr>
+                  ) : procurementRequests.filter(h => 
+                      h.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      h.department.toLowerCase().includes(searchTerm.toLowerCase())
+                    ).map((item) => (
                     <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                      <td className="px-4 py-3 text-sm font-medium text-slate-800 dark:text-white">{item.itemName}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{item.quantity}</td>
+                      <td className="px-4 py-3 text-sm font-medium text-slate-800 dark:text-white">{item.employeeName}</td>
                       <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{item.department}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
+                        <div className="max-w-xs truncate" title={item.items.map((i: any) => `${i.itemName} (${i.quantity})`).join(', ')}>
+                          {item.items.map((i: any) => `${i.itemName} (${i.quantity})`).join(', ')}
+                        </div>
+                      </td>
                       <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{item.requestDate}</td>
                       <td className="px-4 py-3 text-sm">
                         <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${
                           item.status === 'Approved' ? 'bg-emerald-100 text-emerald-600' : 
-                          item.status === 'Rejected' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'
+                          item.status === 'Rejected' ? 'bg-red-100 text-red-600' : 
+                          item.status === 'Sent' ? 'bg-blue-100 text-blue-600' : 'bg-amber-100 text-amber-600'
                         }`}>
                           {item.status}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right">
+                        <button 
+                          onClick={() => handleDelete(item.id)}
+                          className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </td>
                     </tr>
                   ))}

@@ -53,6 +53,7 @@ export interface Invitation {
   groupName?: string;
   status: 'pending' | 'accepted' | 'rejected';
   timestamp: any;
+  scheduledTime?: any;
 }
 
 interface ChatContextType {
@@ -62,7 +63,7 @@ interface ChatContextType {
   activeChat: Chat | null;
   setActiveChat: (chat: Chat | null) => void;
   sendMessage: (text: string) => Promise<void>;
-  sendInvitation: (toUserId: string, type: 'direct' | 'group', groupName?: string, chatId?: string) => Promise<void>;
+  sendInvitation: (toUserId: string, type: 'direct' | 'group' | 'videoCall', groupName?: string, chatId?: string, scheduledTime?: any) => Promise<void>;
   acceptInvitation: (invitation: Invitation) => Promise<void>;
   rejectInvitation: (invitationId: string) => Promise<void>;
   createGroup: (name: string, participantIds: string[]) => Promise<void>;
@@ -188,7 +189,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const sendInvitation = async (toUserId: string, type: 'direct' | 'group' | 'videoCall', groupName?: string, chatId?: string) => {
+  const sendInvitation = async (toUserId: string, type: 'direct' | 'group' | 'videoCall', groupName?: string, chatId?: string, scheduledTime?: any) => {
     if (!user?.companyId || !user?.id) return;
 
     // Check if chat already exists for direct messages
@@ -209,7 +210,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         groupName: groupName || null,
         chatId: chatId || null,
         status: 'pending',
-        timestamp: serverTimestamp()
+        timestamp: serverTimestamp(),
+        scheduledTime: scheduledTime || null
       });
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'invitations');

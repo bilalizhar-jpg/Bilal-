@@ -10,12 +10,14 @@ import {
   MinusCircle,
   FileText,
   List,
-  Target
+  Target,
+  Loader2
 } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { KPITemplate, KPIIndicator } from './KPIs';
+import { saveAppraisal } from '../../utils/appraisalStore';
 
 interface RatingItem {
   id: string;
@@ -44,16 +46,20 @@ interface KeyGoal {
 export default function PerformanceAppraisalReport() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [formData, setFormData] = useState({
     employeeName: '',
+    employeeId: '',
+    department: '',
     reviewPeriod: '',
     supervisorName: '',
     overallComments: '',
     reviewerName: '',
     reviewerSignature: '',
-    reviewDate: '',
+    reviewDate: new Date().toISOString().split('T')[0],
     nextReviewPeriod: '',
     employeeComments: '',
     kpiTemplateId: '',
@@ -195,6 +201,33 @@ export default function PerformanceAppraisalReport() {
     setKeyGoals(keyGoals.filter(g => g.id !== id));
   };
 
+  const handleSave = async () => {
+    if (!formData.employeeName) {
+      alert("Please enter employee name");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await saveAppraisal({
+        employeeName: formData.employeeName,
+        employeeId: formData.employeeId || 'EMP-' + Math.floor(Math.random() * 1000),
+        department: formData.department || 'General',
+        appraisalDate: formData.reviewDate,
+        period: formData.reviewPeriod || 'Annual 2026',
+        score: grandTotal,
+        status: 'Completed'
+      });
+      alert("Appraisal saved successfully!");
+      navigate('/performance/appraisal-list');
+    } catch (error) {
+      console.error("Error saving appraisal:", error);
+      alert("Failed to save appraisal");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6 pb-12">
@@ -246,6 +279,28 @@ export default function PerformanceAppraisalReport() {
                 value={formData.employeeName}
                 onChange={handleFormChange}
                 placeholder="Select employee"
+                className={`flex-1 border rounded px-3 py-1.5 text-sm ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+              />
+            </div>
+            <div className="flex items-center gap-4">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">Employee ID :</label>
+              <input 
+                type="text" 
+                name="employeeId"
+                value={formData.employeeId}
+                onChange={handleFormChange}
+                placeholder="Employee ID"
+                className={`flex-1 border rounded px-3 py-1.5 text-sm ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+              />
+            </div>
+            <div className="flex items-center gap-4">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">Department :</label>
+              <input 
+                type="text" 
+                name="department"
+                value={formData.department}
+                onChange={handleFormChange}
+                placeholder="Department"
                 className={`flex-1 border rounded px-3 py-1.5 text-sm ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
               />
             </div>
@@ -626,8 +681,13 @@ export default function PerformanceAppraisalReport() {
           </div>
 
           <div className="pt-8 no-print">
-            <button className="bg-emerald-600 text-white px-8 py-2 rounded font-bold hover:bg-emerald-700 transition-colors">
-              Save
+            <button 
+              onClick={handleSave}
+              disabled={isSaving}
+              className="bg-emerald-600 text-white px-8 py-2 rounded font-bold hover:bg-emerald-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+            >
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {isSaving ? 'Saving...' : 'Save Appraisal'}
             </button>
           </div>
         </div>
