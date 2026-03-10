@@ -198,6 +198,20 @@
       },
       "required": ["id", "companyId", "name"]
     },
+    "Designation": {
+      "title": "Designation",
+      "description": "A job designation within a company",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "name": { "type": "string" },
+        "status": { "type": "string", "enum": ["Active", "Inactive"] },
+        "isDeleted": { "type": "boolean" },
+        "deletedAt": { "type": "number" }
+      },
+      "required": ["id", "companyId", "name"]
+    },
     "SubDepartment": {
       "title": "SubDepartment",
       "description": "A sub-department within a department",
@@ -432,6 +446,37 @@
       },
       "required": ["id", "companyId", "title", "status"]
     },
+    "Candidate": {
+      "title": "Candidate",
+      "description": "A job candidate (applied, uploaded, or added)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "jobId": { "type": "string" },
+        "jobTitle": { "type": "string" },
+        "candidateName": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "cvFileName": { "type": "string" },
+        "cvUrl": { "type": "string" },
+        "cvText": { "type": "string" },
+        "stage": { "type": "string" },
+        "appliedAt": { "type": "string" },
+        "matchPercentage": { "type": "number" },
+        "skills": { "type": "array", "items": { "type": "string" } },
+        "education": { "type": "string" },
+        "university": { "type": "string" },
+        "country": { "type": "string" },
+        "currentJobTitle": { "type": "string" },
+        "expectedSalary": { "type": "string" },
+        "location": { "type": "string" },
+        "industry": { "type": "string" },
+        "gender": { "type": "string" },
+        "category": { "type": "string" }
+      },
+      "required": ["id", "companyId", "candidateName", "email", "stage"]
+    },
     "Application": {
       "title": "Application",
       "description": "A job application",
@@ -625,6 +670,10 @@
       "schema": "Department",
       "description": "Collection of departments"
     },
+    "/designations/{designationId}": {
+      "schema": "Designation",
+      "description": "Collection of designations"
+    },
     "/subDepartments/{subDeptId}": {
       "schema": "SubDepartment",
       "description": "Collection of sub-departments"
@@ -688,6 +737,10 @@
     "/hr_applications/{applicationId}": {
       "schema": "Application",
       "description": "Collection of job applications"
+    },
+    "/candidates/{candidateId}": {
+      "schema": "Candidate",
+      "description": "Collection of all job candidates"
     },
     "/bankAccounts/{accountId}": {
       "schema": "BankAccount",

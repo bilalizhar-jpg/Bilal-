@@ -29,7 +29,7 @@ type TabType = 'active' | 'positions' | 'inactive';
 
 export default function EmployeeList() {
   const { employees, addEmployee, addEmployees, updateEmployee, deleteEmployee, regenerateCredentials } = useEmployees();
-  const { departments } = useCompanyData();
+  const { departments, designations, addEntity } = useCompanyData();
   const [activeTab, setActiveTab] = useState<TabType>('active');
   const [showFilters, setShowFilters] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -95,12 +95,24 @@ export default function EmployeeList() {
     setSearchTerm('');
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isViewOnly) {
       setIsModalOpen(false);
       return;
     }
+
+    // Check if designation is new and add it to master list
+    if (formData.designation) {
+      const exists = designations.some(d => d.name.toLowerCase() === formData.designation.toLowerCase());
+      if (!exists) {
+        await addEntity('designations', {
+          name: formData.designation,
+          status: 'Active'
+        });
+      }
+    }
+
     if (editingEmployee) {
       updateEmployee(editingEmployee.id, formData);
     } else {
@@ -772,28 +784,25 @@ export default function EmployeeList() {
                         placeholder="Enter or select designation"
                       />
                       <datalist id="designations-list">
-                        {uniqueDesignations.map(desig => (
-                          <option key={desig} value={desig} />
+                        {designations.filter(desig => !desig.isDeleted).map(desig => (
+                          <option key={desig.id} value={desig.name} />
                         ))}
                       </datalist>
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Department</label>
-                      <input 
+                      <select 
                         required
                         disabled={isViewOnly}
-                        list="departments-list"
-                        type="text"
                         value={formData.department}
                         onChange={(e) => setFormData({...formData, department: e.target.value})}
                         className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all bg-white disabled:bg-slate-50 disabled:text-slate-500"
-                        placeholder="Enter or select department"
-                      />
-                      <datalist id="departments-list">
-                        {departments.map(dept => (
-                          <option key={dept.id} value={dept.name} />
+                      >
+                        <option value="">Select department</option>
+                        {departments.filter(dept => !dept.isDeleted).map(dept => (
+                          <option key={dept.id} value={dept.name}>{dept.name}</option>
                         ))}
-                      </datalist>
+                      </select>
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Status</label>

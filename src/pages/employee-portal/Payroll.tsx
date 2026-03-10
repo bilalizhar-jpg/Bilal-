@@ -21,7 +21,7 @@ import { useEmployees } from '../../context/EmployeeContext';
 import { useCompanyData } from '../../context/CompanyDataContext';
 import { useSuperAdmin } from '../../context/SuperAdminContext';
 import { motion, AnimatePresence } from 'motion/react';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 import jsPDF from 'jspdf';
 
 interface PayslipRow {
@@ -141,17 +141,15 @@ export default function EmployeePayroll() {
     if (buttons) (buttons as HTMLElement).style.display = 'none';
 
     try {
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: isDark ? '#0f172a' : '#ffffff'
+      const dataUrl = await toPng(element, {
+        backgroundColor: isDark ? '#0f172a' : '#ffffff',
+        pixelRatio: 2,
       });
-      const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgProps = pdf.getImageProperties(imgData);
+      const imgProps = pdf.getImageProperties(dataUrl);
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`Payslip_${selectedSlip?.month || 'Month'}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);

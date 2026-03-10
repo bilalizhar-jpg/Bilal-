@@ -32,6 +32,9 @@ export interface Application {
   expectedSalary?: string;
   location?: string;
   cvText?: string;
+  industry?: string;
+  gender?: string;
+  category?: string;
   customQuestionAnswer?: string;
   customQuestionAnswers?: { question: string; answer: string }[];
   mcqAnswers?: { 

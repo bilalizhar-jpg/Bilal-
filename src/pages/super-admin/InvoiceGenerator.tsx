@@ -6,7 +6,7 @@ import {
   Plus, Trash2, Save, Printer, FileText, ArrowLeft
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 
 export default function SuperAdminInvoiceGenerator() {
   const { companies, invoices, updateInvoice } = useSuperAdmin();
@@ -89,14 +89,22 @@ export default function SuperAdminInvoiceGenerator() {
 
   const exportPDF = async () => {
     if (invoiceRef.current) {
-      const canvas = await html2canvas(invoiceRef.current, { scale: 2 });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`invoice_${invoice.invoiceNumber}.pdf`);
+      try {
+        const dataUrl = await toPng(invoiceRef.current, {
+          backgroundColor: '#fff',
+          pixelRatio: 2,
+        });
+        
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgProps = pdf.getImageProperties(dataUrl);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        
+        pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`invoice_${invoice.invoiceNumber}.pdf`);
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+      }
     }
   };
 

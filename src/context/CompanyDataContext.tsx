@@ -22,6 +22,7 @@ interface DataEntity {
 interface CompanyDataContextType {
   awards: DataEntity[];
   departments: DataEntity[];
+  designations: DataEntity[];
   subDepartments: DataEntity[];
   notices: DataEntity[];
   projects: DataEntity[];
@@ -64,6 +65,7 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const [awards, setAwards] = useState<DataEntity[]>([]);
   const [departments, setDepartments] = useState<DataEntity[]>([]);
+  const [designations, setDesignations] = useState<DataEntity[]>([]);
   const [subDepartments, setSubDepartments] = useState<DataEntity[]>([]);
   const [notices, setNotices] = useState<DataEntity[]>([]);
   const [projects, setProjects] = useState<DataEntity[]>([]);
@@ -97,6 +99,7 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
     const collections = [
       { name: 'awards', setter: setAwards },
       { name: 'departments', setter: setDepartments },
+      { name: 'designations', setter: setDesignations },
       { name: 'subDepartments', setter: setSubDepartments },
       { name: 'notices', setter: setNotices },
       { name: 'projects', setter: setProjects },
@@ -166,6 +169,7 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
     <CompanyDataContext.Provider value={{ 
       awards, 
       departments, 
+      designations,
       subDepartments,
       notices, 
       projects, 

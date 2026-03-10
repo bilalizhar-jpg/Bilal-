@@ -28,6 +28,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useTheme } from '../context/ThemeContext';
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
+import { ScreenCapture } from './employee/ScreenCapture';
 import { useEmployees } from '../context/EmployeeContext';
 import { useSuperAdmin } from '../context/SuperAdminContext';
 
@@ -332,6 +333,7 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
       </aside>
 
       {/* Main Content */}
+      <ScreenCapture />
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden print:overflow-visible relative z-10">
         <header className={`h-20 relative z-20 flex items-center justify-between px-8 border-b print:hidden ${isDark ? 'bg-black/20 border-white/5 backdrop-blur-3xl' : 'bg-white/80 border-slate-200 backdrop-blur-xl'}`}>
           <div className="flex items-center gap-6">

@@ -30,7 +30,8 @@ export const ADMIN_MENU_ITEMS = [
     hasSub: true,
     subItems: [
       { name: 'Organization Chart', path: '/org-chart' },
-      { name: 'Company Policy', path: '/org-chart/policies' }
+      { name: 'Company Policy', path: '/org-chart/policies' },
+      { name: 'Designation', path: '/designation' }
     ]
   },
   { name: 'Attendance', icon: Calendar, path: '/attendance' },

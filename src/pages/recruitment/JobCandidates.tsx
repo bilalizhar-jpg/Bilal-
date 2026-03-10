@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, Download, MoreVertical, X, ChevronRight, FileText, Eye } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { useAuth } from '../../context/AuthContext';
-import { subscribeToApplications, updateApplicationStage, Application } from '../../utils/applicationStore';
+import { subscribeToCandidates, updateCandidateStage, Candidate } from '../../utils/candidateStore';
 import { subscribeToJobs, Job as StoreJob } from '../../utils/jobStore';
 
 const STAGES = [
@@ -21,9 +21,9 @@ export default function JobCandidates() {
   const { jobId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [applications, setApplications] = useState<Application[]>([]);
+  const [applications, setApplications] = useState<Candidate[]>([]);
   const [job, setJob] = useState<StoreJob | null>(null);
-  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+  const [selectedApp, setSelectedApp] = useState<Candidate | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [fromEmail, setFromEmail] = useState('adamrecruiterz@gmail.com');
@@ -45,7 +45,7 @@ export default function JobCandidates() {
       if (currentJob) setJob(currentJob);
     }, user.companyId);
 
-    const unsubscribeApps = subscribeToApplications((allApps) => {
+    const unsubscribeApps = subscribeToCandidates((allApps) => {
       setApplications(allApps.filter(app => app.jobId === jobId));
     }, user.companyId);
 
@@ -63,13 +63,13 @@ export default function JobCandidates() {
     e.preventDefault();
   };
 
-  const handleDrop = async (e: React.DragEvent, stage: Application['stage']) => {
+  const handleDrop = async (e: React.DragEvent, stage: Candidate['stage']) => {
     e.preventDefault();
     const appId = e.dataTransfer.getData('appId');
-    await updateApplicationStage(appId, stage);
+    await updateCandidateStage(appId, stage);
   };
 
-  const openModal = (app: Application) => {
+  const openModal = (app: Candidate) => {
     setSelectedApp(app);
     setIsModalOpen(true);
   };
@@ -79,9 +79,9 @@ export default function JobCandidates() {
     setIsModalOpen(false);
   };
 
-  const handleMoveStage = async (stage: Application['stage']) => {
+  const handleMoveStage = async (stage: Candidate['stage']) => {
     if (selectedApp) {
-      await updateApplicationStage(selectedApp.id, stage);
+      await updateCandidateStage(selectedApp.id, stage);
       closeModal();
     }
   };
@@ -258,9 +258,23 @@ export default function JobCandidates() {
                   Email Candidate
                 </button>
                 <button 
-                  onClick={() => {
+                  onClick={async () => {
                     if (selectedApp.cvUrl) {
-                      window.open(selectedApp.cvUrl, '_blank');
+                      try {
+                        const response = await fetch(selectedApp.cvUrl);
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = selectedApp.cvFileName || 'candidate-cv';
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        window.URL.revokeObjectURL(url);
+                      } catch (error) {
+                        console.error('Download failed:', error);
+                        window.open(selectedApp.cvUrl, '_blank');
+                      }
                     } else {
                       alert(`CV file not available for download.`);
                     }

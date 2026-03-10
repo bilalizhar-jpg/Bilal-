@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
 import { Plus, Edit2, Trash2, Mail, Download, Printer, Save, X } from 'lucide-react';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 
 interface Template {
@@ -40,14 +40,29 @@ export default function Agreements() {
   const handleDownloadPDF = async (template: Template) => {
     if (printRef.current) {
       printRef.current.innerHTML = template.content;
-      const canvas = await html2canvas(printRef.current);
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF();
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`${template.name}.pdf`);
+      // Ensure the hidden element is visible for capture but off-screen
+      printRef.current.style.display = 'block';
+      printRef.current.style.position = 'absolute';
+      printRef.current.style.left = '-9999px';
+      
+      try {
+        const dataUrl = await toPng(printRef.current, {
+          backgroundColor: '#fff',
+          pixelRatio: 2,
+        });
+        
+        const pdf = new jsPDF();
+        const imgProps = pdf.getImageProperties(dataUrl);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        
+        pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`${template.name}.pdf`);
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+      } finally {
+        printRef.current.style.display = 'none';
+      }
     }
   };
 

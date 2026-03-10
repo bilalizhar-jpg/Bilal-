@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { UploadCloud, X, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import { getJobs, subscribeToJobs, Job } from '../../utils/jobStore';
-import { saveApplication, uploadCV } from '../../utils/applicationStore';
+import { saveCandidate, uploadCV } from '../../utils/candidateStore';
 import { useAuth } from '../../context/AuthContext';
 import { evaluateCVMatch } from '../../utils/cvMatcher';
 
@@ -64,7 +64,7 @@ export default function BulkCVUpload() {
         let cvText = '';
         
         try {
-          cvUrl = await uploadCV(user?.companyId || 'default', selectedJobId, file);
+          cvUrl = await uploadCV(user?.companyId || 'default', file);
         } catch (uploadError) {
           console.error("Failed to upload CV for", file.name, uploadError);
         }
@@ -91,7 +91,7 @@ export default function BulkCVUpload() {
           }
         }
 
-        await saveApplication({
+        await saveCandidate({
           companyId: user?.companyId || 'default',
           jobId: selectedJobId,
           jobTitle: selectedJob.title,

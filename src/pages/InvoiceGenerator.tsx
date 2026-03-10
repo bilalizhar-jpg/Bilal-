@@ -15,7 +15,7 @@ import {
   Search
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 import { useInvoices, Invoice } from '../context/InvoiceContext';
 import { useSuperAdmin } from '../context/SuperAdminContext';
 import { useAuth } from '../context/AuthContext';
@@ -265,14 +265,24 @@ export default function InvoiceGenerator() {
 
   const exportPDF = async () => {
     if (invoiceRef.current) {
-      const canvas = await html2canvas(invoiceRef.current, { scale: 2 });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`invoice_${data.invoiceNumber}.pdf`);
+      try {
+        const dataUrl = await toPng(invoiceRef.current, {
+          backgroundColor: '#fff',
+          pixelRatio: 2,
+          cacheBust: true,
+        });
+        
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgProps = pdf.getImageProperties(dataUrl);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        
+        pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`invoice_${data.invoiceNumber}.pdf`);
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+        alert('Failed to generate PDF. Please try again.');
+      }
     }
   };
 

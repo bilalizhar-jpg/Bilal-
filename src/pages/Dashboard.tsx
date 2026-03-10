@@ -50,7 +50,61 @@ export default function Dashboard() {
 
   const activeEmployees = useMemo(() => employees.filter(e => e.status === 'Active'), [employees]);
   
-  const pendingLeave = useMemo(() => leaveRequests.find(r => r.status === 'Pending'), [leaveRequests]);
+  const pendingLeaves = useMemo(() => leaveRequests.filter(r => r.status === 'Pending'), [leaveRequests]);
+  const upcomingBirthdays = useMemo(() => {
+    const today = new Date();
+    return activeEmployees.filter(emp => {
+      if (!emp.dob) return false;
+      const dob = new Date(emp.dob);
+      return dob.getMonth() === today.getMonth() && dob.getDate() >= today.getDate();
+    }).slice(0, 3);
+  }, [activeEmployees]);
+
+  const notifications = useMemo(() => {
+    const list = [];
+    pendingLeaves.forEach(leave => {
+      list.push({
+        id: `leave-${leave.id}`,
+        type: 'leave',
+        title: 'Pending Leave',
+        message: `${leave.employeeName} requested ${leave.days} days`,
+        link: '/leave',
+        color: 'amber'
+      });
+    });
+    upcomingBirthdays.forEach(emp => {
+      list.push({
+        id: `bday-${emp.id}`,
+        type: 'birthday',
+        title: 'Upcoming Birthday',
+        message: `${emp.name}'s birthday is coming up!`,
+        link: '/employee',
+        color: 'emerald'
+      });
+    });
+    notices.slice(0, 2).forEach(notice => {
+      list.push({
+        id: `notice-${notice.id}`,
+        type: 'notice',
+        title: 'New Notice',
+        message: notice.description,
+        link: '/notice',
+        color: 'indigo'
+      });
+    });
+    return list;
+  }, [pendingLeaves, upcomingBirthdays, notices]);
+
+  const departmentDistribution = useMemo(() => {
+    const counts: Record<string, number> = {};
+    activeEmployees.forEach(emp => {
+      counts[emp.department] = (counts[emp.department] || 0) + 1;
+    });
+    return Object.entries(counts).map(([name, value]) => ({ name, value }));
+  }, [activeEmployees]);
+
+  const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+
   const recentLeaves = useMemo(() => leaveRequests.slice(0, 4), [leaveRequests]);
   
   const awardedData = useMemo(() => {
@@ -158,33 +212,32 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Blinking Leave Notification */}
-        <AnimatePresence>
-          {showLeaveNotification && pendingLeave && (
-            <motion.div 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="glass-card border border-amber-500/20 bg-amber-500/5 p-4 flex items-center justify-between shadow-lg shadow-amber-500/5 animate-pulse"
-            >
-              <div className="flex items-center gap-4">
-                <div className="bg-amber-500/10 p-2 rounded-xl border border-amber-500/20">
-                  <AlertCircle className="w-5 h-5 text-amber-400" />
+        {/* Notifications Bar */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <AnimatePresence>
+            {notifications.slice(0, 3).map((notif, idx) => (
+              <motion.div 
+                key={notif.id}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ delay: idx * 0.1 }}
+                className={`glass-card border border-${notif.color}-500/20 bg-${notif.color}-500/5 p-4 flex items-center justify-between shadow-lg shadow-${notif.color}-500/5`}
+              >
+                <div className="flex items-center gap-4">
+                  <div className={`bg-${notif.color}-500/10 p-2 rounded-xl border border-${notif.color}-500/20`}>
+                    <Bell className={`w-4 h-4 text-${notif.color}-400`} />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className={`text-[9px] font-black text-${notif.color}-400 uppercase tracking-widest`}>{notif.title}</h4>
+                    <p className={`text-[11px] text-${notif.color}-200/60 mt-0.5 truncate`}>{notif.message}</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-[10px] font-black text-amber-400 uppercase tracking-widest">Priority Alert: Leave Protocol</h4>
-                  <p className="text-xs text-amber-200/60 mt-0.5">{pendingLeave.employeeName} has initialized a leave request ({pendingLeave.days} days).</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <Link to="/leave" className="text-[10px] font-black text-amber-400 uppercase tracking-widest hover:text-amber-300 transition-colors">Review Protocol</Link>
-                <button onClick={() => setShowLeaveNotification(false)} className="p-1.5 hover:bg-white/5 rounded-lg transition-colors">
-                  <X className="w-4 h-4 text-amber-500/50" />
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <Link to={notif.link} className={`text-[9px] font-black text-${notif.color}-400 uppercase tracking-widest hover:text-${notif.color}-300 transition-colors shrink-0 ml-4`}>View</Link>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
 
         {/* Top Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -285,6 +338,47 @@ export default function Dashboard() {
                     />
                     <Area type="monotone" dataKey="count" stroke="#6366f1" fillOpacity={1} fill="url(#colorCount)" />
                   </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Department Distribution */}
+            <div className="glass-card p-8 border border-white/5">
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Departmental Distribution</h2>
+              </div>
+              <div className="h-[300px] w-full flex items-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={departmentDistribution}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {departmentDistribution.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="rgba(255,255,255,0.1)" />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'rgba(2, 2, 3, 0.9)',
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '12px'
+                      }}
+                    />
+                    <Legend 
+                      verticalAlign="middle" 
+                      align="right" 
+                      layout="vertical"
+                      iconType="circle" 
+                      wrapperStyle={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', paddingLeft: '20px' }} 
+                    />
+                  </PieChart>
                 </ResponsiveContainer>
               </div>
             </div>

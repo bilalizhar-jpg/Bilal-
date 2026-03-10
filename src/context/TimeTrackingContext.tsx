@@ -22,6 +22,7 @@ export interface TrackingData {
   lastActive: number; // timestamp
   currentTask: string;
   screenshot?: string;
+  captureInterval?: number; // in minutes
 }
 
 interface TimeTrackingContextType {
@@ -29,6 +30,7 @@ interface TimeTrackingContextType {
   updateTracking: (employeeId: string, data: Partial<TrackingData>) => void;
   startTracking: (employeeId: string, employeeName: string) => void;
   stopTracking: (employeeId: string) => void;
+  setCaptureInterval: (employeeId: string, interval: number) => void;
 }
 
 const TimeTrackingContext = createContext<TimeTrackingContextType | undefined>(undefined);
@@ -131,6 +133,10 @@ export const TimeTrackingProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const setCaptureInterval = (employeeId: string, interval: number) => {
+    updateTracking(employeeId, { captureInterval: interval });
+  };
+
   // Global timer to increment working/idle time for active employees
   useEffect(() => {
     const interval = setInterval(() => {
@@ -164,7 +170,7 @@ export const TimeTrackingProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <TimeTrackingContext.Provider value={{ trackingData, updateTracking, startTracking, stopTracking }}>
+    <TimeTrackingContext.Provider value={{ trackingData, updateTracking, startTracking, stopTracking, setCaptureInterval }}>
       {children}
     </TimeTrackingContext.Provider>
   );

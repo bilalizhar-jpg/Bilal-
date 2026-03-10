@@ -9,6 +9,7 @@ import { useEmployees } from '../../context/EmployeeContext';
 import { useLeaves } from '../../context/LeaveContext';
 import { useChat } from '../../context/ChatContext';
 import { useCompanyData } from '../../context/CompanyDataContext';
+import { TimeTrackerWidget } from '../../components/employee/TimeTrackerWidget';
 
 export default function EmployeeDashboard() {
   const navigate = useNavigate();
@@ -155,7 +156,8 @@ export default function EmployeeDashboard() {
         )}
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <TimeTrackerWidget />
           <div className="glass-card p-8 border border-white/5">
             <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em] mb-8">Rapid Access</h3>
             <div className="grid grid-cols-2 gap-6">

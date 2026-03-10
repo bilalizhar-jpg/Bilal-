@@ -43,6 +43,7 @@ service cloud.firestore {
     // Company Data Collections
     match /awards/{document=**} { allow read: if true; allow write: if true; }
     match /departments/{document=**} { allow read: if true; allow write: if true; }
+    match /designations/{document=**} { allow read: if true; allow write: if true; }
     match /subDepartments/{document=**} { allow read: if true; allow write: if true; }
     match /notices/{document=**} { allow read: if true; allow write: if true; }
     match /projects/{document=**} { allow read: if true; allow write: if true; }
@@ -50,6 +51,7 @@ service cloud.firestore {
     match /tasks/{document=**} { allow read: if true; allow write: if true; }
     match /hr_jobs/{document=**} { allow read: if true; allow write: if true; }
     match /hr_applications/{document=**} { allow read: if true; allow write: if true; }
+    match /candidates/{document=**} { allow read: if true; allow write: if true; }
     match /milestones/{document=**} { allow read: if true; allow write: if true; }
     match /sales/{document=**} { allow read: if true; allow write: if true; }
     match /payrollBatches/{document=**} { allow read: if true; allow write: if true; }

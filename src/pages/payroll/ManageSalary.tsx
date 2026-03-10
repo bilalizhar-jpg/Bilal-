@@ -28,7 +28,7 @@ import { useAuth } from '../../context/AuthContext';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 
 interface EmployeeSalary {
   id: string;
@@ -258,17 +258,17 @@ export default function ManageSalary() {
     if (buttons) (buttons as HTMLElement).style.display = 'none';
 
     try {
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: isDark ? '#0f172a' : '#ffffff'
+      const dataUrl = await toPng(element, {
+        backgroundColor: isDark ? '#0f172a' : '#ffffff',
+        pixelRatio: 2,
+        cacheBust: true,
       });
-      const imgData = canvas.toDataURL('image/png');
+      
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgProps = pdf.getImageProperties(imgData);
+      const imgProps = pdf.getImageProperties(dataUrl);
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`Payslip_${selectedSalary?.employeeName || 'Employee'}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);

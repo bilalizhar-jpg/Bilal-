@@ -13,6 +13,7 @@ import Dashboard from './pages/Dashboard';
 import Attendance from './pages/Attendance';
 import AwardList from './pages/AwardList';
 import DepartmentList from './pages/DepartmentList';
+import DesignationList from './pages/DesignationList';
 import SubDepartmentList from './pages/SubDepartmentList';
 import EmployeeList from './pages/EmployeeList';
 import LeaveManagement from './pages/LeaveManagement';
@@ -194,6 +195,7 @@ function AppContent() {
             <Route path="/attendance" element={<ProtectedRoute allowedRoles={['admin']}><Attendance /></ProtectedRoute>} />
             <Route path="/award" element={<ProtectedRoute allowedRoles={['admin']}><AwardList /></ProtectedRoute>} />
             <Route path="/department" element={<ProtectedRoute allowedRoles={['admin']}><DepartmentList /></ProtectedRoute>} />
+            <Route path="/designation" element={<ProtectedRoute allowedRoles={['admin']}><DesignationList /></ProtectedRoute>} />
             <Route path="/sub-department" element={<ProtectedRoute allowedRoles={['admin']}><SubDepartmentList /></ProtectedRoute>} />
             <Route path="/employee" element={<ProtectedRoute allowedRoles={['admin']}><EmployeeList /></ProtectedRoute>} />
             <Route path="/leave" element={<ProtectedRoute allowedRoles={['admin']}><LeaveManagement /></ProtectedRoute>} />
