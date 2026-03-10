@@ -1,34 +1,28 @@
 import React, { useState, FormEvent, useEffect } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { Building2, Lock, User } from 'lucide-react';
+import { Building2, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useEmployees } from '../context/EmployeeContext';
 import { useSuperAdmin } from '../context/SuperAdminContext';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { login, isAuthenticated, user, signInWithGoogle } = useAuth();
-  const { allEmployees } = useEmployees();
   const { companies } = useSuperAdmin();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
     password: ''
   });
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated (Admin only page)
   useEffect(() => {
     if (isAuthenticated && user) {
-      if (user.role === 'superadmin') {
-        navigate('/super-admin/dashboard');
-      } else if (user.role === 'admin') {
-        navigate('/dashboard');
-      } else {
-        navigate('/employee-portal/dashboard');
-      }
+      if (user.role === 'admin') navigate('/dashboard');
+      else if (user.role === 'superadmin') navigate('/super-admin/dashboard');
+      else navigate('/employee-portal/dashboard');
     }
   }, [isAuthenticated, user, navigate]);
 
@@ -56,25 +50,10 @@ export default function LoginPage() {
 
     const { username, password } = formData;
 
-    // 1. Check Super Admin Credentials
-    if (username === 'Bilal.izhar' && password === 'KKjdu&&6e99') {
-      login({
-        id: 'superadmin',
-        name: 'Super Admin',
-        role: 'superadmin',
-        avatar: 'https://ui-avatars.com/api/?name=Super+Admin&background=random'
-      });
-      navigate('/super-admin/dashboard');
-      return;
-    }
-
-    // 2. Check Company Admin Credentials
-    console.log("Attempting login with:", username, password);
-    console.log("Available companies:", companies);
+    // Admin only: check company admin credentials
     const company = companies.find(c => 
       c.adminUsername === username && c.adminPassword === password
     );
-    console.log("Found company:", company);
 
     if (company) {
       if (!company.isActive) {
@@ -93,33 +72,7 @@ export default function LoginPage() {
       return;
     }
 
-    // 3. Check Employee Credentials
-    const employee = allEmployees.find(emp => 
-      (emp.username === username || emp.email === username) && emp.password === password
-    );
-
-    if (employee) {
-      login({
-        id: employee.id,
-        name: employee.name,
-        role: 'employee',
-        employeeId: employee.employeeId,
-        avatar: employee.avatar,
-        companyId: employee.companyId
-      });
-      
-      const from = location.state?.from?.pathname || '/employee-portal/dashboard';
-      // Ensure employee doesn't get redirected to admin dashboard
-      if (!from.startsWith('/employee-portal') && from !== '/') {
-         navigate('/employee-portal/dashboard');
-      } else {
-         navigate(from);
-      }
-      return;
-    }
-
-    // 4. Login Failed
-    setError('Invalid username or password');
+    setError('Invalid credentials. This page is for Company Admin only.');
     setIsLoading(false);
   };
 
@@ -149,10 +102,11 @@ export default function LoginPage() {
           Access Terminal
         </h2>
         <p className="mt-4 text-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
-          Or{' '}
-          <Link to="/register" className="text-indigo-400 hover:text-indigo-300 transition-colors">
-            Initialize New Company
-          </Link>
+          <Link to="/super-admin-login" className="text-indigo-400 hover:text-indigo-300 transition-colors">Super Admin</Link>
+          {' · '}
+          <Link to="/employee-login" className="text-indigo-400 hover:text-indigo-300 transition-colors">Employee</Link>
+          {' · '}
+          <Link to="/register" className="text-indigo-400 hover:text-indigo-300 transition-colors">Initialize Company</Link>
         </p>
       </div>
 
@@ -214,13 +168,21 @@ export default function LoginPage() {
                 <input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="block w-full pl-12 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-600 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all py-4 text-sm"
+                  className="block w-full pl-12 pr-12 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-600 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all py-4 text-sm"
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-white transition-colors"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
             </div>
 
@@ -274,7 +236,7 @@ export default function LoginPage() {
                 className="w-full flex justify-center items-center gap-4 py-4 px-4 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all disabled:opacity-50"
               >
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
-                Super Admin Override
+                Login with Google
               </motion.button>
             </div>
           </div>

@@ -77,7 +77,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [portalDesign]);
 
   const toggleTheme = () => {
-    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+    setTheme(prev => {
+      const next = prev === 'light' ? 'dark' : 'light';
+      const root = window.document.documentElement;
+      if (next === 'dark') {
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+      }
+      localStorage.setItem('theme', next);
+      return next;
+    });
   };
 
   const setColorPalette = (id: string) => {

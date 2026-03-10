@@ -1,15 +1,12 @@
 import React, { useState, FormEvent, useEffect } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { Building2, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { Building2, Lock, User, Eye, EyeOff, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useEmployees } from '../context/EmployeeContext';
 
-export default function EmployeeLoginPage() {
+export default function SuperAdminLoginPage() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { login, isAuthenticated, user } = useAuth();
-  const { validateEmployee, loading: isDataLoading } = useEmployees();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -18,14 +15,9 @@ export default function EmployeeLoginPage() {
     password: ''
   });
 
-  // Redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated && user) {
-      if (user.role === 'admin') {
-        navigate('/dashboard');
-      } else {
-        navigate('/employee-portal/dashboard');
-      }
+    if (isAuthenticated && user?.role === 'superadmin') {
+      navigate('/super-admin/dashboard');
     }
   }, [isAuthenticated, user, navigate]);
 
@@ -42,48 +34,28 @@ export default function EmployeeLoginPage() {
     setIsLoading(true);
     setError('');
 
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 800));
 
     const { username, password } = formData;
 
-    // Check Employee Credentials
-    if (isDataLoading) {
-      setError('System is still loading data. Please try again in a moment.');
-      setIsLoading(false);
-      return;
-    }
-
-    const employee = validateEmployee(username, password);
-
-    if (employee) {
+    // Super Admin credentials only
+    if (username === 'Bilal.izhar' && password === 'KKjdu&&6e99') {
       login({
-        id: employee.id,
-        name: employee.name,
-        role: 'employee',
-        employeeId: employee.employeeId,
-        avatar: employee.avatar,
-        companyId: employee.companyId
+        id: 'superadmin',
+        name: 'Super Admin',
+        role: 'superadmin',
+        avatar: 'https://ui-avatars.com/api/?name=Super+Admin&background=random'
       });
-      
-      const from = location.state?.from?.pathname || '/employee-portal/dashboard';
-      // Ensure employee doesn't get redirected to admin dashboard
-      if (!from.startsWith('/employee-portal') && from !== '/') {
-         navigate('/employee-portal/dashboard');
-      } else {
-         navigate(from);
-      }
+      navigate('/super-admin/dashboard');
       return;
     }
 
-    // Login Failed
-    setError('Invalid username or password');
+    setError('Invalid credentials. This page is for Super Admin only.');
     setIsLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-[#020203] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Atmospheric Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-[120px] animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] animate-pulse delay-700" />
@@ -98,16 +70,16 @@ export default function EmployeeLoginPage() {
             className="bg-gradient-to-tr from-indigo-500 to-emerald-500 p-0.5 rounded-xl shadow-lg shadow-indigo-500/20"
           >
             <div className="bg-black p-2 rounded-[10px]">
-              <Building2 className="w-8 h-8 text-white" />
+              <Shield className="w-8 h-8 text-white" />
             </div>
           </motion.div>
           <span className="font-display font-black text-3xl tracking-tighter text-white uppercase">HRM Pro</span>
         </Link>
         <h2 className="text-center text-4xl font-display font-black tracking-tighter text-white uppercase">
-          Employee Terminal
+          Super Admin Terminal
         </h2>
         <p className="mt-4 text-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
-          Sign in to access your secure workstation
+          System architect access only
         </p>
       </div>
 
@@ -153,7 +125,7 @@ export default function EmployeeLoginPage() {
                   value={formData.username}
                   onChange={handleChange}
                   className="block w-full pl-12 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-600 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all py-4 text-sm"
-                  placeholder="USERNAME / EMAIL"
+                  placeholder="USERNAME"
                 />
               </div>
             </div>
@@ -187,26 +159,6 @@ export default function EmployeeLoginPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between px-1">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 bg-white/5 border-white/10 text-indigo-500 focus:ring-indigo-500/50 rounded"
-                />
-                <label htmlFor="remember-me" className="ml-3 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                  Persist Session
-                </label>
-              </div>
-
-              <div className="text-[10px] font-black uppercase tracking-widest">
-                <a href="#" className="text-indigo-400 hover:text-indigo-300 transition-colors">
-                  Reset Key?
-                </a>
-              </div>
-            </div>
-
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -217,6 +169,13 @@ export default function EmployeeLoginPage() {
               {isLoading ? 'Authenticating...' : 'Initialize Session'}
             </motion.button>
           </form>
+
+          <p className="mt-6 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">
+            Admin or Employee?{' '}
+            <Link to="/login" className="text-indigo-400 hover:text-indigo-300">Admin</Link>
+            {' · '}
+            <Link to="/employee-login" className="text-indigo-400 hover:text-indigo-300">Employee</Link>
+          </p>
         </div>
       </motion.div>
     </div>

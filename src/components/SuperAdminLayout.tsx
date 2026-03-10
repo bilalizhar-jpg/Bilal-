@@ -33,7 +33,7 @@ export default function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/super-admin-login');
   };
 
   const menuItems = [

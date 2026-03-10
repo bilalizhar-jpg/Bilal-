@@ -8,6 +8,7 @@ import Navbar from './components/Navbar';
 import LandingPage from './pages/LandingPage';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
+import SuperAdminLoginPage from './pages/SuperAdminLoginPage';
 import EmployeeLoginPage from './pages/EmployeeLoginPage';
 import Dashboard from './pages/Dashboard';
 import Attendance from './pages/Attendance';
@@ -89,6 +90,18 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { db } from './firebase';
 import { doc, getDocFromServer } from 'firebase/firestore';
+import { EmployeeProvider } from './context/EmployeeContext';
+import { AttendanceProvider } from './context/AttendanceContext';
+import { TimeTrackingProvider } from './context/TimeTrackingContext';
+import { LeaveProvider } from './context/LeaveContext';
+import { PolicyProvider } from './context/PolicyContext';
+import { LetterProvider } from './context/LetterContext';
+import { CompanyDataProvider } from './context/CompanyDataContext';
+import { InvoiceProvider } from './context/InvoiceContext';
+import { ChatProvider } from './context/ChatContext';
+import { MarketingProvider } from './context/MarketingContext';
+import { TrainingProvider } from './context/TrainingContext';
+import { SettingsProvider } from './context/SettingsContext';
 
 async function testConnection() {
   try {
@@ -154,6 +167,7 @@ function AppContent() {
             <Route path="/careers/:companyId/apply/:jobId" element={<ApplyPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/super-admin-login" element={<SuperAdminLoginPage />} />
             <Route path="/employee-login" element={<EmployeeLoginPage />} />
             
             {/* Admin Routes */}
@@ -250,19 +264,6 @@ function AppContent() {
     </>
   );
 }
-
-import { EmployeeProvider } from './context/EmployeeContext';
-import { AttendanceProvider } from './context/AttendanceContext';
-import { TimeTrackingProvider } from './context/TimeTrackingContext';
-import { LeaveProvider } from './context/LeaveContext';
-import { PolicyProvider } from './context/PolicyContext';
-import { LetterProvider } from './context/LetterContext';
-import { CompanyDataProvider } from './context/CompanyDataContext';
-import { InvoiceProvider } from './context/InvoiceContext';
-import { ChatProvider } from './context/ChatContext';
-import { MarketingProvider } from './context/MarketingContext';
-import { TrainingProvider } from './context/TrainingContext';
-import { SettingsProvider } from './context/SettingsContext';
 
 export default function App() {
   return (

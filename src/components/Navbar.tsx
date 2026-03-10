@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Building2, Menu, X, Sun, Moon, User, Briefcase, LogOut, LayoutDashboard } from 'lucide-react';
+import { Building2, Menu, X, Sun, Moon, User, Briefcase, LogOut, LayoutDashboard, Shield } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTheme } from '../context/ThemeContext';
@@ -87,6 +87,12 @@ export default function Navbar() {
                   </>
                 ) : (
                   <>
+                    <Link
+                      to="/super-admin-login"
+                      className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-all"
+                    >
+                      Super Admin
+                    </Link>
                     <Link
                       to="/login"
                       className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-all"
@@ -180,20 +186,20 @@ export default function Navbar() {
                 ) : (
                   <>
                     <Link
+                      to="/super-admin-login"
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center justify-center gap-2 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl"
+                    >
+                      <Shield className="w-4 h-4" />
+                      Super Admin
+                    </Link>
+                    <Link
                       to="/login"
                       onClick={() => setIsOpen(false)}
                       className="flex items-center justify-center gap-2 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl"
                     >
                       <Briefcase className="w-4 h-4" />
-                      Super Admin
-                    </Link>
-                    <Link
-                      to="/dashboard"
-                      onClick={() => setIsOpen(false)}
-                      className="flex items-center justify-center gap-2 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl"
-                    >
-                      <Briefcase className="w-4 h-4" />
-                      Employer Login
+                      Admin
                     </Link>
                     <Link
                       to="/employee-login"
@@ -201,7 +207,7 @@ export default function Navbar() {
                       className="flex items-center justify-center gap-2 py-3 text-sm font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/50 rounded-xl"
                     >
                       <User className="w-4 h-4" />
-                      Employee Login
+                      Employee
                     </Link>
                     <Link
                       to="/register"
