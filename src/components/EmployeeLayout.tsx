@@ -13,6 +13,7 @@ import {
   ClipboardList,
   UserCheck,
   MessageSquare,
+  FileText,
   ChevronDown,
   ChevronRight,
   ArrowLeft,
@@ -90,6 +91,23 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
     },
     { name: 'Notice Board', icon: Bell, path: '/employee-portal/notices' },
     { name: 'Company Policies', icon: ClipboardList, path: '/employee-portal/policies' },
+    { 
+      name: 'Accounts', 
+      icon: FileText, 
+      hasSub: true,
+      subItems: [
+        {
+          name: 'Bank',
+          hasSub: true,
+          subItems: [
+            { name: 'Add Bank', path: '/accounts/bank/add' },
+            { name: 'Bank List', path: '/accounts/bank/list' },
+            { name: 'Create Transfer', path: '/accounts/bank/transfer' },
+            { name: 'Transfer List', path: '/accounts/bank/transfer-list' }
+          ]
+        }
+      ]
+    },
 
     // Permission-based
     { name: 'Projects', icon: ClipboardList, path: '/employee-portal/projects' },

@@ -18,7 +18,9 @@ import {
   FileText, 
   Settings, 
   Briefcase,
-  UserPlus
+  UserPlus,
+  Landmark,
+  CreditCard
 } from 'lucide-react';
 
 export const ADMIN_MENU_ITEMS = [
@@ -90,7 +92,6 @@ export const ADMIN_MENU_ITEMS = [
       { name: 'Sales tax format', path: '/payroll/sales-tax' }
     ]
   },
-  { name: 'Invoice', icon: Receipt, path: '/invoice' },
   { name: 'Performance', icon: Target, hasSub: true, subItems: [
       { name: 'KPI Templates', path: '/performance/kpis' },
       { name: 'Appraisal List', path: '/performance/appraisal-list' },
@@ -193,10 +194,62 @@ export const ADMIN_MENU_ITEMS = [
           }
         ]
       },
-      { name: 'Ledger', path: '/accounts/ledger' },
-      { name: 'Bill', path: '/accounts/bill' },
-      { name: 'People', path: '/accounts/people' },
-      { name: 'Reports', path: '/accounts/reports' }
+      {
+        name: 'Ledger',
+        hasSub: true,
+        subItems: [
+          { name: 'Create', path: '/accounts/ledger/create' },
+          { name: 'List', path: '/accounts/ledger/list' },
+          { name: 'Ledger Group', path: '/accounts/ledger/group' }
+        ]
+      },
+      {
+        name: 'Bill',
+        hasSub: true,
+        subItems: [
+          {
+            name: 'Vendor',
+            hasSub: true,
+            subItems: [
+              { name: 'Add Bill', path: '/accounts/bill/vendor/add' },
+              { name: 'Manage Bill', path: '/accounts/bill/vendor/manage' }
+            ]
+          },
+          {
+            name: 'Customer',
+            hasSub: true,
+            subItems: [
+              { name: 'Add Bill', path: '/accounts/bill/customer/add' },
+              { name: 'Manage Bill', path: '/accounts/bill/customer/manage' }
+            ]
+          }
+        ]
+      },
+      {
+        name: 'Details (Vendor/Supplier)',
+        hasSub: true,
+        subItems: [
+          { name: 'Vendor', path: '/accounts/details/vendor' },
+          { name: 'Supplier', path: '/accounts/details/supplier' },
+          { name: 'Biller', path: '/accounts/details/biller' },
+          { name: 'Customer', path: '/accounts/details/customer' }
+        ]
+      },
+      {
+        name: 'Reports',
+        hasSub: true,
+        subItems: [
+          { name: 'Transaction', path: '/accounts/reports/transaction' },
+          { name: 'Account Balance', path: '/accounts/reports/account-balance' },
+          { name: 'Income', path: '/accounts/reports/income' },
+          { name: 'Expense', path: '/accounts/reports/expense' },
+          { name: 'Trial Balance', path: '/accounts/reports/trial-balance' },
+          { name: 'Income Vs Expense', path: '/accounts/reports/income-vs-expense' },
+          { name: 'Profit & Loss', path: '/accounts/reports/profit-and-loss' },
+          { name: 'Balance Sheet', path: '/accounts/reports/balance-sheet' }
+        ]
+      },
+      { name: 'List of Companies', path: '/accounts/companies' }
     ]
   },
   { name: 'CRM', icon: Users, path: '#' },

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Receipt, Search, Download, Printer, Calendar, Trash2 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
+import BackButton from '../../../components/BackButton';
 import { useCompanyData } from '../../../context/CompanyDataContext';
 import { useTheme } from '../../../context/ThemeContext';
 import * as XLSX from 'xlsx';
@@ -71,6 +72,7 @@ export default function PaymentList() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
+          <BackButton />
           <div className={`p-3 rounded-2xl ${isDark ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-100 text-indigo-600'}`}>
             <Receipt className="w-6 h-6" />
           </div>

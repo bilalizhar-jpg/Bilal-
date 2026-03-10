@@ -36,6 +36,81 @@ export default function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
     navigate('/login');
   };
 
+  const SidebarItem = ({ item, depth = 0 }: { item: any, depth?: number }) => {
+    const Icon = item.icon;
+    
+    // Helper function to recursively check if any sub-item is active
+    const checkIsActive = (menuItem: any): boolean => {
+      if (menuItem.path && location.pathname === menuItem.path) return true;
+      if (menuItem.hasSub && menuItem.subItems) {
+        return menuItem.subItems.some((sub: any) => checkIsActive(sub));
+      }
+      return false;
+    };
+    
+    const isActive = checkIsActive(item);
+    const isOpen = openMenus.includes(item.name);
+    const isDark = theme === 'dark';
+
+    if (item.hasSub) {
+      return (
+        <div className="space-y-1">
+          <button
+            onClick={() => toggleMenu(item.name)}
+            className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 group ${
+              isActive 
+                ? (isDark ? 'bg-white/10 text-white border border-white/10' : 'bg-indigo-50 text-indigo-700') 
+                : (isDark ? 'text-slate-500 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900')
+            } ${depth === 1 ? 'pl-8' : depth === 2 ? 'pl-12' : depth === 3 ? 'pl-16' : ''}`}
+          >
+            <div className="flex items-center gap-4">
+              {Icon && <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? (isDark ? 'text-indigo-400' : 'text-indigo-600') : ''}`} />}
+              {isSidebarOpen && (
+                <span className={`font-black uppercase tracking-[0.2em] ${depth > 0 ? 'text-[10px]' : 'text-xs'}`}>{item.name}</span>
+              )}
+            </div>
+            {isSidebarOpen && (
+              <motion.div
+                animate={{ rotate: isOpen ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ChevronDown className="w-4 h-4 opacity-50" />
+              </motion.div>
+            )}
+          </button>
+          <AnimatePresence>
+            {isOpen && (
+              <motion.ul 
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className={`overflow-hidden space-y-1 ${depth === 0 ? 'ml-6 border-l border-white/5' : ''}`}
+              >
+                {item.subItems?.map((subItem: any) => (
+                  <SidebarItem key={subItem.name} item={subItem} depth={depth + 1} />
+                ))}
+              </motion.ul>
+            )}
+          </AnimatePresence>
+        </div>
+      );
+    }
+
+    return (
+      <Link
+        to={item.path || '#'}
+        className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group ${
+          location.pathname === item.path
+            ? (isDark ? 'bg-white/10 text-white border border-white/10 shadow-lg shadow-black/20' : 'bg-indigo-50 text-indigo-700') 
+            : (isDark ? 'text-slate-500 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900')
+        } ${depth === 1 ? 'pl-10' : depth === 2 ? 'pl-14' : depth === 3 ? 'pl-18' : ''}`}
+      >
+        {Icon && <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${location.pathname === item.path ? (isDark ? 'text-indigo-400' : 'text-indigo-600') : ''}`} />}
+        {isSidebarOpen && <span className={`font-black uppercase tracking-[0.2em] ${depth > 0 ? 'text-[10px]' : 'text-xs'}`}>{item.name}</span>}
+      </Link>
+    );
+  };
+
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/super-admin/dashboard' },
     { name: 'Companies', icon: Building2, path: '/super-admin/companies' },
@@ -129,90 +204,9 @@ export default function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
           </div>
 
           <div className="space-y-2">
-            {ADMIN_MENU_ITEMS.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path || (item.subItems?.some(sub => location.pathname === sub.path));
-              const isOpen = openMenus.includes(item.name);
-
-              return (
-                <div key={item.name}>
-                  {item.hasSub ? (
-                    <div className="space-y-1">
-                      <button
-                        onClick={() => toggleMenu(item.name)}
-                        className={`relative w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 group ${
-                          isActive 
-                            ? (isDark ? 'bg-white/5 text-white border border-white/10' : 'bg-white text-indigo-700 shadow-sm border border-slate-200') 
-                            : (isDark ? 'text-slate-500 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-sm')
-                        }`}
-                      >
-                        {isActive && (
-                          <motion.div 
-                            layoutId="activeIndicator"
-                            className={`absolute left-0 top-2 bottom-2 w-1 rounded-r-full ${isDark ? 'bg-indigo-500' : 'bg-indigo-600'}`}
-                          />
-                        )}
-                        <div className="flex items-center gap-4">
-                          <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? (isDark ? 'text-indigo-400' : 'text-indigo-600') : ''}`} />
-                          {isSidebarOpen && <span className="font-black text-xs uppercase tracking-[0.2em]">{item.name}</span>}
-                        </div>
-                        {isSidebarOpen && (
-                          <motion.div
-                            animate={{ rotate: isOpen ? 180 : 0 }}
-                            transition={{ duration: 0.3 }}
-                          >
-                            <ChevronDown className="w-4 h-4 opacity-50" />
-                          </motion.div>
-                        )}
-                      </button>
-                      <AnimatePresence>
-                        {isSidebarOpen && isOpen && (
-                          <motion.ul 
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden ml-6 border-l border-white/5 space-y-1"
-                          >
-                            {item.subItems?.map((subItem) => (
-                              <li key={subItem.name}>
-                                <Link
-                                  to={subItem.path}
-                                  className={`block px-6 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all ${
-                                    location.pathname === subItem.path
-                                      ? (isDark ? 'text-indigo-400 bg-white/5' : 'text-indigo-700 bg-indigo-50/50')
-                                      : (isDark ? 'text-slate-500 hover:text-slate-300 hover:bg-white/5' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50')
-                                  }`}
-                                >
-                                  {subItem.name}
-                                </Link>
-                              </li>
-                            ))}
-                          </motion.ul>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  ) : (
-                    <Link
-                      to={item.path || '#'}
-                      className={`relative flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group ${
-                        isActive 
-                          ? (isDark ? 'bg-white/5 text-white border border-white/10 shadow-lg shadow-indigo-500/10' : 'bg-white text-indigo-700 shadow-sm border border-slate-200') 
-                          : (isDark ? 'text-slate-500 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-sm')
-                      }`}
-                    >
-                      {isActive && (
-                        <motion.div 
-                          layoutId="activeIndicator"
-                          className={`absolute left-0 top-2 bottom-2 w-1 rounded-r-full ${isDark ? 'bg-indigo-500' : 'bg-indigo-600'}`}
-                        />
-                      )}
-                      <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? (isDark ? 'text-indigo-400' : 'text-indigo-600') : ''}`} />
-                      {isSidebarOpen && <span className="font-black text-xs uppercase tracking-[0.2em]">{item.name}</span>}
-                    </Link>
-                  )}
-                </div>
-              );
-            })}
+            {ADMIN_MENU_ITEMS.map((item) => (
+              <SidebarItem key={item.name} item={item} />
+            ))}
           </div>
         </nav>
 

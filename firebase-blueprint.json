@@ -505,14 +505,16 @@
         "id": { "type": "string" },
         "companyId": { "type": "string" },
         "bankName": { "type": "string" },
-        "accountTitle": { "type": "string" },
-        "accountNumber": { "type": "string" },
-        "branchCode": { "type": "string" },
-        "openingBalance": { "type": "number" },
-        "currentBalance": { "type": "number" },
-        "status": { "type": "string", "enum": ["Active", "Inactive"] }
+        "branch": { "type": "string" },
+        "accountName": { "type": "string" },
+        "accountHolder": { "type": "string" },
+        "accountNo": { "type": "string" },
+        "phone": { "type": "string" },
+        "initialBalance": { "type": "number" },
+        "internetBankingUrl": { "type": "string" },
+        "status": { "type": "string", "enum": ["Option 1", "Option 2"] }
       },
-      "required": ["id", "companyId", "bankName", "accountNumber"]
+      "required": ["id", "companyId", "bankName", "accountNo"]
     },
     "BankTransfer": {
       "title": "Bank Transfer",

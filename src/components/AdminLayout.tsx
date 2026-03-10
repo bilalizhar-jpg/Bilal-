@@ -93,7 +93,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   const SidebarItem = ({ item, depth = 0 }: { item: any, depth?: number }) => {
     const Icon = item.icon;
-    const isActive = location.pathname === item.path || (item.hasSub && item.subItems?.some((sub: any) => location.pathname === sub.path || (sub.hasSub && sub.subItems?.some((ss: any) => location.pathname === ss.path))));
+    
+    // Helper function to recursively check if any sub-item is active
+    const checkIsActive = (menuItem: any): boolean => {
+      if (menuItem.path && location.pathname === menuItem.path) return true;
+      if (menuItem.hasSub && menuItem.subItems) {
+        return menuItem.subItems.some((sub: any) => checkIsActive(sub));
+      }
+      return false;
+    };
+    
+    const isActive = checkIsActive(item);
     const isOpen = openMenus.includes(item.name);
     const isDark = theme === 'dark';
 
@@ -106,7 +116,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               isActive 
                 ? (isDark ? 'bg-white/10 text-white border border-white/10' : 'bg-indigo-50 text-indigo-700') 
                 : (isDark ? 'text-slate-500 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900')
-            } ${depth > 0 ? 'pl-8' : ''}`}
+            } ${depth === 1 ? 'pl-8' : depth === 2 ? 'pl-12' : depth === 3 ? 'pl-16' : ''}`}
           >
             <div className="flex items-center gap-4">
               {Icon && <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? (isDark ? 'text-indigo-400' : 'text-indigo-600') : ''}`} />}
@@ -136,7 +146,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                className={`overflow-hidden space-y-1 ${depth === 0 ? 'ml-6 border-l border-white/5' : 'ml-4'}`}
+                className={`overflow-hidden space-y-1 ${depth === 0 ? 'ml-6 border-l border-white/5' : ''}`}
               >
                 {item.subItems?.map((subItem: any) => (
                   <SidebarItem key={subItem.name} item={subItem} depth={depth + 1} />
@@ -155,7 +165,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           location.pathname === item.path
             ? (isDark ? 'bg-white/10 text-white border border-white/10 shadow-lg shadow-black/20' : 'bg-indigo-50 text-indigo-700') 
             : (isDark ? 'text-slate-500 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900')
-        } ${depth > 0 ? 'pl-10' : ''}`}
+        } ${depth === 1 ? 'pl-10' : depth === 2 ? 'pl-14' : depth === 3 ? 'pl-18' : ''}`}
       >
         {Icon && <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${location.pathname === item.path ? (isDark ? 'text-indigo-400' : 'text-indigo-600') : ''}`} />}
         {isSidebarOpen && <span className={`font-black uppercase tracking-[0.2em] ${depth > 0 ? 'text-[10px]' : 'text-xs'}`}>{item.name}</span>}

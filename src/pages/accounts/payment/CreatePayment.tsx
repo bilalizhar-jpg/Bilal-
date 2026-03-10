@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Receipt, Save, ArrowLeft, AlertCircle, CreditCard } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
+import BackButton from '../../../components/BackButton';
 import { useCompanyData } from '../../../context/CompanyDataContext';
 import { useTheme } from '../../../context/ThemeContext';
 
@@ -44,6 +45,7 @@ export default function CreatePayment() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
+          <BackButton />
           <div className={`p-3 rounded-2xl ${isDark ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-100 text-indigo-600'}`}>
             <Receipt className="w-6 h-6" />
           </div>
@@ -54,15 +56,6 @@ export default function CreatePayment() {
             <p className="text-slate-500 text-xs font-black uppercase tracking-widest">Record a new {type} payment in the ledger</p>
           </div>
         </div>
-        <button
-          onClick={() => navigate(-1)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-            isDark ? 'bg-white/5 text-white hover:bg-white/10' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-          }`}
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </button>
       </div>
 
       <motion.div
