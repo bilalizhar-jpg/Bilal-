@@ -451,6 +451,133 @@
         "matchPercentage": { "type": "number" }
       },
       "required": ["id", "jobId", "candidateName", "email", "stage"]
+    },
+    "BankAccount": {
+      "title": "Bank Account",
+      "description": "A bank account record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "bankName": { "type": "string" },
+        "accountTitle": { "type": "string" },
+        "accountNumber": { "type": "string" },
+        "branchCode": { "type": "string" },
+        "openingBalance": { "type": "number" },
+        "currentBalance": { "type": "number" },
+        "status": { "type": "string", "enum": ["Active", "Inactive"] }
+      },
+      "required": ["id", "companyId", "bankName", "accountNumber"]
+    },
+    "BankTransfer": {
+      "title": "Bank Transfer",
+      "description": "A transfer between bank accounts",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "fromAccountId": { "type": "string" },
+        "toAccountId": { "type": "string" },
+        "amount": { "type": "number" },
+        "date": { "type": "string" },
+        "reference": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["id", "companyId", "fromAccountId", "toAccountId", "amount", "date"]
+    },
+    "AccountPayment": {
+      "title": "Account Payment",
+      "description": "A payment record (Voucher or Invoice)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "type": { "type": "string", "enum": ["Voucher", "Invoice"] },
+        "category": { "type": "string" },
+        "amount": { "type": "number" },
+        "date": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "reference": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "companyId", "type", "amount", "date"]
+    },
+    "Voucher": {
+      "title": "Voucher",
+      "description": "A financial voucher (Debit, Credit, Journal)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "voucherType": { "type": "string", "enum": ["Debit", "Credit", "Journal"] },
+        "voucherNumber": { "type": "string" },
+        "date": { "type": "string" },
+        "amount": { "type": "number" },
+        "description": { "type": "string" },
+        "items": { "type": "array" }
+      },
+      "required": ["id", "companyId", "voucherType", "date", "amount"]
+    },
+    "LedgerGroup": {
+      "title": "Ledger Group",
+      "description": "A group for organizing ledgers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["Asset", "Liability", "Equity", "Income", "Expense"] }
+      },
+      "required": ["id", "companyId", "name", "type"]
+    },
+    "Ledger": {
+      "title": "Ledger",
+      "description": "A general ledger account",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "groupId": { "type": "string" },
+        "name": { "type": "string" },
+        "openingBalance": { "type": "number" },
+        "currentBalance": { "type": "number" }
+      },
+      "required": ["id", "companyId", "groupId", "name"]
+    },
+    "AccountBill": {
+      "title": "Account Bill",
+      "description": "A bill for a vendor or customer",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "billType": { "type": "string", "enum": ["Vendor", "Customer"] },
+        "billNumber": { "type": "string" },
+        "personId": { "type": "string" },
+        "date": { "type": "string" },
+        "dueDate": { "type": "string" },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["Pending", "Paid", "Partial", "Overdue"] },
+        "items": { "type": "array" }
+      },
+      "required": ["id", "companyId", "billType", "billNumber", "personId", "amount"]
+    },
+    "AccountPerson": {
+      "title": "Account Person",
+      "description": "A person involved in accounts (Vendor, Supplier, Biller, Customer)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "type": { "type": "string", "enum": ["Vendor", "Supplier", "Biller", "Customer"] },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "address": { "type": "string" },
+        "openingBalance": { "type": "number" }
+      },
+      "required": ["id", "companyId", "type", "name"]
     }
   },
   "firestore": {
@@ -561,6 +688,38 @@
     "/hr_applications/{applicationId}": {
       "schema": "Application",
       "description": "Collection of job applications"
+    },
+    "/bankAccounts/{accountId}": {
+      "schema": "BankAccount",
+      "description": "Collection of bank accounts"
+    },
+    "/bankTransfers/{transferId}": {
+      "schema": "BankTransfer",
+      "description": "Collection of bank transfers"
+    },
+    "/accountPayments/{paymentId}": {
+      "schema": "AccountPayment",
+      "description": "Collection of account payments"
+    },
+    "/vouchers/{voucherId}": {
+      "schema": "Voucher",
+      "description": "Collection of vouchers"
+    },
+    "/ledgerGroups/{groupId}": {
+      "schema": "LedgerGroup",
+      "description": "Collection of ledger groups"
+    },
+    "/ledgers/{ledgerId}": {
+      "schema": "Ledger",
+      "description": "Collection of ledgers"
+    },
+    "/accountBills/{billId}": {
+      "schema": "AccountBill",
+      "description": "Collection of account bills"
+    },
+    "/accountPeople/{personId}": {
+      "schema": "AccountPerson",
+      "description": "Collection of account people"
     }
   }
 }

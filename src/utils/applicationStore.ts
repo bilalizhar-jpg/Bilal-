@@ -26,6 +26,9 @@ export interface Application {
   matchPercentage?: number;
   skills?: string[];
   education?: string;
+  university?: string;
+  country?: string;
+  currentJobTitle?: string;
   expectedSalary?: string;
   location?: string;
   cvText?: string;

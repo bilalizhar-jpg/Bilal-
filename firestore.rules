@@ -67,6 +67,16 @@ service cloud.firestore {
     match /procurementSettings/{document=**} { allow read: if true; allow write: if true; }
     match /appraisals/{document=**} { allow read: if true; allow write: if true; }
 
+    // Accounts Collections
+    match /bankAccounts/{document=**} { allow read: if true; allow write: if true; }
+    match /bankTransfers/{document=**} { allow read: if true; allow write: if true; }
+    match /accountPayments/{document=**} { allow read: if true; allow write: if true; }
+    match /vouchers/{document=**} { allow read: if true; allow write: if true; }
+    match /ledgerGroups/{document=**} { allow read: if true; allow write: if true; }
+    match /ledgers/{document=**} { allow read: if true; allow write: if true; }
+    match /accountBills/{document=**} { allow read: if true; allow write: if true; }
+    match /accountPeople/{document=**} { allow read: if true; allow write: if true; }
+
     // Users (Super Admin) - Keep restricted
     match /users/{userId} {
       allow read, write: if isAuthenticated();

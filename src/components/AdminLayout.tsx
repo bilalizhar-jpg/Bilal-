@@ -91,6 +91,78 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   const filteredMenuItems = ADMIN_MENU_ITEMS.filter(item => !blockedMenus.includes(item.name));
 
+  const SidebarItem = ({ item, depth = 0 }: { item: any, depth?: number }) => {
+    const Icon = item.icon;
+    const isActive = location.pathname === item.path || (item.hasSub && item.subItems?.some((sub: any) => location.pathname === sub.path || (sub.hasSub && sub.subItems?.some((ss: any) => location.pathname === ss.path))));
+    const isOpen = openMenus.includes(item.name);
+    const isDark = theme === 'dark';
+
+    if (item.hasSub) {
+      return (
+        <div className="space-y-1">
+          <button
+            onClick={() => toggleMenu(item.name)}
+            className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 group ${
+              isActive 
+                ? (isDark ? 'bg-white/10 text-white border border-white/10' : 'bg-indigo-50 text-indigo-700') 
+                : (isDark ? 'text-slate-500 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900')
+            } ${depth > 0 ? 'pl-8' : ''}`}
+          >
+            <div className="flex items-center gap-4">
+              {Icon && <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? (isDark ? 'text-indigo-400' : 'text-indigo-600') : ''}`} />}
+              {isSidebarOpen && (
+                <div className="flex items-center gap-2 w-full justify-between">
+                  <span className={`font-black uppercase tracking-[0.2em] ${depth > 0 ? 'text-[10px]' : 'text-xs'}`}>{item.name}</span>
+                  {item.name === 'Recruitment' && liveJobsCount > 0 && (
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-600'}`}>
+                      {liveJobsCount}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+            {isSidebarOpen && (
+              <motion.div
+                animate={{ rotate: isOpen ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ChevronDown className="w-4 h-4 opacity-50" />
+              </motion.div>
+            )}
+          </button>
+          <AnimatePresence>
+            {isSidebarOpen && isOpen && (
+              <motion.ul 
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className={`overflow-hidden space-y-1 ${depth === 0 ? 'ml-6 border-l border-white/5' : 'ml-4'}`}
+              >
+                {item.subItems?.map((subItem: any) => (
+                  <SidebarItem key={subItem.name} item={subItem} depth={depth + 1} />
+                ))}
+              </motion.ul>
+            )}
+          </AnimatePresence>
+        </div>
+      );
+    }
+
+    return (
+      <Link
+        to={item.path!}
+        className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group ${
+          location.pathname === item.path
+            ? (isDark ? 'bg-white/10 text-white border border-white/10 shadow-lg shadow-black/20' : 'bg-indigo-50 text-indigo-700') 
+            : (isDark ? 'text-slate-500 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900')
+        } ${depth > 0 ? 'pl-10' : ''}`}
+      >
+        {Icon && <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${location.pathname === item.path ? (isDark ? 'text-indigo-400' : 'text-indigo-600') : ''}`} />}
+        {isSidebarOpen && <span className={`font-black uppercase tracking-[0.2em] ${depth > 0 ? 'text-[10px]' : 'text-xs'}`}>{item.name}</span>}
+      </Link>
+    );
+  };
+
   return (
     <div className={`min-h-screen flex relative overflow-hidden print:overflow-visible ${isDark ? 'bg-[#020203] text-white' : 'bg-slate-50 text-slate-900'}`}>
       {/* Immersive Background Atmosphere */}
@@ -204,87 +276,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
         <nav className="flex-1 overflow-y-auto py-4 custom-scrollbar px-4">
           <ul className="space-y-2">
-            {filteredMenuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path || (item.hasSub && item.subItems?.some(sub => location.pathname === sub.path));
-              const isOpen = openMenus.includes(item.name);
-
-              return (
-                <li key={item.name}>
-                  {item.hasSub ? (
-                    <div className="space-y-1">
-                      <button
-                        onClick={() => toggleMenu(item.name)}
-                        className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 group ${
-                          isActive 
-                            ? (isDark ? 'bg-white/10 text-white border border-white/10' : 'bg-indigo-50 text-indigo-700') 
-                            : (isDark ? 'text-slate-500 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900')
-                        }`}
-                      >
-                        <div className="flex items-center gap-4">
-                          <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? (isDark ? 'text-indigo-400' : 'text-indigo-600') : ''}`} />
-                          {isSidebarOpen && (
-                            <div className="flex items-center gap-2 w-full justify-between">
-                              <span className="font-black text-xs uppercase tracking-[0.2em]">{item.name}</span>
-                              {item.name === 'Recruitment' && liveJobsCount > 0 && (
-                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-600'}`}>
-                                  {liveJobsCount}
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                        {isSidebarOpen && (
-                          <motion.div
-                            animate={{ rotate: isOpen ? 180 : 0 }}
-                            transition={{ duration: 0.3 }}
-                          >
-                            <ChevronDown className="w-4 h-4 opacity-50" />
-                          </motion.div>
-                        )}
-                      </button>
-                      <AnimatePresence>
-                        {isSidebarOpen && isOpen && (
-                          <motion.ul 
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden ml-6 border-l border-white/5 space-y-1"
-                          >
-                            {item.subItems?.map((subItem) => (
-                              <li key={subItem.name}>
-                                <Link
-                                  to={subItem.path}
-                                  className={`block px-6 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all ${
-                                    location.pathname === subItem.path
-                                      ? (isDark ? 'text-indigo-400 bg-white/5' : 'text-indigo-700 bg-indigo-50/50')
-                                      : (isDark ? 'text-slate-500 hover:text-slate-300 hover:bg-white/5' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50')
-                                  }`}
-                                >
-                                  {subItem.name}
-                                </Link>
-                              </li>
-                            ))}
-                          </motion.ul>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  ) : (
-                    <Link
-                      to={item.path!}
-                      className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group ${
-                        isActive 
-                          ? (isDark ? 'bg-white/10 text-white border border-white/10 shadow-lg shadow-black/20' : 'bg-indigo-50 text-indigo-700') 
-                          : (isDark ? 'text-slate-500 hover:bg-white/5 hover:text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900')
-                      }`}
-                    >
-                      <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? (isDark ? 'text-indigo-400' : 'text-indigo-600') : ''}`} />
-                      {isSidebarOpen && <span className="font-black text-xs uppercase tracking-[0.2em]">{item.name}</span>}
-                    </Link>
-                  )}
-                </li>
-              );
-            })}
+            {filteredMenuItems.map((item) => (
+              <SidebarItem key={item.name} item={item} />
+            ))}
           </ul>
         </nav>
 

@@ -60,6 +60,20 @@ import SetupRules from './pages/settings/SetupRules';
 import GeneralSettings from './pages/settings/GeneralSettings';
 import InvoiceGenerator from './pages/InvoiceGenerator';
 
+// Accounts Imports
+import AddBank from './pages/accounts/bank/AddBank';
+import BankList from './pages/accounts/bank/BankList';
+import CreateTransfer from './pages/accounts/bank/CreateTransfer';
+import TransferList from './pages/accounts/bank/TransferList';
+import CreatePayment from './pages/accounts/payment/CreatePayment';
+import PaymentList from './pages/accounts/payment/PaymentList';
+import CreateVoucher from './pages/accounts/voucher/CreateVoucher';
+import VoucherList from './pages/accounts/voucher/VoucherList';
+import LedgerManagement from './pages/accounts/ledger/LedgerManagement';
+import BillManagement from './pages/accounts/bill/BillManagement';
+import PeopleManagement from './pages/accounts/people/PeopleManagement';
+import AccountReports from './pages/accounts/reports/AccountReports';
+
 import TimeTracker from './pages/TimeTracker';
 import OrgChart from './pages/OrgChart';
 import CompanyPolicies from './pages/CompanyPolicies';
@@ -224,6 +238,21 @@ function AppContent() {
             <Route path="/setup-rules" element={<ProtectedRoute allowedRoles={['admin']}><SetupRules /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute allowedRoles={['admin']}><GeneralSettings /></ProtectedRoute>} />
             <Route path="/invoice" element={<ProtectedRoute allowedRoles={['admin']}><InvoiceGenerator /></ProtectedRoute>} />
+            
+            {/* Accounts Routes */}
+            <Route path="/accounts/bank/add" element={<ProtectedRoute allowedRoles={['admin']}><AddBank /></ProtectedRoute>} />
+            <Route path="/accounts/bank/list" element={<ProtectedRoute allowedRoles={['admin']}><BankList /></ProtectedRoute>} />
+            <Route path="/accounts/bank/transfer" element={<ProtectedRoute allowedRoles={['admin']}><CreateTransfer /></ProtectedRoute>} />
+            <Route path="/accounts/bank/transfer-list" element={<ProtectedRoute allowedRoles={['admin']}><TransferList /></ProtectedRoute>} />
+            <Route path="/accounts/payment/create/:type" element={<ProtectedRoute allowedRoles={['admin']}><CreatePayment /></ProtectedRoute>} />
+            <Route path="/accounts/payment/list/:type" element={<ProtectedRoute allowedRoles={['admin']}><PaymentList /></ProtectedRoute>} />
+            <Route path="/accounts/voucher/:type/create" element={<ProtectedRoute allowedRoles={['admin']}><CreateVoucher /></ProtectedRoute>} />
+            <Route path="/accounts/voucher/:type/list" element={<ProtectedRoute allowedRoles={['admin']}><VoucherList /></ProtectedRoute>} />
+            <Route path="/accounts/ledger" element={<ProtectedRoute allowedRoles={['admin']}><LedgerManagement /></ProtectedRoute>} />
+            <Route path="/accounts/bill" element={<ProtectedRoute allowedRoles={['admin']}><BillManagement /></ProtectedRoute>} />
+            <Route path="/accounts/people" element={<ProtectedRoute allowedRoles={['admin']}><PeopleManagement /></ProtectedRoute>} />
+            <Route path="/accounts/reports" element={<ProtectedRoute allowedRoles={['admin']}><AccountReports /></ProtectedRoute>} />
+
             <Route path="/super-admin/dashboard" element={<ProtectedRoute allowedRoles={['superadmin']}><SuperAdminDashboard /></ProtectedRoute>} />
             <Route path="/super-admin/companies" element={<ProtectedRoute allowedRoles={['superadmin']}><CompanyManagement /></ProtectedRoute>} />
             <Route path="/super-admin/subscription-plans" element={<ProtectedRoute allowedRoles={['superadmin']}><SubscriptionPlans /></ProtectedRoute>} />

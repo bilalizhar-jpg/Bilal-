@@ -36,6 +36,14 @@ interface CompanyDataContextType {
   orgChartTemplates: DataEntity[];
   procurementRequests: DataEntity[];
   procurementSettings: DataEntity[];
+  bankAccounts: DataEntity[];
+  bankTransfers: DataEntity[];
+  accountPayments: DataEntity[];
+  vouchers: DataEntity[];
+  ledgerGroups: DataEntity[];
+  ledgers: DataEntity[];
+  accountBills: DataEntity[];
+  accountPeople: DataEntity[];
   loading: boolean;
   addEntity: (collectionName: string, data: any) => Promise<void>;
   updateEntity: (collectionName: string, id: string, data: any) => Promise<void>;
@@ -70,6 +78,14 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
   const [orgChartTemplates, setOrgChartTemplates] = useState<DataEntity[]>([]);
   const [procurementRequests, setProcurementRequests] = useState<DataEntity[]>([]);
   const [procurementSettings, setProcurementSettings] = useState<DataEntity[]>([]);
+  const [bankAccounts, setBankAccounts] = useState<DataEntity[]>([]);
+  const [bankTransfers, setBankTransfers] = useState<DataEntity[]>([]);
+  const [accountPayments, setAccountPayments] = useState<DataEntity[]>([]);
+  const [vouchers, setVouchers] = useState<DataEntity[]>([]);
+  const [ledgerGroups, setLedgerGroups] = useState<DataEntity[]>([]);
+  const [ledgers, setLedgers] = useState<DataEntity[]>([]);
+  const [accountBills, setAccountBills] = useState<DataEntity[]>([]);
+  const [accountPeople, setAccountPeople] = useState<DataEntity[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -94,7 +110,15 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
       { name: 'salaryRecords', setter: setSalaryRecords },
       { name: 'orgChartTemplates', setter: setOrgChartTemplates },
       { name: 'procurementRequests', setter: setProcurementRequests },
-      { name: 'procurementSettings', setter: setProcurementSettings }
+      { name: 'procurementSettings', setter: setProcurementSettings },
+      { name: 'bankAccounts', setter: setBankAccounts },
+      { name: 'bankTransfers', setter: setBankTransfers },
+      { name: 'accountPayments', setter: setAccountPayments },
+      { name: 'vouchers', setter: setVouchers },
+      { name: 'ledgerGroups', setter: setLedgerGroups },
+      { name: 'ledgers', setter: setLedgers },
+      { name: 'accountBills', setter: setAccountBills },
+      { name: 'accountPeople', setter: setAccountPeople }
     ];
 
     const unsubscribes = collections.map(({ name, setter }) => {
@@ -156,6 +180,14 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
       orgChartTemplates,
       procurementRequests,
       procurementSettings,
+      bankAccounts,
+      bankTransfers,
+      accountPayments,
+      vouchers,
+      ledgerGroups,
+      ledgers,
+      accountBills,
+      accountPeople,
       loading,
       addEntity,
       updateEntity,

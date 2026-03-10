@@ -11,6 +11,9 @@ interface CandidateSearchFilters {
   minSalary: string;
   maxSalary: string;
   education: string;
+  university: string;
+  country: string;
+  currentJobTitle: string;
 }
 
 export default function SearchCandidate() {
@@ -22,6 +25,9 @@ export default function SearchCandidate() {
     minSalary: '',
     maxSalary: '',
     education: '',
+    university: '',
+    country: '',
+    currentJobTitle: '',
   });
 
   const [allCandidates, setAllCandidates] = useState<Application[]>([]);
@@ -84,6 +90,27 @@ export default function SearchCandidate() {
       );
     }
 
+    if (filters.university) {
+      const universityLower = filters.university.toLowerCase();
+      results = results.filter(app => 
+        app.university && app.university.toLowerCase().includes(universityLower)
+      );
+    }
+
+    if (filters.country) {
+      const countryLower = filters.country.toLowerCase();
+      results = results.filter(app => 
+        app.country && app.country.toLowerCase().includes(countryLower)
+      );
+    }
+
+    if (filters.currentJobTitle) {
+      const jobTitleLower = filters.currentJobTitle.toLowerCase();
+      results = results.filter(app => 
+        app.currentJobTitle && app.currentJobTitle.toLowerCase().includes(jobTitleLower)
+      );
+    }
+
     // Basic salary filtering (assuming expectedSalary is a string like "50k - 100k")
     if (filters.minSalary || filters.maxSalary) {
       const minSearch = parseInt(filters.minSalary) || 0;
@@ -114,6 +141,9 @@ export default function SearchCandidate() {
       minSalary: '',
       maxSalary: '',
       education: '',
+      university: '',
+      country: '',
+      currentJobTitle: '',
     });
     setSearchResults(allCandidates);
     setHasSearched(false);
@@ -238,6 +268,54 @@ export default function SearchCandidate() {
                   className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:border-[#1976d2] focus:ring-1 focus:ring-[#1976d2] outline-none transition-colors"
                 />
                 <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              </div>
+            </div>
+
+            {/* University Search */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">University</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="university"
+                  value={filters.university}
+                  onChange={handleFilterChange}
+                  placeholder="Enter university name"
+                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:border-[#1976d2] focus:ring-1 focus:ring-[#1976d2] outline-none transition-colors"
+                />
+                <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              </div>
+            </div>
+
+            {/* Country Search */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Country</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="country"
+                  value={filters.country}
+                  onChange={handleFilterChange}
+                  placeholder="Enter country"
+                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:border-[#1976d2] focus:ring-1 focus:ring-[#1976d2] outline-none transition-colors"
+                />
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              </div>
+            </div>
+
+            {/* Current Job Title Search */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Current Job Title</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="currentJobTitle"
+                  value={filters.currentJobTitle}
+                  onChange={handleFilterChange}
+                  placeholder="Enter current job title"
+                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:border-[#1976d2] focus:ring-1 focus:ring-[#1976d2] outline-none transition-colors"
+                />
+                <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               </div>
             </div>
           </div>

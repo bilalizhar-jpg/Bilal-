@@ -125,7 +125,79 @@ export const ADMIN_MENU_ITEMS = [
       { name: 'Procurement Settings', path: '/procurement/settings' }
     ]
   },
-  { name: 'Accounts', icon: FileText, path: '#' },
+  { 
+    name: 'Accounts', 
+    icon: FileText, 
+    hasSub: true,
+    subItems: [
+      {
+        name: 'Bank',
+        hasSub: true,
+        subItems: [
+          { name: 'Add Bank', path: '/accounts/bank/add' },
+          { name: 'Bank List', path: '/accounts/bank/list' },
+          { name: 'Create Transfer', path: '/accounts/bank/transfer' },
+          { name: 'Transfer List', path: '/accounts/bank/transfer-list' }
+        ]
+      },
+      {
+        name: 'Payment',
+        hasSub: true,
+        subItems: [
+          {
+            name: 'Create Payment',
+            hasSub: true,
+            subItems: [
+              { name: 'Voucher', path: '/accounts/payment/create/voucher' },
+              { name: 'Invoice', path: '/accounts/payment/create/invoice' }
+            ]
+          },
+          {
+            name: 'Payment List',
+            hasSub: true,
+            subItems: [
+              { name: 'Voucher', path: '/accounts/payment/list/voucher' },
+              { name: 'Invoice', path: '/accounts/payment/list/invoice' }
+            ]
+          }
+        ]
+      },
+      {
+        name: 'Voucher',
+        hasSub: true,
+        subItems: [
+          {
+            name: 'Debit',
+            hasSub: true,
+            subItems: [
+              { name: 'Create', path: '/accounts/voucher/debit/create' },
+              { name: 'List', path: '/accounts/voucher/debit/list' }
+            ]
+          },
+          {
+            name: 'Credit',
+            hasSub: true,
+            subItems: [
+              { name: 'Create', path: '/accounts/voucher/credit/create' },
+              { name: 'List', path: '/accounts/voucher/credit/list' }
+            ]
+          },
+          {
+            name: 'Journal',
+            hasSub: true,
+            subItems: [
+              { name: 'Create', path: '/accounts/voucher/journal/create' },
+              { name: 'List', path: '/accounts/voucher/journal/list' }
+            ]
+          }
+        ]
+      },
+      { name: 'Ledger', path: '/accounts/ledger' },
+      { name: 'Bill', path: '/accounts/bill' },
+      { name: 'People', path: '/accounts/people' },
+      { name: 'Reports', path: '/accounts/reports' }
+    ]
+  },
   { name: 'CRM', icon: Users, path: '#' },
   { name: 'Purchase Dep', icon: Briefcase, path: '#' },
   { name: 'Settings', icon: Settings, hasSub: true, subItems: [

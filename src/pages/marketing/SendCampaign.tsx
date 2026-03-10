@@ -37,30 +37,6 @@ export default function SendCampaign() {
       scheduleTime: formData.time
     });
 
-    // Simulate sending process and creating logs
-    if (campaignId) {
-      const selectedList = lists.find(l => l.name === formData.list);
-      const count = selectedList ? selectedList.count : 0;
-      
-      // Create some dummy logs for the campaign
-      const statuses: ('Opened' | 'Clicked' | 'Bounced' | 'Unsubscribed' | 'Delivered' | 'Spam')[] = ['Opened', 'Clicked', 'Delivered', 'Bounced', 'Unsubscribed', 'Spam'];
-      
-      // Just create a few sample logs to show in the report
-      const numLogs = Math.min(count, 10); 
-      for (let i = 0; i < numLogs; i++) {
-        const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-        await addCampaignLog({
-          campaignId,
-          recipientName: `Recipient ${i + 1}`,
-          recipientEmail: `recipient${i + 1}@example.com`,
-          status: randomStatus,
-          opens: randomStatus === 'Opened' || randomStatus === 'Clicked' ? Math.floor(Math.random() * 3) + 1 : 0,
-          clicks: randomStatus === 'Clicked' ? Math.floor(Math.random() * 2) + 1 : 0,
-          lastActivity: new Date(Date.now() - Math.floor(Math.random() * 10000000)).toISOString()
-        });
-      }
-    }
-
     setIsSending(false);
     setIsSent(true);
   };
