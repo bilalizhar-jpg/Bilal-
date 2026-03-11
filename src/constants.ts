@@ -187,7 +187,16 @@ export const ADMIN_MENU_ITEMS = [
       }
     ]
   },
-  { name: 'CRM', icon: Users, path: '#' },
+  { 
+    name: 'CRM', 
+    icon: Users, 
+    hasSub: true,
+    subItems: [
+      { name: 'Companies', path: '/crm/companies' },
+      { name: 'Products', path: '/crm/products' },
+      { name: 'Opportunities', path: '/crm/opportunities' }
+    ]
+  },
   { name: 'Purchase Dep', icon: Briefcase, path: '#' },
   { name: 'Settings', icon: Settings, hasSub: true, subItems: [
       { name: 'General Settings', path: '/settings' },
