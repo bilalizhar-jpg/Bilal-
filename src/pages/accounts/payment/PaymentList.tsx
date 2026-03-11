@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Receipt, Search, Download, Printer, Trash2, Plus, Upload, Filter, FileText, FileSpreadsheet } from 'lucide-react';
+import { Receipt, Search, Download, Printer, Trash2, Plus, Upload, Filter, FileText, FileSpreadsheet, Edit2 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AdminLayout from '../../../components/AdminLayout';
 import { useCompanyData } from '../../../context/CompanyDataContext';
@@ -269,12 +269,17 @@ export default function PaymentList() {
                       ${p.amount?.toLocaleString() || '0'}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button 
-                        onClick={() => handleDelete(p.id)}
-                        className={`p-1.5 rounded-md transition-all ${isDark ? 'hover:bg-red-500/10 text-red-400' : 'hover:bg-red-50 text-red-600'}`}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button className={`p-1.5 rounded-md transition-all ${isDark ? 'hover:bg-white/10 text-slate-400 hover:text-white' : 'hover:bg-slate-200 text-slate-600'}`}>
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(p.id)}
+                          className={`p-1.5 rounded-md transition-all ${isDark ? 'hover:bg-red-500/10 text-red-400' : 'hover:bg-red-50 text-red-600'}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

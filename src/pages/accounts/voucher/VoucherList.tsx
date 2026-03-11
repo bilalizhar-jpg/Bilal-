@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { FileText, Search, Download, Printer, Calendar, Trash2, Eye, Plus, Upload, Filter, FileSpreadsheet } from 'lucide-react';
+import { FileText, Search, Download, Printer, Calendar, Trash2, Eye, Plus, Upload, Filter, FileSpreadsheet, Edit2 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCompanyData } from '../../../context/CompanyDataContext';
 import { useTheme } from '../../../context/ThemeContext';
@@ -256,7 +256,7 @@ export default function VoucherList() {
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button className={`p-1.5 rounded-md transition-all ${isDark ? 'hover:bg-white/10 text-slate-400 hover:text-white' : 'hover:bg-slate-200 text-slate-600'}`}>
-                          <Eye className="w-4 h-4" />
+                          <Edit2 className="w-4 h-4" />
                         </button>
                         <button 
                           onClick={() => handleDelete(v.id)}

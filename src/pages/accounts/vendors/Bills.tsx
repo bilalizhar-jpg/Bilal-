@@ -1,25 +1,19 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { useTheme } from '../../../context/ThemeContext';
-import { Search, Plus, Filter, Download, MoreHorizontal, Calendar, FileText } from 'lucide-react';
+import { Search, Plus, Filter, Download, Calendar, FileText, Edit2, Trash2 } from 'lucide-react';
 import AdminLayout from '../../../components/AdminLayout';
+import { useCompanyData } from '../../../context/CompanyDataContext';
 
 export default function Bills() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const [searchTerm, setSearchTerm] = useState('');
+  const { accountBills, deleteEntity } = useCompanyData();
 
-  const bills = [
-    { id: 'BILL-2023-001', vendor: 'Office Supplies Co', date: '2023-10-25', dueDate: '2023-11-24', total: 450.00, status: 'Paid' },
-    { id: 'BILL-2023-002', vendor: 'Tech Solutions Inc', date: '2023-10-26', dueDate: '2023-11-25', total: 12500.00, status: 'Open' },
-    { id: 'BILL-2023-003', vendor: 'Marketing Agency', date: '2023-10-27', dueDate: '2023-11-26', total: 8900.00, status: 'Overdue' },
-    { id: 'BILL-2023-004', vendor: 'Consulting Group', date: '2023-10-28', dueDate: '2023-11-27', total: 3200.00, status: 'Draft' },
-    { id: 'BILL-2023-005', vendor: 'Cleaning Services', date: '2023-10-29', dueDate: '2023-11-28', total: 1500.00, status: 'Open' },
-  ];
-
-  const filteredBills = bills.filter(b => 
+  const filteredBills = accountBills.filter(b => 
     b.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    b.vendor.toLowerCase().includes(searchTerm.toLowerCase())
+    b.vendor?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -108,7 +102,7 @@ export default function Bills() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                        ${bill.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        ${bill.total?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center">
@@ -122,9 +116,17 @@ export default function Bills() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <button className={`p-1.5 rounded-md transition-colors ${isDark ? 'text-slate-400 hover:bg-slate-700 hover:text-white' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-900'}`}>
-                        <MoreHorizontal className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center justify-center gap-2">
+                        <button className={`p-1.5 rounded-md transition-colors ${isDark ? 'text-slate-400 hover:bg-slate-700 hover:text-white' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-900'}`}>
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => deleteEntity('accountBills', bill.id)}
+                          className={`p-1.5 rounded-md transition-colors ${isDark ? 'text-red-400 hover:bg-red-900/50 hover:text-white' : 'text-red-500 hover:bg-red-100 hover:text-red-900'}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </motion.tr>
                 ))}

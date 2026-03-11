@@ -1,26 +1,20 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { useTheme } from '../../../context/ThemeContext';
-import { Search, Plus, Filter, Download, MoreHorizontal, Calendar, FileText } from 'lucide-react';
+import { Search, Plus, Filter, Download, Calendar, FileText, Edit2, Trash2 } from 'lucide-react';
 import AdminLayout from '../../../components/AdminLayout';
+import { useCompanyData } from '../../../context/CompanyDataContext';
 
 export default function JournalEntries() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const [searchTerm, setSearchTerm] = useState('');
+  const { ledgers, deleteEntity } = useCompanyData();
 
-  const entries = [
-    { id: 'JE-001', date: '2023-10-25', reference: 'Vendor Payment', journal: 'Bank', total: 1500.00, status: 'Posted' },
-    { id: 'JE-002', date: '2023-10-26', reference: 'Customer Invoice', journal: 'Customer Invoices', total: 4500.00, status: 'Posted' },
-    { id: 'JE-003', date: '2023-10-27', reference: 'Office Supplies', journal: 'Miscellaneous', total: 250.00, status: 'Draft' },
-    { id: 'JE-004', date: '2023-10-28', reference: 'Payroll Oct', journal: 'Miscellaneous', total: 12500.00, status: 'Posted' },
-    { id: 'JE-005', date: '2023-10-29', reference: 'Rent Payment', journal: 'Bank', total: 3000.00, status: 'Posted' },
-  ];
-
-  const filteredEntries = entries.filter(e => 
-    e.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    e.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    e.journal.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredEntries = ledgers.filter((e: any) => 
+    e.id?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    e.reference?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    e.journal?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -81,7 +75,7 @@ export default function JournalEntries() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
-                {filteredEntries.map((entry, index) => (
+                {filteredEntries.map((entry: any, index: number) => (
                   <motion.tr 
                     key={entry.id}
                     initial={{ opacity: 0, y: 10 }}
@@ -106,7 +100,7 @@ export default function JournalEntries() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                        ${entry.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        ${(entry.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center">
@@ -118,9 +112,17 @@ export default function JournalEntries() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <button className={`p-1.5 rounded-md transition-colors ${isDark ? 'text-slate-400 hover:bg-slate-700 hover:text-white' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-900'}`}>
-                        <MoreHorizontal className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center justify-center gap-2">
+                        <button className={`p-1.5 rounded-md transition-colors ${isDark ? 'text-slate-400 hover:bg-slate-700 hover:text-white' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-900'}`}>
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => deleteEntity('journalEntries', entry.id)}
+                          className={`p-1.5 rounded-md transition-colors ${isDark ? 'text-red-400 hover:bg-red-900/30' : 'text-red-500 hover:bg-red-50'}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </motion.tr>
                 ))}

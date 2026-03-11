@@ -1,25 +1,19 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { useTheme } from '../../../context/ThemeContext';
-import { Search, Plus, Filter, Download, MoreHorizontal, Mail, Phone, MapPin } from 'lucide-react';
+import { Search, Plus, Filter, Download, Mail, Phone, MapPin, Edit2, Trash2 } from 'lucide-react';
 import AdminLayout from '../../../components/AdminLayout';
+import { useCompanyData } from '../../../context/CompanyDataContext';
 
 export default function VendorList() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const [searchTerm, setSearchTerm] = useState('');
+  const { accountPeople, deleteEntity } = useCompanyData();
 
-  const vendors = [
-    { id: 'VEND-001', name: 'Office Supplies Co', email: 'sales@officesupplies.com', phone: '+1 555-9999', city: 'Boston', balance: 450.00, status: 'Active' },
-    { id: 'VEND-002', name: 'Tech Solutions Inc', email: 'support@techsolutions.com', phone: '+1 555-8888', city: 'Seattle', balance: 12500.00, status: 'Active' },
-    { id: 'VEND-003', name: 'Marketing Agency', email: 'hello@marketing.com', phone: '+1 555-7777', city: 'Los Angeles', balance: 8900.00, status: 'Active' },
-    { id: 'VEND-004', name: 'Consulting Group', email: 'info@consulting.com', phone: '+1 555-6666', city: 'Denver', balance: 3200.00, status: 'Active' },
-    { id: 'VEND-005', name: 'Cleaning Services', email: 'clean@services.com', phone: '+1 555-5555', city: 'Miami', balance: 1500.00, status: 'Active' },
-  ];
-
-  const filteredVendors = vendors.filter(v => 
-    v.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    v.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredVendors = accountPeople.filter((v: any) => 
+    v.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    v.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -73,7 +67,7 @@ export default function VendorList() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
-                {filteredVendors.map((vendor, index) => (
+                {filteredVendors.map((vendor: any, index: number) => (
                   <motion.tr 
                     key={vendor.id}
                     initial={{ opacity: 0, y: 10 }}
@@ -106,8 +100,8 @@ export default function VendorList() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <span className={`text-sm font-bold ${vendor.balance > 0 ? 'text-rose-500' : (isDark ? 'text-slate-300' : 'text-slate-700')}`}>
-                        ${vendor.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      <span className={`text-sm font-bold ${(vendor.balance || 0) > 0 ? 'text-rose-500' : (isDark ? 'text-slate-300' : 'text-slate-700')}`}>
+                        ${(vendor.balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center">
@@ -119,9 +113,17 @@ export default function VendorList() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <button className={`p-1.5 rounded-md transition-colors ${isDark ? 'text-slate-400 hover:bg-slate-700 hover:text-white' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-900'}`}>
-                        <MoreHorizontal className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center justify-center gap-2">
+                        <button className={`p-1.5 rounded-md transition-colors ${isDark ? 'text-slate-400 hover:bg-slate-700 hover:text-white' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-900'}`}>
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => deleteEntity('vendors', vendor.id)}
+                          className={`p-1.5 rounded-md transition-colors ${isDark ? 'text-red-400 hover:bg-red-900/30' : 'text-red-500 hover:bg-red-50'}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </motion.tr>
                 ))}

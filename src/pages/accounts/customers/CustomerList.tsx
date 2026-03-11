@@ -1,25 +1,19 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { useTheme } from '../../../context/ThemeContext';
-import { Search, Plus, Filter, Download, MoreHorizontal, Mail, Phone, MapPin } from 'lucide-react';
+import { Search, Plus, Filter, Download, Mail, Phone, MapPin, Edit2, Trash2 } from 'lucide-react';
 import AdminLayout from '../../../components/AdminLayout';
+import { useCompanyData } from '../../../context/CompanyDataContext';
 
 export default function CustomerList() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const [searchTerm, setSearchTerm] = useState('');
+  const { accountPeople, deleteEntity } = useCompanyData();
 
-  const customers = [
-    { id: 'CUST-001', name: 'Acme Corp', email: 'billing@acme.com', phone: '+1 555-0123', city: 'New York', balance: 12450.00, status: 'Active' },
-    { id: 'CUST-002', name: 'Globex Inc', email: 'accounts@globex.com', phone: '+1 555-0456', city: 'San Francisco', balance: 0.00, status: 'Active' },
-    { id: 'CUST-003', name: 'Soylent Corp', email: 'finance@soylent.com', phone: '+1 555-0789', city: 'Chicago', balance: 8900.00, status: 'Active' },
-    { id: 'CUST-004', name: 'Initech', email: 'pay@initech.com', phone: '+1 555-0111', city: 'Austin', balance: 3200.00, status: 'Inactive' },
-    { id: 'CUST-005', name: 'Umbrella Corp', email: 'billing@umbrella.com', phone: '+1 555-0222', city: 'Raccoon City', balance: 15000.00, status: 'Active' },
-  ];
-
-  const filteredCustomers = customers.filter(c => 
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    c.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCustomers = accountPeople.filter((c: any) => 
+    c.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    c.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -73,7 +67,7 @@ export default function CustomerList() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
-                {filteredCustomers.map((customer, index) => (
+                {filteredCustomers.map((customer: any, index: number) => (
                   <motion.tr 
                     key={customer.id}
                     initial={{ opacity: 0, y: 10 }}
@@ -106,8 +100,8 @@ export default function CustomerList() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <span className={`text-sm font-bold ${customer.balance > 0 ? 'text-rose-500' : (isDark ? 'text-slate-300' : 'text-slate-700')}`}>
-                        ${customer.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      <span className={`text-sm font-bold ${(customer.balance || 0) > 0 ? 'text-rose-500' : (isDark ? 'text-slate-300' : 'text-slate-700')}`}>
+                        ${(customer.balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center">
@@ -119,9 +113,17 @@ export default function CustomerList() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <button className={`p-1.5 rounded-md transition-colors ${isDark ? 'text-slate-400 hover:bg-slate-700 hover:text-white' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-900'}`}>
-                        <MoreHorizontal className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center justify-center gap-2">
+                        <button className={`p-1.5 rounded-md transition-colors ${isDark ? 'text-slate-400 hover:bg-slate-700 hover:text-white' : 'text-slate-500 hover:bg-slate-200 hover:text-slate-900'}`}>
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => deleteEntity('customers', customer.id)}
+                          className={`p-1.5 rounded-md transition-colors ${isDark ? 'text-red-400 hover:bg-red-900/30' : 'text-red-500 hover:bg-red-50'}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </motion.tr>
                 ))}

@@ -45,6 +45,8 @@ interface CompanyDataContextType {
   ledgers: DataEntity[];
   accountBills: DataEntity[];
   accountPeople: DataEntity[];
+  accountInvoices: DataEntity[];
+  journalEntries: DataEntity[];
   loading: boolean;
   addEntity: (collectionName: string, data: any) => Promise<void>;
   updateEntity: (collectionName: string, id: string, data: any) => Promise<void>;
@@ -88,6 +90,8 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
   const [ledgers, setLedgers] = useState<DataEntity[]>([]);
   const [accountBills, setAccountBills] = useState<DataEntity[]>([]);
   const [accountPeople, setAccountPeople] = useState<DataEntity[]>([]);
+  const [accountInvoices, setAccountInvoices] = useState<DataEntity[]>([]);
+  const [journalEntries, setJournalEntries] = useState<DataEntity[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -121,7 +125,9 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
       { name: 'ledgerGroups', setter: setLedgerGroups },
       { name: 'ledgers', setter: setLedgers },
       { name: 'accountBills', setter: setAccountBills },
-      { name: 'accountPeople', setter: setAccountPeople }
+      { name: 'accountPeople', setter: setAccountPeople },
+      { name: 'accountInvoices', setter: setAccountInvoices },
+      { name: 'journalEntries', setter: setJournalEntries }
     ];
 
     const unsubscribes = collections.map(({ name, setter }) => {
@@ -192,6 +198,8 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
       ledgers,
       accountBills,
       accountPeople,
+      accountInvoices,
+      journalEntries,
       loading,
       addEntity,
       updateEntity,
