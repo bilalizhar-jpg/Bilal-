@@ -128,128 +128,63 @@ export const ADMIN_MENU_ITEMS = [
     ]
   },
   { 
-    name: 'Accounts', 
+    name: 'Accounting', 
     icon: FileText, 
     hasSub: true,
     subItems: [
       {
-        name: 'Bank',
+        name: 'Dashboard',
+        path: '/accounts/dashboard'
+      },
+      {
+        name: 'Customers',
         hasSub: true,
         subItems: [
-          { name: 'Add Bank', path: '/accounts/bank/add' },
-          { name: 'Bank List', path: '/accounts/bank/list' },
-          { name: 'Create Transfer', path: '/accounts/bank/transfer' },
-          { name: 'Transfer List', path: '/accounts/bank/transfer-list' }
+          { name: 'Invoices', path: '/accounts/customers/invoices' },
+          { name: 'Credit Notes', path: '/accounts/customers/credit-notes' },
+          { name: 'Payments', path: '/accounts/customers/payments' },
+          { name: 'Customers', path: '/accounts/customers/list' }
         ]
       },
       {
-        name: 'Payment',
+        name: 'Vendors',
         hasSub: true,
         subItems: [
-          {
-            name: 'Create Payment',
-            hasSub: true,
-            subItems: [
-              { name: 'Voucher', path: '/accounts/payment/create/voucher' },
-              { name: 'Invoice', path: '/accounts/payment/create/invoice' }
-            ]
-          },
-          {
-            name: 'Payment List',
-            hasSub: true,
-            subItems: [
-              { name: 'Voucher', path: '/accounts/payment/list/voucher' },
-              { name: 'Invoice', path: '/accounts/payment/list/invoice' }
-            ]
-          }
+          { name: 'Bills', path: '/accounts/vendors/bills' },
+          { name: 'Refunds', path: '/accounts/vendors/refunds' },
+          { name: 'Payments', path: '/accounts/vendors/payments' },
+          { name: 'Vendors', path: '/accounts/vendors/list' }
         ]
       },
       {
-        name: 'Voucher',
+        name: 'Accounting',
         hasSub: true,
         subItems: [
-          {
-            name: 'Debit',
-            hasSub: true,
-            subItems: [
-              { name: 'Create', path: '/accounts/voucher/debit/create' },
-              { name: 'List', path: '/accounts/voucher/debit/list' }
-            ]
-          },
-          {
-            name: 'Credit',
-            hasSub: true,
-            subItems: [
-              { name: 'Create', path: '/accounts/voucher/credit/create' },
-              { name: 'List', path: '/accounts/voucher/credit/list' }
-            ]
-          },
-          {
-            name: 'Journal',
-            hasSub: true,
-            subItems: [
-              { name: 'Create', path: '/accounts/voucher/journal/create' },
-              { name: 'List', path: '/accounts/voucher/journal/list' }
-            ]
-          }
+          { name: 'Journal Entries', path: '/accounts/accounting/journal-entries' },
+          { name: 'General Ledger', path: '/accounts/accounting/general-ledger' },
+          { name: 'Vouchers', path: '/accounts/voucher/list' }
         ]
       },
       {
-        name: 'Ledger',
+        name: 'Reporting',
         hasSub: true,
         subItems: [
-          { name: 'Create', path: '/accounts/ledger/create' },
-          { name: 'List', path: '/accounts/ledger/list' },
-          { name: 'Ledger Group', path: '/accounts/ledger/group' }
+          { name: 'Profit and Loss', path: '/accounts/reporting/profit-and-loss' },
+          { name: 'Balance Sheet', path: '/accounts/reporting/balance-sheet' },
+          { name: 'Executive Summary', path: '/accounts/reporting/executive-summary' },
+          { name: 'Cash Flow', path: '/accounts/reporting/cash-flow' }
         ]
       },
       {
-        name: 'Bill',
+        name: 'Configuration',
         hasSub: true,
         subItems: [
-          {
-            name: 'Vendor',
-            hasSub: true,
-            subItems: [
-              { name: 'Add Bill', path: '/accounts/bill/vendor/add' },
-              { name: 'Manage Bill', path: '/accounts/bill/vendor/manage' }
-            ]
-          },
-          {
-            name: 'Customer',
-            hasSub: true,
-            subItems: [
-              { name: 'Add Bill', path: '/accounts/bill/customer/add' },
-              { name: 'Manage Bill', path: '/accounts/bill/customer/manage' }
-            ]
-          }
+          { name: 'Chart of Accounts', path: '/accounts/configuration/chart-of-accounts' },
+          { name: 'Taxes', path: '/accounts/configuration/taxes' },
+          { name: 'Journals', path: '/accounts/configuration/journals' },
+          { name: 'Accounting Periods', path: '/accounts/configuration/accounting-periods' }
         ]
-      },
-      {
-        name: 'Details (Vendor/Supplier)',
-        hasSub: true,
-        subItems: [
-          { name: 'Vendor', path: '/accounts/details/vendor' },
-          { name: 'Supplier', path: '/accounts/details/supplier' },
-          { name: 'Biller', path: '/accounts/details/biller' },
-          { name: 'Customer', path: '/accounts/details/customer' }
-        ]
-      },
-      {
-        name: 'Reports',
-        hasSub: true,
-        subItems: [
-          { name: 'Transaction', path: '/accounts/reports/transaction' },
-          { name: 'Account Balance', path: '/accounts/reports/account-balance' },
-          { name: 'Income', path: '/accounts/reports/income' },
-          { name: 'Expense', path: '/accounts/reports/expense' },
-          { name: 'Trial Balance', path: '/accounts/reports/trial-balance' },
-          { name: 'Income Vs Expense', path: '/accounts/reports/income-vs-expense' },
-          { name: 'Profit & Loss', path: '/accounts/reports/profit-and-loss' },
-          { name: 'Balance Sheet', path: '/accounts/reports/balance-sheet' }
-        ]
-      },
-      { name: 'List of Companies', path: '/accounts/companies' }
+      }
     ]
   },
   { name: 'CRM', icon: Users, path: '#' },

@@ -92,18 +92,61 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
     { name: 'Notice Board', icon: Bell, path: '/employee-portal/notices' },
     { name: 'Company Policies', icon: ClipboardList, path: '/employee-portal/policies' },
     { 
-      name: 'Accounts', 
+      name: 'Accounting', 
       icon: FileText, 
       hasSub: true,
       subItems: [
         {
-          name: 'Bank',
+          name: 'Dashboard',
+          path: '/accounts/dashboard'
+        },
+        {
+          name: 'Customers',
           hasSub: true,
           subItems: [
-            { name: 'Add Bank', path: '/accounts/bank/add' },
-            { name: 'Bank List', path: '/accounts/bank/list' },
-            { name: 'Create Transfer', path: '/accounts/bank/transfer' },
-            { name: 'Transfer List', path: '/accounts/bank/transfer-list' }
+            { name: 'Invoices', path: '/accounts/customers/invoices' },
+            { name: 'Credit Notes', path: '/accounts/customers/credit-notes' },
+            { name: 'Payments', path: '/accounts/customers/payments' },
+            { name: 'Customers', path: '/accounts/customers/list' }
+          ]
+        },
+        {
+          name: 'Vendors',
+          hasSub: true,
+          subItems: [
+            { name: 'Bills', path: '/accounts/vendors/bills' },
+            { name: 'Refunds', path: '/accounts/vendors/refunds' },
+            { name: 'Payments', path: '/accounts/vendors/payments' },
+            { name: 'Vendors', path: '/accounts/vendors/list' }
+          ]
+        },
+        {
+          name: 'Accounting',
+          hasSub: true,
+          subItems: [
+            { name: 'Journal Entries', path: '/accounts/accounting/journal-entries' },
+            { name: 'General Ledger', path: '/accounts/accounting/general-ledger' },
+            { name: 'Vouchers', path: '/accounts/voucher/list' }
+          ]
+        },
+        {
+          name: 'Reporting',
+          hasSub: true,
+          subItems: [
+            { name: 'Profit and Loss', path: '/accounts/reporting/profit-and-loss' },
+            { name: 'Balance Sheet', path: '/accounts/reporting/balance-sheet' },
+            { name: 'Executive Summary', path: '/accounts/reporting/executive-summary' },
+            { name: 'Cash Flow', path: '/accounts/reporting/cash-flow' }
+          ]
+        },
+        {
+          name: 'Configuration',
+          hasSub: true,
+          subItems: [
+            { name: 'Chart of Accounts', path: '/accounts/configuration/chart-of-accounts' },
+            { name: 'Taxes', path: '/accounts/configuration/taxes' },
+            { name: 'Journals', path: '/accounts/configuration/journals' },
+            { name: 'Accounting Periods', path: '/accounts/configuration/accounting-periods' }
           ]
         }
       ]

@@ -101,8 +101,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         login(userData);
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (error.code === 'auth/popup-closed-by-user') {
+        // User intentionally closed the popup, ignore the error
+        console.log('Sign-in popup was closed by the user.');
+        return;
+      }
       console.error("Google Sign In Error:", error);
+      throw error;
     }
   };
 

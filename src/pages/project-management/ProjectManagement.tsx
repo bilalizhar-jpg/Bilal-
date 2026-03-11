@@ -427,8 +427,8 @@ export default function ProjectManagement() {
                           <td className="px-4 py-3 text-sm">
                             <input 
                               type="number" 
-                              value={sale.saleAmount}
-                              onChange={(e) => updateSale(sale.id, 'saleAmount', parseFloat(e.target.value))}
+                              value={sale.saleAmount || ''}
+                              onChange={(e) => updateSale(sale.id, 'saleAmount', e.target.value ? parseFloat(e.target.value) : 0)}
                               className={`w-full bg-transparent border-none outline-none font-bold text-indigo-600`}
                             />
                           </td>
@@ -436,8 +436,8 @@ export default function ProjectManagement() {
                             <div className="flex items-center gap-1">
                               <input 
                                 type="number" 
-                                value={sale.commissionPercentage}
-                                onChange={(e) => updateSale(sale.id, 'commissionPercentage', parseFloat(e.target.value))}
+                                value={sale.commissionPercentage || ''}
+                                onChange={(e) => updateSale(sale.id, 'commissionPercentage', e.target.value ? parseFloat(e.target.value) : 0)}
                                 className={`w-12 bg-transparent border-none outline-none text-center`}
                               />
                               <Percent className="w-3 h-3 text-slate-400" />

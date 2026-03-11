@@ -52,7 +52,7 @@ export default function SalaryAdvance() {
       setRecords(records.map(r => r.id === formData.id ? {
         ...r,
         employeeName: formData.employee,
-        amount: parseFloat(formData.amount),
+        amount: formData.amount ? parseFloat(formData.amount) : 0,
         salaryMonth: formData.salaryMonth,
         status: formData.isActive as 'Active' | 'Inactive',
         approved: formData.approved
@@ -61,7 +61,7 @@ export default function SalaryAdvance() {
       const newRecord: SalaryAdvanceRecord = {
         id: Math.random().toString(36).substr(2, 9),
         employeeName: formData.employee,
-        amount: parseFloat(formData.amount),
+        amount: formData.amount ? parseFloat(formData.amount) : 0,
         releaseAmount: 0,
         salaryMonth: formData.salaryMonth,
         status: formData.isActive as 'Active' | 'Inactive',

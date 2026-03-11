@@ -42,8 +42,14 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
-    await signInWithGoogle();
-    setIsLoading(false);
+    setError('');
+    try {
+      await signInWithGoogle();
+    } catch (err: any) {
+      setError(err.message || 'Failed to sign in with Google');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSubmit = async (e: FormEvent) => {

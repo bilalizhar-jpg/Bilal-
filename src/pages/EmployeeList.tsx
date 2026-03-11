@@ -903,7 +903,7 @@ export default function EmployeeList() {
                           disabled={isViewOnly}
                           type="number" 
                           value={formData.salary || ''}
-                          onChange={(e) => setFormData({...formData, salary: parseFloat(e.target.value)})}
+                          onChange={(e) => setFormData({...formData, salary: e.target.value ? parseFloat(e.target.value) : 0})}
                           className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all disabled:bg-slate-50 disabled:text-slate-500"
                           placeholder="0.00"
                         />
@@ -914,7 +914,7 @@ export default function EmployeeList() {
                           disabled={isViewOnly}
                           type="number" 
                           value={formData.taxDeduction || ''}
-                          onChange={(e) => setFormData({...formData, taxDeduction: parseFloat(e.target.value)})}
+                          onChange={(e) => setFormData({...formData, taxDeduction: e.target.value ? parseFloat(e.target.value) : 0})}
                           className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all disabled:bg-slate-50 disabled:text-slate-500"
                           placeholder="0"
                         />

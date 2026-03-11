@@ -62,6 +62,27 @@ import GeneralSettings from './pages/settings/GeneralSettings';
 import InvoiceGenerator from './pages/InvoiceGenerator';
 
 // Accounts Imports
+import AccountingDashboard from './pages/accounts/Dashboard';
+import ChartOfAccounts from './pages/accounts/configuration/ChartOfAccounts';
+import JournalEntries from './pages/accounts/accounting/JournalEntries';
+import GeneralLedger from './pages/accounts/accounting/GeneralLedger';
+import Invoices from './pages/accounts/customers/Invoices';
+import CreditNotes from './pages/accounts/customers/CreditNotes';
+import CustomerPayments from './pages/accounts/customers/Payments';
+import CustomerList from './pages/accounts/customers/CustomerList';
+import Bills from './pages/accounts/vendors/Bills';
+import Refunds from './pages/accounts/vendors/Refunds';
+import VendorPayments from './pages/accounts/vendors/Payments';
+import VendorList from './pages/accounts/vendors/VendorList';
+import ProfitAndLoss from './pages/accounts/reporting/ProfitAndLoss';
+import BalanceSheet from './pages/accounts/reporting/BalanceSheet';
+import CashFlow from './pages/accounts/reporting/CashFlow';
+import ExecutiveSummary from './pages/accounts/reporting/ExecutiveSummary';
+import Taxes from './pages/accounts/configuration/Taxes';
+import Journals from './pages/accounts/configuration/Journals';
+import AccountingPeriods from './pages/accounts/configuration/AccountingPeriods';
+
+// Legacy Accounts Imports
 import AddBank from './pages/accounts/bank/AddBank';
 import BankList from './pages/accounts/bank/BankList';
 import CreateTransfer from './pages/accounts/bank/CreateTransfer';
@@ -242,6 +263,27 @@ function AppContent() {
             <Route path="/invoice" element={<ProtectedRoute allowedRoles={['admin']}><InvoiceGenerator /></ProtectedRoute>} />
             
             {/* Accounts Routes */}
+            <Route path="/accounts/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><AccountingDashboard /></ProtectedRoute>} />
+            <Route path="/accounts/customers/invoices" element={<ProtectedRoute allowedRoles={['admin']}><Invoices /></ProtectedRoute>} />
+            <Route path="/accounts/customers/credit-notes" element={<ProtectedRoute allowedRoles={['admin']}><CreditNotes /></ProtectedRoute>} />
+            <Route path="/accounts/customers/payments" element={<ProtectedRoute allowedRoles={['admin']}><CustomerPayments /></ProtectedRoute>} />
+            <Route path="/accounts/customers/list" element={<ProtectedRoute allowedRoles={['admin']}><CustomerList /></ProtectedRoute>} />
+            <Route path="/accounts/vendors/bills" element={<ProtectedRoute allowedRoles={['admin']}><Bills /></ProtectedRoute>} />
+            <Route path="/accounts/vendors/refunds" element={<ProtectedRoute allowedRoles={['admin']}><Refunds /></ProtectedRoute>} />
+            <Route path="/accounts/vendors/payments" element={<ProtectedRoute allowedRoles={['admin']}><VendorPayments /></ProtectedRoute>} />
+            <Route path="/accounts/vendors/list" element={<ProtectedRoute allowedRoles={['admin']}><VendorList /></ProtectedRoute>} />
+            <Route path="/accounts/accounting/journal-entries" element={<ProtectedRoute allowedRoles={['admin']}><JournalEntries /></ProtectedRoute>} />
+            <Route path="/accounts/accounting/general-ledger" element={<ProtectedRoute allowedRoles={['admin']}><GeneralLedger /></ProtectedRoute>} />
+            <Route path="/accounts/reporting/profit-and-loss" element={<ProtectedRoute allowedRoles={['admin']}><ProfitAndLoss /></ProtectedRoute>} />
+            <Route path="/accounts/reporting/balance-sheet" element={<ProtectedRoute allowedRoles={['admin']}><BalanceSheet /></ProtectedRoute>} />
+            <Route path="/accounts/reporting/cash-flow" element={<ProtectedRoute allowedRoles={['admin']}><CashFlow /></ProtectedRoute>} />
+            <Route path="/accounts/reporting/executive-summary" element={<ProtectedRoute allowedRoles={['admin']}><ExecutiveSummary /></ProtectedRoute>} />
+            <Route path="/accounts/configuration/chart-of-accounts" element={<ProtectedRoute allowedRoles={['admin']}><ChartOfAccounts /></ProtectedRoute>} />
+            <Route path="/accounts/configuration/taxes" element={<ProtectedRoute allowedRoles={['admin']}><Taxes /></ProtectedRoute>} />
+            <Route path="/accounts/configuration/journals" element={<ProtectedRoute allowedRoles={['admin']}><Journals /></ProtectedRoute>} />
+            <Route path="/accounts/configuration/accounting-periods" element={<ProtectedRoute allowedRoles={['admin']}><AccountingPeriods /></ProtectedRoute>} />
+            
+            {/* Legacy Accounts Routes (kept for reference or backward compatibility if needed) */}
             <Route path="/accounts/bank/add" element={<ProtectedRoute allowedRoles={['admin']}><AddBank /></ProtectedRoute>} />
             <Route path="/accounts/bank/list" element={<ProtectedRoute allowedRoles={['admin']}><BankList /></ProtectedRoute>} />
             <Route path="/accounts/bank/transfer" element={<ProtectedRoute allowedRoles={['admin']}><CreateTransfer /></ProtectedRoute>} />

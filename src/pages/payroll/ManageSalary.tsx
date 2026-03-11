@@ -556,13 +556,13 @@ export default function ManageSalary() {
                             <input type="text" value={row.description} onChange={(e) => handleRowChange(row.id, 'description', e.target.value)} className="w-full bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-700 dark:text-slate-300" />
                           </td>
                           <td className="px-4 py-2">
-                            <input type="number" value={row.amount} onChange={(e) => handleRowChange(row.id, 'amount', Number(e.target.value))} className="w-24 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-700 dark:text-slate-300" />
+                            <input type="number" value={row.amount || ''} onChange={(e) => handleRowChange(row.id, 'amount', e.target.value ? Number(e.target.value) : 0)} className="w-24 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-700 dark:text-slate-300" />
                           </td>
                           <td className="px-4 py-2">
-                            <input type="number" value={row.rate} onChange={(e) => handleRowChange(row.id, 'rate', Number(e.target.value))} className="w-24 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-700 dark:text-slate-300" />
+                            <input type="number" value={row.rate || ''} onChange={(e) => handleRowChange(row.id, 'rate', e.target.value ? Number(e.target.value) : 0)} className="w-24 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-700 dark:text-slate-300" />
                           </td>
                           <td className="px-4 py-2">
-                            <input type="number" value={row.value} onChange={(e) => handleRowChange(row.id, 'value', Number(e.target.value))} className="w-24 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-700 dark:text-slate-300" />
+                            <input type="number" value={row.value || ''} onChange={(e) => handleRowChange(row.id, 'value', e.target.value ? Number(e.target.value) : 0)} className="w-24 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-700 dark:text-slate-300" />
                           </td>
                           <td className="px-4 py-2"></td>
                           <td className="px-4 py-2 no-print">
@@ -600,11 +600,11 @@ export default function ManageSalary() {
                           </td>
                           <td className="px-4 py-2"></td>
                           <td className="px-4 py-2">
-                            <input type="number" value={row.rate} onChange={(e) => handleRowChange(row.id, 'rate', Number(e.target.value))} className="w-24 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-700 dark:text-slate-300" />
+                            <input type="number" value={row.rate || ''} onChange={(e) => handleRowChange(row.id, 'rate', e.target.value ? Number(e.target.value) : 0)} className="w-24 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-700 dark:text-slate-300" />
                           </td>
                           <td className="px-4 py-2"></td>
                           <td className="px-4 py-2">
-                            <input type="number" value={row.deduction} onChange={(e) => handleRowChange(row.id, 'deduction', Number(e.target.value))} className="w-24 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-700 dark:text-slate-300" />
+                            <input type="number" value={row.deduction || ''} onChange={(e) => handleRowChange(row.id, 'deduction', e.target.value ? Number(e.target.value) : 0)} className="w-24 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-indigo-500 outline-none text-slate-700 dark:text-slate-300" />
                           </td>
                           <td className="px-4 py-2 no-print">
                             <button onClick={() => removeRow(row.id)} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="w-4 h-4" /></button>

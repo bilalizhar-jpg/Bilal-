@@ -449,8 +449,8 @@ export default function LoanManagement() {
                       <input 
                         required
                         type="number" 
-                        value={formData.amount}
-                        onChange={(e) => setFormData({...formData, amount: parseFloat(e.target.value)})}
+                        value={formData.amount || ''}
+                        onChange={(e) => setFormData({...formData, amount: e.target.value ? parseFloat(e.target.value) : 0})}
                         className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                         placeholder="Amount"
                       />
@@ -480,8 +480,8 @@ export default function LoanManagement() {
                       <input 
                         required
                         type="number" 
-                        value={formData.interestRate}
-                        onChange={(e) => setFormData({...formData, interestRate: parseFloat(e.target.value)})}
+                        value={formData.interestRate || ''}
+                        onChange={(e) => setFormData({...formData, interestRate: e.target.value ? parseFloat(e.target.value) : 0})}
                         className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                         placeholder="Interest percentage"
                       />
@@ -491,8 +491,8 @@ export default function LoanManagement() {
                       <input 
                         required
                         type="number" 
-                        value={formData.installmentPeriod}
-                        onChange={(e) => setFormData({...formData, installmentPeriod: parseInt(e.target.value)})}
+                        value={formData.installmentPeriod || ''}
+                        onChange={(e) => setFormData({...formData, installmentPeriod: e.target.value ? parseInt(e.target.value) : 0})}
                         className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                         placeholder="Installment period"
                       />

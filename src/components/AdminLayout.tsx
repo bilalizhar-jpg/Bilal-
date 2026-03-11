@@ -414,7 +414,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       Protocol Return
                     </motion.button>
                     <Link
-                      to="/dashboard"
+                      to={location.pathname.startsWith('/accounts/') ? '/accounts/dashboard' : '/dashboard'}
                       className={`flex items-center gap-3 px-5 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all border ${
                         isDark 
                           ? 'text-white bg-white/5 border-white/10 hover:bg-white/10' 
@@ -422,7 +422,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                       } shadow-sm`}
                     >
                       <Home className="w-3.5 h-3.5" />
-                      Main Terminal
+                      {location.pathname.startsWith('/accounts/') ? 'Accounting Dashboard' : 'Main Terminal'}
                     </Link>
                   </div>
                 )}

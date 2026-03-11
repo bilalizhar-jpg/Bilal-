@@ -308,16 +308,16 @@ export default function SuperAdminInvoiceGenerator() {
                         <td className="py-4 px-2 text-center">
                           <input 
                             type="number" 
-                            value={item.quantity} 
-                            onChange={(e) => handleUpdateItem(item.id, 'quantity', parseInt(e.target.value) || 0)}
+                            value={item.quantity || ''} 
+                            onChange={(e) => handleUpdateItem(item.id, 'quantity', e.target.value ? parseInt(e.target.value) : 0)}
                             className="w-full bg-transparent border-none focus:ring-0 p-0 text-center"
                           />
                         </td>
                         <td className="py-4 px-2 text-right">
                           <input 
                             type="number" 
-                            value={item.rate} 
-                            onChange={(e) => handleUpdateItem(item.id, 'rate', parseFloat(e.target.value) || 0)}
+                            value={item.rate || ''} 
+                            onChange={(e) => handleUpdateItem(item.id, 'rate', e.target.value ? parseFloat(e.target.value) : 0)}
                             className="w-full bg-transparent border-none focus:ring-0 p-0 text-right"
                           />
                         </td>
