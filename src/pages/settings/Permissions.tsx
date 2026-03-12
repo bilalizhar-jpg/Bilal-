@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, Plus, UserPlus } from 'lucide-react';
+import { Shield, Plus, UserPlus, ChevronRight } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { useEmployees } from '../../context/EmployeeContext';
 import { ADMIN_MENU_ITEMS } from '../../constants';
@@ -53,56 +53,68 @@ export default function Permissions() {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {ADMIN_MENU_ITEMS.map(menu => {
-                const granted = employees.filter(e => e.allowedMenus?.includes(menu.name));
-                const notGranted = employees.filter(e => !e.allowedMenus?.includes(menu.name));
+                const renderRow = (item: any, depth = 0) => {
+                  const granted = employees.filter(e => e.allowedMenus?.includes(item.name));
+                  const notGranted = employees.filter(e => !e.allowedMenus?.includes(item.name));
 
-                return (
-                  <tr key={menu.name} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                    <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-200">{menu.name}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-1">
-                        {granted.map(e => (
-                          <span key={e.id} className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 px-2 py-1 rounded text-xs flex items-center gap-1">
-                            {e.name}
-                            <button onClick={() => revokeAccess(menu.name, e.id)} className="text-emerald-600 hover:text-emerald-900">×</button>
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-1">
-                        {notGranted.map(e => (
-                          <span key={e.id} className="bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400 px-2 py-1 rounded text-xs">
-                            {e.name}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <select 
-                          className={`border rounded px-2 py-1 text-xs ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-300'}`}
-                          onChange={(e) => setSelectedEmployee(e.target.value)}
-                          value={selectedEmployee}
-                        >
-                          <option value="">Select Employee</option>
-                          {notGranted.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-                        </select>
-                        <button 
-                          onClick={() => {
-                            if (selectedEmployee) {
-                              grantAccess(menu.name, selectedEmployee);
-                              setSelectedEmployee('');
-                            }
-                          }}
-                          className="bg-indigo-600 text-white p-1.5 rounded hover:bg-indigo-700"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
+                  return (
+                    <React.Fragment key={item.name}>
+                      <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                        <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-200">
+                          <div className="flex items-center gap-2" style={{ paddingLeft: `${depth * 24}px` }}>
+                            {depth > 0 && <ChevronRight className="w-3 h-3 text-slate-400" />}
+                            {item.name}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-wrap gap-1">
+                            {granted.map(e => (
+                              <span key={e.id} className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 px-2 py-1 rounded text-xs flex items-center gap-1">
+                                {e.name}
+                                <button onClick={() => revokeAccess(item.name, e.id)} className="text-emerald-600 hover:text-emerald-900">×</button>
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-wrap gap-1">
+                            {notGranted.map(e => (
+                              <span key={e.id} className="bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400 px-2 py-1 rounded text-xs">
+                                {e.name}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <select 
+                              className={`border rounded px-2 py-1 text-xs ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-300'}`}
+                              onChange={(e) => setSelectedEmployee(e.target.value)}
+                              value={selectedEmployee}
+                            >
+                              <option value="">Select Employee</option>
+                              {notGranted.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+                            </select>
+                            <button 
+                              onClick={() => {
+                                if (selectedEmployee) {
+                                  grantAccess(item.name, selectedEmployee);
+                                  setSelectedEmployee('');
+                                }
+                              }}
+                              className="bg-indigo-600 text-white p-1.5 rounded hover:bg-indigo-700"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                      {item.hasSub && item.subItems?.map((sub: any) => renderRow(sub, depth + 1))}
+                    </React.Fragment>
+                  );
+                };
+
+                return renderRow(menu);
               })}
             </tbody>
           </table>

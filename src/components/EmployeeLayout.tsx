@@ -162,25 +162,39 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
 
   const alwaysVisible = ['Dashboard', 'Daily Attendance', 'Leaves', 'Payroll', 'Notice Board', 'Company Policies'];
 
-  const filteredMenuItems = menuItems.filter(item => {
-    let checkName = item.name;
-    if (item.name === 'Daily Attendance') checkName = 'Attendance';
-    if (item.name === 'Company Policies') checkName = 'Org Chart';
-    if (item.name === 'Message') checkName = 'Message';
-    
-    // Check company-wide blocked menus
-    if (blockedMenus.includes(checkName)) return false;
+  const filterMenu = (items: any[]): any[] => {
+    return items
+      .map(item => {
+        if (item.hasSub && item.subItems) {
+          return { ...item, subItems: filterMenu(item.subItems) };
+        }
+        return item;
+      })
+      .filter(item => {
+        let checkName = item.name;
+        if (item.name === 'Daily Attendance') checkName = 'Attendance';
+        if (item.name === 'Company Policies') checkName = 'Org Chart';
+        if (item.name === 'Message') checkName = 'Message';
+        
+        // Check company-wide blocked menus
+        if (blockedMenus.includes(checkName)) return false;
 
-    // Always visible items
-    if (alwaysVisible.includes(item.name)) return true;
+        // Always visible items
+        if (alwaysVisible.includes(item.name)) return true;
 
-    // Permission-based items
-    if (currentEmployee && currentEmployee.allowedMenus) {
-      return currentEmployee.allowedMenus.includes(item.name);
-    }
+        // Permission-based items
+        const isAllowed = currentEmployee?.allowedMenus?.includes(item.name);
 
-    return false;
-  });
+        // If it has sub-items, it's visible if any sub-item is visible
+        if (item.hasSub && item.subItems && item.subItems.length > 0) {
+          return true;
+        }
+
+        return isAllowed;
+      });
+  };
+
+  const filteredMenuItems = filterMenu(menuItems);
 
   return (
     <div className={`min-h-screen flex relative overflow-hidden print:overflow-visible ${isDark ? 'bg-[#020203] text-white' : 'bg-slate-50 text-slate-900'}`} style={layoutStyle}>
