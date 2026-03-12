@@ -78,6 +78,8 @@ service cloud.firestore {
     match /ledgers/{document=**} { allow read: if true; allow write: if true; }
     match /accountBills/{document=**} { allow read: if true; allow write: if true; }
     match /accountPeople/{document=**} { allow read: if true; allow write: if true; }
+    match /salesOrders/{document=**} { allow read: if true; allow write: if true; }
+    match /quotations/{document=**} { allow read: if true; allow write: if true; }
 
     // Users (Super Admin) - Keep restricted
     match /users/{userId} {

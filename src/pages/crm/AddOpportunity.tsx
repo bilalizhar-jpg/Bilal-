@@ -5,7 +5,7 @@ import AdminLayout from '../../components/AdminLayout';
 import { useCompanyData } from '../../context/CompanyDataContext';
 import { useTheme } from '../../context/ThemeContext';
 
-export default function AddProduct() {
+export default function AddOpportunity() {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -13,14 +13,13 @@ export default function AddProduct() {
 
   const [formData, setFormData] = useState({
     name: '',
-    category: '',
-    description: '',
-    sku: 'SKU-' + Math.random().toString(36).substr(2, 6).toUpperCase(),
-    costPrice: '',
-    sellingPrice: '',
-    tax: '',
-    status: 'Active',
-    productId: Math.random().toString(36).substr(2, 9).toUpperCase(),
+    account: '',
+    expectedValue: '',
+    stage: '',
+    probability: '',
+    owner: '',
+    expectedCloseDate: '',
+    status: '',
     customFields: [] as { label: string; value: string }[]
   });
 
@@ -40,8 +39,13 @@ export default function AddProduct() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await addEntity('products', formData);
-    navigate('/crm/products');
+    // In CompanyDataContext, opportunities are stored in 'sales'
+    await addEntity('sales', {
+      ...formData,
+      value: formData.expectedValue, // mapping to existing schema if needed
+      closeDate: formData.expectedCloseDate,
+    });
+    navigate('/crm/opportunities');
   };
 
   const inputClass = `w-full px-3 py-2 rounded-md border ${isDark ? 'bg-slate-900 border-slate-700 text-white' : 'bg-white border-slate-300'}`;
@@ -51,8 +55,8 @@ export default function AddProduct() {
       <div className="max-w-2xl mx-auto">
         <div className={`p-6 rounded-xl border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
           <div className="flex items-center justify-between mb-6">
-            <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>Create New Product</h1>
-            <button onClick={() => navigate('/crm/products')} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full">
+            <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>Add Opportunity</h1>
+            <button onClick={() => navigate('/crm/opportunities')} className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -64,34 +68,38 @@ export default function AddProduct() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Category *</label>
-              <input name="category" value={formData.category} onChange={handleChange} className={inputClass} required />
+              <label className="block text-sm font-medium mb-1">Company *</label>
+              <input name="account" value={formData.account} onChange={handleChange} className={inputClass} required />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Description</label>
-              <textarea name="description" value={formData.description} onChange={handleChange} className={inputClass} rows={4} />
+              <label className="block text-sm font-medium mb-1">Expected Value *</label>
+              <input name="expectedValue" value={formData.expectedValue} onChange={handleChange} className={inputClass} required />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">SKU * (Auto-generated)</label>
-              <input name="sku" value={formData.sku} onChange={handleChange} className={`${inputClass} bg-slate-100 dark:bg-slate-800 cursor-not-allowed`} readOnly required />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Cost Price *</label>
-                <input name="costPrice" type="number" value={formData.costPrice} onChange={handleChange} className={inputClass} required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Selling Price *</label>
-                <input name="sellingPrice" type="number" value={formData.sellingPrice} onChange={handleChange} className={inputClass} required />
-              </div>
+              <label className="block text-sm font-medium mb-1">Stage *</label>
+              <input name="stage" value={formData.stage} onChange={handleChange} className={inputClass} required />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Tax % *</label>
-              <input name="tax" type="number" value={formData.tax} onChange={handleChange} className={inputClass} required />
+              <label className="block text-sm font-medium mb-1">Probability *</label>
+              <input name="probability" value={formData.probability} onChange={handleChange} className={inputClass} required />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Owner *</label>
+              <input name="owner" value={formData.owner} onChange={handleChange} className={inputClass} required />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Expected Close Date *</label>
+              <input name="expectedCloseDate" type="date" value={formData.expectedCloseDate} onChange={handleChange} className={inputClass} required />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Status *</label>
+              <input name="status" value={formData.status} onChange={handleChange} className={inputClass} required />
             </div>
 
             {/* Custom Fields */}
@@ -103,11 +111,11 @@ export default function AddProduct() {
                   <input placeholder="Value" value={field.value} onChange={(e) => handleCustomFieldChange(index, 'value', e.target.value)} className={inputClass} />
                 </div>
               ))}
-              <button type="button" onClick={addCustomField} className="text-sm text-indigo-600 hover:text-indigo-800">+ Add Custom Field</button>
+              <button type="button" onClick={addCustomField} className="text-sm text-red-600 hover:text-red-800">+ Add Custom Field</button>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
-              <button type="button" onClick={() => navigate('/crm/products')} className="px-6 py-2 bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-white rounded-md hover:bg-slate-200 dark:hover:bg-slate-600">Cancel</button>
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-700 mt-6">
+              <button type="button" onClick={() => navigate('/crm/opportunities')} className="px-6 py-2 bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-white rounded-md hover:bg-slate-200 dark:hover:bg-slate-600">Cancel</button>
               <button type="submit" className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Create New</button>
             </div>
           </form>

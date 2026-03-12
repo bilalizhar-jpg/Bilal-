@@ -194,7 +194,10 @@ export const ADMIN_MENU_ITEMS = [
     subItems: [
       { name: 'Companies', path: '/crm/companies' },
       { name: 'Products', path: '/crm/products' },
-      { name: 'Opportunities', path: '/crm/opportunities' }
+      { name: 'Opportunities', path: '/crm/opportunities' },
+      { name: 'Quotations', path: '/crm/quotations' },
+      { name: 'Sales Orders', path: '/crm/sales-orders' },
+      { name: 'Sales Target', path: '/crm/sales-target' }
     ]
   },
   { name: 'Purchase Dep', icon: Briefcase, path: '#' },

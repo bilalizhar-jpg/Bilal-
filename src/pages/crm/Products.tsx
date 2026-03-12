@@ -1,17 +1,22 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
-import { Search, Plus, Filter, MoreVertical, ArrowUpDown, RefreshCw, Download, Columns, X } from 'lucide-react';
+import { Search, Plus, Filter, MoreVertical, ArrowUpDown, RefreshCw, Download, Columns, X, ChevronDown, ChevronRight } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { useCompanyData } from '../../context/CompanyDataContext';
 
 const FilterModal = ({ isOpen, onClose, onApply, categories, statuses }: any) => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [categorySearch, setCategorySearch] = useState('');
+  const [isCategoryOpen, setIsCategoryOpen] = useState(true);
+  const [isStatusOpen, setIsStatusOpen] = useState(true);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
   if (!isOpen) return null;
+
+  const filteredCategories = categories.filter((c: string) => c.toLowerCase().includes(categorySearch.toLowerCase()));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -22,22 +27,45 @@ const FilterModal = ({ isOpen, onClose, onApply, categories, statuses }: any) =>
         </div>
         <div className="space-y-4">
           <div>
-            <h3 className="font-semibold mb-2">Category</h3>
-            {categories.map((cat: string) => (
-              <label key={cat} className="flex items-center gap-2">
-                <input type="checkbox" checked={selectedCategories.includes(cat)} onChange={(e) => e.target.checked ? setSelectedCategories([...selectedCategories, cat]) : setSelectedCategories(selectedCategories.filter(c => c !== cat))} />
-                {cat}
-              </label>
-            ))}
+            <button className="flex items-center gap-2 font-semibold mb-2" onClick={() => setIsCategoryOpen(!isCategoryOpen)}>
+              {isCategoryOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />} Category
+            </button>
+            {isCategoryOpen && (
+              <div className="space-y-2">
+                <div className="relative">
+                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input 
+                    type="text" 
+                    placeholder="Search" 
+                    value={categorySearch}
+                    onChange={(e) => setCategorySearch(e.target.value)}
+                    className={`w-full pl-8 pr-2 py-1 rounded-md border ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-slate-50 border-slate-200'}`}
+                  />
+                </div>
+                {filteredCategories.map((cat: string) => (
+                  <label key={cat} className="flex items-center gap-2">
+                    <input type="checkbox" checked={selectedCategories.includes(cat)} onChange={(e) => e.target.checked ? setSelectedCategories([...selectedCategories, cat]) : setSelectedCategories(selectedCategories.filter(c => c !== cat))} />
+                    {cat}
+                  </label>
+                ))}
+                <button className="text-red-600 text-sm font-medium">Load More</button>
+              </div>
+            )}
           </div>
           <div>
-            <h3 className="font-semibold mb-2">Status</h3>
-            {statuses.map((status: string) => (
-              <label key={status} className="flex items-center gap-2">
-                <input type="checkbox" checked={selectedStatuses.includes(status)} onChange={(e) => e.target.checked ? setSelectedStatuses([...selectedStatuses, status]) : setSelectedStatuses(selectedStatuses.filter(s => s !== status))} />
-                {status}
-              </label>
-            ))}
+            <button className="flex items-center gap-2 font-semibold mb-2" onClick={() => setIsStatusOpen(!isStatusOpen)}>
+              {isStatusOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />} Status
+            </button>
+            {isStatusOpen && (
+              <div className="space-y-2">
+                {statuses.map((status: string) => (
+                  <label key={status} className="flex items-center gap-2">
+                    <input type="checkbox" checked={selectedStatuses.includes(status)} onChange={(e) => e.target.checked ? setSelectedStatuses([...selectedStatuses, status]) : setSelectedStatuses(selectedStatuses.filter(s => s !== status))} />
+                    {status}
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
         </div>
         <div className="flex gap-2 mt-6">

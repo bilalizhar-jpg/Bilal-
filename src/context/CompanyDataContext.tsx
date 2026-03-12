@@ -49,6 +49,8 @@ interface CompanyDataContextType {
   journalEntries: DataEntity[];
   companies: DataEntity[];
   products: DataEntity[];
+  salesOrders: DataEntity[];
+  quotations: DataEntity[];
   loading: boolean;
   addEntity: (collectionName: string, data: any) => Promise<void>;
   updateEntity: (collectionName: string, id: string, data: any) => Promise<void>;
@@ -96,6 +98,8 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
   const [journalEntries, setJournalEntries] = useState<DataEntity[]>([]);
   const [companies, setCompanies] = useState<DataEntity[]>([]);
   const [products, setProducts] = useState<DataEntity[]>([]);
+  const [salesOrders, setSalesOrders] = useState<DataEntity[]>([]);
+  const [quotations, setQuotations] = useState<DataEntity[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -133,7 +137,9 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
       { name: 'accountInvoices', setter: setAccountInvoices },
       { name: 'journalEntries', setter: setJournalEntries },
       { name: 'companies', setter: setCompanies },
-      { name: 'products', setter: setProducts }
+      { name: 'products', setter: setProducts },
+      { name: 'salesOrders', setter: setSalesOrders },
+      { name: 'quotations', setter: setQuotations }
     ];
 
     const unsubscribes = collections.map(({ name, setter }) => {
@@ -208,6 +214,8 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
       journalEntries,
       companies,
       products,
+      salesOrders,
+      quotations,
       loading,
       addEntity,
       updateEntity,

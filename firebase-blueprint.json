@@ -625,6 +625,51 @@
         "openingBalance": { "type": "number" }
       },
       "required": ["id", "companyId", "type", "name"]
+    },
+    "SalesOrder": {
+      "title": "Sales Order",
+      "description": "A sales order record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "orderId": { "type": "string" },
+        "customerId": { "type": "string" },
+        "date": { "type": "string" },
+        "orderValue": { "type": "number" },
+        "currency": { "type": "string" },
+        "netAmount": { "type": "number" },
+        "paymentStatus": { "type": "string" },
+        "orderStatus": { "type": "string" },
+        "description": { "type": "string" },
+        "products": { "type": "array" },
+        "notes": { "type": "string" },
+        "terms": { "type": "string" },
+        "customFields": { "type": "array" }
+      },
+      "required": ["id", "companyId", "orderId", "customerId"]
+    },
+    "Quotation": {
+      "title": "Quotation",
+      "description": "A quotation record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "quoteId": { "type": "string" },
+        "customerId": { "type": "string" },
+        "date": { "type": "string" },
+        "validTill": { "type": "string" },
+        "amount": { "type": "number" },
+        "currency": { "type": "string" },
+        "status": { "type": "string" },
+        "description": { "type": "string" },
+        "products": { "type": "array" },
+        "notes": { "type": "string" },
+        "terms": { "type": "string" },
+        "customFields": { "type": "array" }
+      },
+      "required": ["id", "companyId", "quoteId", "customerId"]
     }
   },
   "firestore": {
@@ -775,6 +820,14 @@
     "/accountPeople/{personId}": {
       "schema": "AccountPerson",
       "description": "Collection of account people"
+    },
+    "/salesOrders/{orderId}": {
+      "schema": "SalesOrder",
+      "description": "Collection of sales orders"
+    },
+    "/quotations/{quoteId}": {
+      "schema": "Quotation",
+      "description": "Collection of quotations"
     }
   }
 }

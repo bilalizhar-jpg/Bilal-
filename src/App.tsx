@@ -66,6 +66,10 @@ import Products from './pages/crm/Products';
 import AddProduct from './pages/crm/AddProduct';
 import ProductDetails from './pages/crm/ProductDetails';
 import Opportunities from './pages/crm/Opportunities';
+import AddOpportunity from './pages/crm/AddOpportunity';
+import SalesTarget from './pages/crm/SalesTarget';
+import Quotations from './pages/crm/Quotations';
+import SalesOrders from './pages/crm/SalesOrders';
 
 // Accounts Imports
 import AccountingDashboard from './pages/accounts/Dashboard';
@@ -272,6 +276,10 @@ function AppContent() {
             <Route path="/crm/products/add" element={<ProtectedRoute allowedRoles={['admin']}><AddProduct /></ProtectedRoute>} />
             <Route path="/crm/products/:id" element={<ProtectedRoute allowedRoles={['admin']}><ProductDetails /></ProtectedRoute>} />
             <Route path="/crm/opportunities" element={<ProtectedRoute allowedRoles={['admin']}><Opportunities /></ProtectedRoute>} />
+            <Route path="/crm/opportunities/add" element={<ProtectedRoute allowedRoles={['admin']}><AddOpportunity /></ProtectedRoute>} />
+            <Route path="/crm/sales-target" element={<ProtectedRoute allowedRoles={['admin']}><SalesTarget /></ProtectedRoute>} />
+            <Route path="/crm/quotations" element={<ProtectedRoute allowedRoles={['admin']}><Quotations /></ProtectedRoute>} />
+            <Route path="/crm/sales-orders" element={<ProtectedRoute allowedRoles={['admin']}><SalesOrders /></ProtectedRoute>} />
             <Route path="/invoice" element={<ProtectedRoute allowedRoles={['admin']}><InvoiceGenerator /></ProtectedRoute>} />
             
             {/* Accounts Routes */}
