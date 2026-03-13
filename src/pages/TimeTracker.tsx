@@ -19,15 +19,20 @@ import {
   Edit2,
   Save,
   X,
-  Mail
+  Mail,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import AdminLayout from '../components/AdminLayout';
 import { useTheme } from '../context/ThemeContext';
 import { useEmployees } from '../context/EmployeeContext';
 import { useAttendance } from '../context/AttendanceContext';
-import { useTimeTracking } from '../context/TimeTrackingContext';
+import { useTimeTracking, TrackingData } from '../context/TimeTrackingContext';
+import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'motion/react';
 import * as XLSX from 'xlsx';
+import { collection, query, where, onSnapshot, getDocs } from 'firebase/firestore';
+import { db } from '../firebase';
 
 // Helper to format seconds to HH:MM:SS
 const formatSeconds = (seconds: number) => {
@@ -73,12 +78,39 @@ interface TimeLog {
 
 export default function TimeTracker() {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const { employees: contextEmployees, updateEmployee } = useEmployees();
-  const { trackingData } = useTimeTracking();
+  const { trackingData: realTimeTrackingData } = useTimeTracking();
   const { attendanceRecords } = useAttendance();
   const isDark = theme === 'dark';
   const [activeTab, setActiveTab] = useState<'dashboard' | 'reports' | 'settings'>('dashboard');
   
+  const todayDate = new Date().toISOString().split('T')[0];
+  const [dashboardDate, setDashboardDate] = useState(todayDate);
+  const [dashboardTrackingData, setDashboardTrackingData] = useState<Record<string, TrackingData>>({});
+  const [reportTrackingData, setReportTrackingData] = useState<Record<string, TrackingData>>({});
+
+  // Fetch tracking data for selected dashboard date
+  useEffect(() => {
+    if (!user?.companyId) return;
+
+    const q = query(
+      collection(db, 'timeTracking'), 
+      where('date', '==', dashboardDate),
+      where('companyId', '==', user.companyId)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data: Record<string, TrackingData> = {};
+      snapshot.docs.forEach(doc => {
+        data[doc.id] = doc.data() as TrackingData;
+      });
+      setDashboardTrackingData(data);
+    });
+
+    return () => unsubscribe();
+  }, [user?.companyId, dashboardDate]);
+
   // Settings State
   const [idleThresholdMinutes, setIdleThresholdMinutes] = useState(5);
   const [emailIdleThresholdMinutes, setEmailIdleThresholdMinutes] = useState(5);
@@ -96,7 +128,11 @@ export default function TimeTracker() {
     const updatedEmployees = contextEmployees
       .filter(emp => emp.status === 'Active')
       .map(emp => {
-        const tracking = trackingData[emp.id] || trackingData[emp.employeeId || ''];
+        const docId = `${emp.id}_${dashboardDate}`;
+        // Use real-time data if today, otherwise use fetched dashboard data
+        const tracking = dashboardDate === todayDate 
+          ? (realTimeTrackingData[docId] || dashboardTrackingData[docId])
+          : dashboardTrackingData[docId];
         
         // Base data from context
         const baseData = {
@@ -140,45 +176,99 @@ export default function TimeTracker() {
       });
     
     setEmployees(updatedEmployees);
-  }, [contextEmployees, trackingData]);
-
-  const logs: TimeLog[] = useMemo(() => {
-    return attendanceRecords.map(record => {
-      const tracking = trackingData[record.employeeId];
-      const realIdleTime = tracking && record.date === new Date().toISOString().split('T')[0]
-        ? formatSeconds(tracking.idleTime)
-        : '00:00:00';
-      
-      const realMouseEvents = tracking && record.date === new Date().toISOString().split('T')[0]
-        ? tracking.mouseMoves
-        : 0;
-      
-      const realKeyboardEvents = tracking && record.date === new Date().toISOString().split('T')[0]
-        ? tracking.keyboardClicks
-        : 0;
-
-      return {
-        id: record.id,
-        employeeId: record.employeeId,
-        employeeName: record.employeeName,
-        date: record.date,
-        startTime: record.loginTime || '-',
-        endTime: record.logoutTime || '-',
-        totalHours: record.workingHours,
-        idleTime: realIdleTime,
-        efficiency: 90, // Mock efficiency for now
-        mouseEvents: realMouseEvents,
-        keyboardEvents: realKeyboardEvents
-      };
-    });
-  }, [attendanceRecords, trackingData]);
+  }, [contextEmployees, dashboardTrackingData, realTimeTrackingData, dashboardDate, todayDate]);
 
   // Report Filters
   const [reportFilter, setReportFilter] = useState({
     employee: 'All',
-    startDate: '',
-    endDate: ''
+    startDate: todayDate,
+    endDate: todayDate
   });
+  const [activeLogs, setActiveLogs] = useState<TimeLog[]>([]);
+
+  // Fetch tracking data for report range
+  useEffect(() => {
+    if (!user?.companyId || !reportFilter.startDate || !reportFilter.endDate) return;
+
+    const fetchReportTracking = async () => {
+      const q = query(
+        collection(db, 'timeTracking'),
+        where('companyId', '==', user.companyId),
+        where('date', '>=', reportFilter.startDate),
+        where('date', '<=', reportFilter.endDate)
+      );
+      
+      const snapshot = await getDocs(q);
+      const data: Record<string, TrackingData> = {};
+      snapshot.docs.forEach(doc => {
+        data[doc.id] = doc.data() as TrackingData;
+      });
+      setReportTrackingData(data);
+    };
+
+    fetchReportTracking();
+  }, [user?.companyId, reportFilter.startDate, reportFilter.endDate]);
+
+  const logs: TimeLog[] = useMemo(() => {
+    return attendanceRecords
+      .filter(record => record.companyId === user?.companyId)
+      .map(record => {
+        const docId = `${record.employeeId}_${record.date}`;
+        // Use real-time data if today, otherwise use report tracking data
+        const tracking = record.date === todayDate 
+          ? (realTimeTrackingData[docId] || reportTrackingData[docId])
+          : reportTrackingData[docId];
+        
+        const realIdleTime = tracking
+          ? formatSeconds(tracking.idleTime)
+          : '00:00:00';
+        
+        const realMouseEvents = tracking
+          ? tracking.mouseMoves
+          : 0;
+        
+        const realKeyboardEvents = tracking
+          ? tracking.keyboardClicks
+          : 0;
+
+        const totalWorkingSeconds = record.totalMinutes * 60;
+        const productiveSeconds = totalWorkingSeconds - (tracking ? tracking.idleTime : 0);
+        
+        const attendanceScore = 100; 
+        const productivityScore = totalWorkingSeconds > 0 ? Math.max(0, (productiveSeconds / totalWorkingSeconds) * 100) : 0;
+        const qualityScore = 85; 
+        
+        const efficiency = (attendanceScore * 0.3) + (productivityScore * 0.5) + (qualityScore * 0.2);
+
+        return {
+          id: record.id,
+          employeeId: record.employeeId,
+          employeeName: record.employeeName,
+          date: record.date,
+          startTime: record.loginTime || '-',
+          endTime: record.logoutTime || '-',
+          totalHours: record.workingHours,
+          idleTime: realIdleTime,
+          efficiency: Math.round(efficiency),
+          mouseEvents: realMouseEvents,
+          keyboardEvents: realKeyboardEvents
+        };
+      });
+  }, [attendanceRecords, reportTrackingData, realTimeTrackingData, todayDate, user?.companyId]);
+
+  const handleSearch = () => {
+    const filtered = logs.filter(log => {
+      const matchesEmployee = reportFilter.employee === 'All' || log.employeeName === reportFilter.employee;
+      const matchesDate = (!reportFilter.startDate || log.date >= reportFilter.startDate) &&
+                          (!reportFilter.endDate || log.date <= reportFilter.endDate);
+      return matchesEmployee && matchesDate;
+    });
+    setActiveLogs(filtered);
+  };
+
+  useEffect(() => {
+    setActiveLogs(logs);
+  }, [logs]);
 
   // Check for Idle Alert
   useEffect(() => {
@@ -270,6 +360,50 @@ export default function TimeTracker() {
             </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1">Monitor employee activity, screen time, and productivity.</p>
           </div>
+          
+          {activeTab === 'dashboard' && (
+            <div className="flex items-center gap-4 bg-white dark:bg-slate-800 p-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-slate-400" />
+                <input 
+                  type="date" 
+                  value={dashboardDate}
+                  onChange={(e) => setDashboardDate(e.target.value)}
+                  className={`bg-transparent border-none text-sm font-bold outline-none ${isDark ? 'text-white' : 'text-slate-900'}`}
+                />
+              </div>
+              <div className="h-4 w-px bg-slate-200 dark:bg-slate-700" />
+              <div className="flex gap-1">
+                <button 
+                  onClick={() => {
+                    const d = new Date(dashboardDate);
+                    d.setDate(d.getDate() - 1);
+                    setDashboardDate(d.toISOString().split('T')[0]);
+                  }}
+                  className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button 
+                  onClick={() => setDashboardDate(todayDate)}
+                  className="px-2 text-[10px] font-black uppercase tracking-widest hover:text-indigo-600 transition-colors"
+                >
+                  Today
+                </button>
+                <button 
+                  onClick={() => {
+                    const d = new Date(dashboardDate);
+                    d.setDate(d.getDate() + 1);
+                    setDashboardDate(d.toISOString().split('T')[0]);
+                  }}
+                  className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="flex gap-2 print:hidden">
             <div className="bg-white dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700 flex">
               <button 
@@ -417,9 +551,25 @@ export default function TimeTracker() {
                 <div>
                   <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Date Range</label>
                   <div className="flex items-center gap-2">
-                    <input type="date" className={`border rounded px-3 py-2 text-sm outline-none ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`} />
+                    <input 
+                      type="date" 
+                      value={reportFilter.startDate}
+                      onChange={(e) => setReportFilter({...reportFilter, startDate: e.target.value})}
+                      className={`border rounded px-3 py-2 text-sm outline-none ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`} 
+                    />
                     <span className="text-slate-400">-</span>
-                    <input type="date" className={`border rounded px-3 py-2 text-sm outline-none ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`} />
+                    <input 
+                      type="date" 
+                      value={reportFilter.endDate}
+                      onChange={(e) => setReportFilter({...reportFilter, endDate: e.target.value})}
+                      className={`border rounded px-3 py-2 text-sm outline-none ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`} 
+                    />
+                    <button 
+                      onClick={handleSearch}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 transition-colors"
+                    >
+                      Search
+                    </button>
                   </div>
                 </div>
                 <div className="flex gap-2 ml-auto">
@@ -447,7 +597,7 @@ export default function TimeTracker() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                      {filteredLogs.map((log) => (
+                        {activeLogs.map((log) => (
                         <tr key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                           <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{log.date}</td>
                           <td className="px-6 py-4 text-sm font-bold text-slate-800 dark:text-white">{log.employeeName}</td>

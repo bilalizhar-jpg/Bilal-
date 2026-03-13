@@ -148,31 +148,31 @@ export default function DepartmentList() {
     <AdminLayout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-            <h1 className="text-xl font-bold text-slate-800">Department list</h1>
+            <h1 className="text-xl font-black text-white uppercase tracking-tight">Department list</h1>
             <div className="flex gap-2">
-              <Link to="/sub-department" className="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-indigo-700 transition-colors">
+              <Link to="/sub-department" className="bg-transparent border border-[#00FFCC] text-[#00FFCC] px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-[#00FFCC] hover:text-[#1E1E2F] transition-colors">
                 Sub departments
               </Link>
-              <button onClick={() => handleOpenModal()} className="bg-[#28A745] text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-[#218838] transition-colors">
+              <button onClick={() => handleOpenModal()} className="bg-[#00FFCC] text-[#1E1E2F] px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-[#00D1FF] transition-colors shadow-[0_0_8px_rgba(0,255,204,0.4)]">
                 <Plus className="w-4 h-4" />
                 Add new department
               </button>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-slate-100 flex flex-wrap justify-between items-center gap-4">
-              <div className="flex items-center gap-2 text-sm text-slate-600">
-                Show <select className="border border-slate-200 rounded px-2 py-1 outline-none"><option>10</option></select> entries
+          <div className="bg-[#2A2A3D] rounded-2xl border border-white/5 shadow-[0_4px_20px_rgba(0,255,204,0.05)] overflow-hidden">
+            <div className="p-4 border-b border-white/5 flex flex-wrap justify-between items-center gap-4">
+              <div className="flex items-center gap-2 text-sm text-[#B0B0C3]">
+                Show <select className="bg-[#1E1E2F] border border-white/10 rounded px-2 py-1 outline-none text-white"><option>10</option></select> entries
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1">
-                  <button onClick={handleExportExcel} className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838] transition-colors"><FileSpreadsheet className="w-3.5 h-3.5" /> Excel</button>
-                  <button onClick={handleExportPDF} className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838] transition-colors"><FilePdf className="w-3.5 h-3.5" /> PDF</button>
+                  <button onClick={handleExportExcel} className="bg-transparent border border-[#00FFCC] text-[#00FFCC] px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#00FFCC] hover:text-[#1E1E2F] transition-colors"><FileSpreadsheet className="w-3.5 h-3.5" /> Excel</button>
+                  <button onClick={handleExportPDF} className="bg-transparent border border-[#00FFCC] text-[#00FFCC] px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#00FFCC] hover:text-[#1E1E2F] transition-colors"><FilePdf className="w-3.5 h-3.5" /> PDF</button>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-slate-600">Search:</span>
-                  <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="border border-slate-200 rounded px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-indigo-500" />
+                  <span className="text-sm text-[#B0B0C3]">Search:</span>
+                  <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-[#1E1E2F] border border-white/10 rounded px-3 py-1.5 text-sm outline-none text-white focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC]" />
                 </div>
               </div>
             </div>
@@ -180,25 +180,25 @@ export default function DepartmentList() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50/50 border-b border-slate-100">
-                    <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase border-r border-slate-100">Sl</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase border-r border-slate-100">Department name</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase border-r border-slate-100">Head of Department</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase border-r border-slate-100">Status</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase">Action</th>
+                  <tr className="bg-[#1E1E2F]/50 border-b border-white/5">
+                    <th className="px-4 py-3 text-xs font-black text-[#B0B0C3] uppercase border-r border-white/5">Sl</th>
+                    <th className="px-4 py-3 text-xs font-black text-[#B0B0C3] uppercase border-r border-white/5">Department name</th>
+                    <th className="px-4 py-3 text-xs font-black text-[#B0B0C3] uppercase border-r border-white/5">Head of Department</th>
+                    <th className="px-4 py-3 text-xs font-black text-[#B0B0C3] uppercase border-r border-white/5">Status</th>
+                    <th className="px-4 py-3 text-xs font-black text-[#B0B0C3] uppercase">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-white/5">
                   {filteredDepartments.map((dept, index) => (
-                    <tr key={dept.id} className={`transition-colors ${dept.isDeleted ? 'bg-red-50/50' : 'hover:bg-slate-50/50'}`}>
-                      <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{index + 1}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">
+                    <tr key={dept.id} className={`transition-colors ${dept.isDeleted ? 'bg-red-900/20' : 'hover:bg-[#1E1E2F]/50'}`}>
+                      <td className="px-4 py-3 text-sm text-white border-r border-white/5">{index + 1}</td>
+                      <td className="px-4 py-3 text-sm text-white border-r border-white/5">
                         {(dept as any).name}
-                        {dept.isDeleted && <span className="ml-2 text-[10px] font-bold text-red-600 uppercase tracking-wider">(Deleted)</span>}
+                        {dept.isDeleted && <span className="ml-2 text-[10px] font-black text-red-500 uppercase tracking-wider">(Deleted)</span>}
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{(dept as any).head}</td>
-                      <td className="px-4 py-3 text-sm border-r border-slate-100">
-                        <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase ${(dept as any).status === 'Active' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
+                      <td className="px-4 py-3 text-sm text-white border-r border-white/5">{(dept as any).head}</td>
+                      <td className="px-4 py-3 text-sm border-r border-white/5">
+                        <span className={`text-[10px] font-black px-2 py-1 rounded-full uppercase ${(dept as any).status === 'Active' ? 'bg-[#00FFCC]/10 text-[#00FFCC]' : 'bg-white/10 text-[#B0B0C3]'}`}>
                           {(dept as any).status}
                         </span>
                       </td>
@@ -206,11 +206,11 @@ export default function DepartmentList() {
                         <div className="flex items-center gap-2">
                           {!dept.isDeleted ? (
                             <>
-                              <button onClick={() => handleOpenModal(dept as any)} className="p-1.5 text-emerald-600 bg-emerald-50 rounded border border-emerald-100 hover:bg-emerald-100"><Edit className="w-3.5 h-3.5" /></button>
-                              <button onClick={() => handleDelete(dept.id)} className="p-1.5 text-red-600 bg-red-50 rounded border border-red-100 hover:bg-red-100"><Trash2 className="w-3.5 h-3.5" /></button>
+                              <button onClick={() => handleOpenModal(dept as any)} className="p-1.5 text-[#00FFCC] bg-[#00FFCC]/10 rounded border border-[#00FFCC]/20 hover:bg-[#00FFCC]/20"><Edit className="w-3.5 h-3.5" /></button>
+                              <button onClick={() => handleDelete(dept.id)} className="p-1.5 text-red-500 bg-red-500/10 rounded border border-red-500/20 hover:bg-red-500/20"><Trash2 className="w-3.5 h-3.5" /></button>
                             </>
                           ) : (
-                            <button onClick={() => handleRecover(dept.id)} className="flex items-center gap-1.5 px-3 py-1.5 text-indigo-600 bg-indigo-50 rounded border border-indigo-100 hover:bg-indigo-100 text-xs font-bold">
+                            <button onClick={() => handleRecover(dept.id)} className="flex items-center gap-1.5 px-3 py-1.5 text-[#00FFCC] bg-[#00FFCC]/10 rounded border border-[#00FFCC]/20 hover:bg-[#00FFCC]/20 text-xs font-black">
                               <RotateCcw className="w-3.5 h-3.5" />
                               Recover
                             </button>
@@ -228,31 +228,31 @@ export default function DepartmentList() {
         <AnimatePresence>
           {isModalOpen && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCloseModal} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-              <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="relative bg-white rounded-lg shadow-xl w-full max-w-lg overflow-hidden">
-                <div className="p-4 border-b border-slate-100 flex justify-between items-center">
-                  <h2 className="font-bold text-slate-800">{editingDept ? 'Edit department' : 'Add department'}</h2>
-                  <button onClick={handleCloseModal} className="p-1 hover:bg-slate-100 rounded-full"><X className="w-5 h-5 text-slate-400" /></button>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCloseModal} className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+              <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="relative bg-[#2A2A3D] rounded-2xl shadow-xl w-full max-w-lg overflow-hidden border border-white/5">
+                <div className="p-4 border-b border-white/5 flex justify-between items-center">
+                  <h2 className="font-black text-white uppercase tracking-tight">{editingDept ? 'Edit department' : 'Add department'}</h2>
+                  <button onClick={handleCloseModal} className="p-1 hover:bg-white/10 rounded-full"><X className="w-5 h-5 text-[#B0B0C3]" /></button>
                 </div>
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">Department name <span className="text-red-500">*</span></label>
-                    <input type="text" name="name" required value={formData.name} onChange={handleInputChange} className="w-full border border-slate-200 rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500" placeholder="e.g. Electrical" />
+                    <label className="block text-sm font-black text-[#B0B0C3] uppercase mb-1">Department name <span className="text-red-500">*</span></label>
+                    <input type="text" name="name" required value={formData.name} onChange={handleInputChange} className="w-full bg-[#1E1E2F] border border-white/10 rounded px-3 py-2 text-sm outline-none text-white focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC]" placeholder="e.g. Electrical" />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">Head of Department <span className="text-red-500">*</span></label>
-                    <input type="text" name="head" required value={formData.head} onChange={handleInputChange} className="w-full border border-slate-200 rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500" placeholder="e.g. John Doe" />
+                    <label className="block text-sm font-black text-[#B0B0C3] uppercase mb-1">Head of Department <span className="text-red-500">*</span></label>
+                    <input type="text" name="head" required value={formData.head} onChange={handleInputChange} className="w-full bg-[#1E1E2F] border border-white/10 rounded px-3 py-2 text-sm outline-none text-white focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC]" placeholder="e.g. John Doe" />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">Status</label>
-                    <select name="status" value={formData.status} onChange={handleInputChange} className="w-full border border-slate-200 rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-500">
+                    <label className="block text-sm font-black text-[#B0B0C3] uppercase mb-1">Status</label>
+                    <select name="status" value={formData.status} onChange={handleInputChange} className="w-full bg-[#1E1E2F] border border-white/10 rounded px-3 py-2 text-sm outline-none text-white focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC]">
                       <option value="Active">Active</option>
                       <option value="Inactive">Inactive</option>
                     </select>
                   </div>
                   <div className="flex justify-end gap-2 pt-4">
-                    <button type="button" onClick={handleCloseModal} className="px-4 py-2 bg-slate-100 text-slate-600 rounded text-sm font-bold hover:bg-slate-200">Close</button>
-                    <button type="submit" className="px-4 py-2 bg-[#28A745] text-white rounded text-sm font-bold hover:bg-[#218838]">Save</button>
+                    <button type="button" onClick={handleCloseModal} className="px-4 py-2 bg-white/5 text-[#B0B0C3] rounded text-sm font-black uppercase hover:bg-white/10">Close</button>
+                    <button type="submit" className="px-4 py-2 bg-[#00FFCC] text-[#1E1E2F] rounded text-sm font-black uppercase hover:bg-[#00D1FF]">Save</button>
                   </div>
                 </form>
               </motion.div>

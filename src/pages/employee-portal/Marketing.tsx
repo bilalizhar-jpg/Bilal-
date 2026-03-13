@@ -9,23 +9,39 @@ export default function EmployeeMarketing() {
 
   return (
     <EmployeeLayout>
-      <div className="space-y-6 max-w-5xl mx-auto">
+      <div className="space-y-8 max-w-5xl mx-auto">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Marketing Campaigns</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage email marketing and campaigns.</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Marketing Campaigns</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">Manage email marketing and campaigns.</p>
         </div>
 
-        <div className={`rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm flex flex-col items-center justify-center py-20 px-4 text-center`}>
-          <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 mb-4">
-            <Lock className="w-8 h-8" />
+        <div className={`rounded-3xl border shadow-2xl shadow-indigo-500/5 flex flex-col items-center justify-center py-24 px-8 text-center transition-all ${
+          isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'
+        }`}>
+          <div className="relative mb-8">
+            <div className="absolute inset-0 bg-indigo-500/20 rounded-full animate-pulse"></div>
+            <div className={`relative w-20 h-20 rounded-full flex items-center justify-center border-2 ${
+              isDark ? 'bg-slate-800 border-indigo-500/50 text-indigo-400' : 'bg-indigo-50 border-indigo-200 text-indigo-600'
+            }`}>
+              <Lock className="w-10 h-10" />
+            </div>
           </div>
-          <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Access Restricted</h2>
-          <p className="text-slate-500 dark:text-slate-400 max-w-md">
+          
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3 tracking-tight">Access Restricted</h2>
+          <p className="text-slate-500 dark:text-slate-400 max-w-md leading-relaxed text-lg">
             You currently do not have permission to access the Marketing module. Please contact your administrator if you need access to this section.
           </p>
-          <button className="mt-6 px-6 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors">
-            Request Access
-          </button>
+          
+          <div className="mt-10 flex flex-col sm:flex-row gap-4">
+            <button className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 transition-all active:scale-95">
+              Request Access
+            </button>
+            <button className={`px-8 py-3 rounded-xl font-bold transition-all active:scale-95 ${
+              isDark ? 'bg-slate-800 text-white hover:bg-slate-700' : 'bg-slate-100 text-slate-900 hover:bg-slate-200'
+            }`}>
+              Return to Dashboard
+            </button>
+          </div>
         </div>
       </div>
     </EmployeeLayout>

@@ -235,105 +235,105 @@ export default function PerformanceAppraisalReport() {
           <div className="flex items-center gap-2">
             <button 
               onClick={addSectionA}
-              className="bg-emerald-600 text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-emerald-700"
+              className="bg-[#2A2A3D] text-[#00FFCC] px-3 py-1.5 rounded text-xs font-black uppercase hover:bg-[#3A3A5D] border border-[#00FFCC]/20 flex items-center gap-1.5"
             >
               <Plus className="w-3.5 h-3.5" />
               Add new action
             </button>
           </div>
           <div className="flex gap-2">
-            <Link to="/performance/appraisal-list" className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-emerald-700">
+            <Link to="/performance/appraisal-list" className="bg-[#2A2A3D] text-[#00FFCC] px-4 py-2 rounded-lg text-sm font-black uppercase hover:bg-[#3A3A5D] border border-[#00FFCC]/20 flex items-center gap-2">
               <List className="w-4 h-4" />
               Employee performance list
             </Link>
             <button 
               onClick={() => setIsEditing(!isEditing)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                isEditing ? 'bg-amber-500 text-white' : 'bg-indigo-600 text-white hover:bg-indigo-700'
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-black uppercase transition-all ${
+                isEditing ? 'bg-[#00FFCC] text-[#1E1E2F] shadow-[0_0_8px_rgba(0,255,204,0.4)]' : 'bg-[#2A2A3D] text-[#00FFCC] border border-[#00FFCC]/20'
               }`}
             >
               {isEditing ? <Save className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
               {isEditing ? 'Save Changes' : 'Edit Report'}
             </button>
-            <button onClick={() => window.print()} className="bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-700 flex items-center gap-2">
+            <button onClick={() => window.print()} className="bg-[#2A2A3D] text-[#B0B0C3] px-4 py-2 rounded-lg text-sm font-black uppercase hover:bg-[#3A3A5D] border border-white/10 flex items-center gap-2">
               <Printer className="w-4 h-4" />
               Print
             </button>
           </div>
         </div>
 
-        <div className={`max-w-6xl mx-auto p-8 md:p-12 shadow-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} rounded-xl space-y-8 print:shadow-none print:border-none print:p-0`}>
+        <div className="max-w-6xl mx-auto p-8 md:p-12 shadow-[0_4px_20px_rgba(0,255,204,0.05)] border border-white/5 bg-[#2A2A3D] rounded-2xl space-y-8 print:shadow-none print:border-none print:p-0">
           
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white uppercase tracking-wider">2026 PERFORMANCE APPRAISAL INTERVIEW FORM</h1>
-            <p className="text-red-500 text-sm italic">All field are required except comments</p>
+            <h1 className="text-2xl font-black text-white uppercase tracking-tight">2026 PERFORMANCE APPRAISAL INTERVIEW FORM</h1>
+            <p className="text-red-400 text-sm italic">All field are required except comments</p>
           </div>
 
           {/* Basic Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex items-center gap-4">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">Name of employee :</label>
+              <label className="text-sm font-black text-[#B0B0C3] uppercase tracking-wider whitespace-nowrap">Name of employee :</label>
               <input 
                 type="text" 
                 name="employeeName"
                 value={formData.employeeName}
                 onChange={handleFormChange}
                 placeholder="Select employee"
-                className={`flex-1 border rounded px-3 py-1.5 text-sm ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                className="flex-1 border border-white/10 bg-[#1E1E2F] text-white rounded px-3 py-1.5 text-sm outline-none focus:border-[#00FFCC]"
               />
             </div>
             <div className="flex items-center gap-4">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">Employee ID :</label>
+              <label className="text-sm font-black text-[#B0B0C3] uppercase tracking-wider whitespace-nowrap">Employee ID :</label>
               <input 
                 type="text" 
                 name="employeeId"
                 value={formData.employeeId}
                 onChange={handleFormChange}
                 placeholder="Employee ID"
-                className={`flex-1 border rounded px-3 py-1.5 text-sm ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                className="flex-1 border border-white/10 bg-[#1E1E2F] text-white rounded px-3 py-1.5 text-sm outline-none focus:border-[#00FFCC]"
               />
             </div>
             <div className="flex items-center gap-4">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">Department :</label>
+              <label className="text-sm font-black text-[#B0B0C3] uppercase tracking-wider whitespace-nowrap">Department :</label>
               <input 
                 type="text" 
                 name="department"
                 value={formData.department}
                 onChange={handleFormChange}
                 placeholder="Department"
-                className={`flex-1 border rounded px-3 py-1.5 text-sm ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                className="flex-1 border border-white/10 bg-[#1E1E2F] text-white rounded px-3 py-1.5 text-sm outline-none focus:border-[#00FFCC]"
               />
             </div>
             <div className="flex items-center gap-4">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">Review period :</label>
+              <label className="text-sm font-black text-[#B0B0C3] uppercase tracking-wider whitespace-nowrap">Review period :</label>
               <input 
                 type="text" 
                 name="reviewPeriod"
                 value={formData.reviewPeriod}
                 onChange={handleFormChange}
                 placeholder="Review Period In Months"
-                className={`flex-1 border rounded px-3 py-1.5 text-sm ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                className="flex-1 border border-white/10 bg-[#1E1E2F] text-white rounded px-3 py-1.5 text-sm outline-none focus:border-[#00FFCC]"
               />
             </div>
             <div className="flex items-center gap-4 md:col-span-2">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">Name and position of supervisor head of department :</label>
+              <label className="text-sm font-black text-[#B0B0C3] uppercase tracking-wider whitespace-nowrap">Name and position of supervisor head of department :</label>
               <input 
                 type="text" 
                 name="supervisorName"
                 value={formData.supervisorName}
                 onChange={handleFormChange}
                 placeholder="Name and Position of Supervisor/Head of Department"
-                className={`flex-1 border rounded px-3 py-1.5 text-sm ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                className="flex-1 border border-white/10 bg-[#1E1E2F] text-white rounded px-3 py-1.5 text-sm outline-none focus:border-[#00FFCC]"
               />
             </div>
-            <div className="flex items-center gap-4 md:col-span-2 bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg border border-indigo-100 dark:border-indigo-800">
-              <Target className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-              <label className="text-sm font-bold text-indigo-900 dark:text-indigo-300 whitespace-nowrap">Link KPI Template :</label>
+            <div className="flex items-center gap-4 md:col-span-2 bg-[#1E1E2F]/50 p-4 rounded-lg border border-[#00FFCC]/20">
+              <Target className="w-5 h-5 text-[#00FFCC]" />
+              <label className="text-sm font-black text-[#00FFCC] uppercase tracking-wider whitespace-nowrap">Link KPI Template :</label>
               <select 
                 name="kpiTemplateId"
                 value={formData.kpiTemplateId}
                 onChange={handleKpiTemplateChange}
-                className={`flex-1 border rounded px-3 py-2 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                className="flex-1 border border-white/10 bg-[#2A2A3D] text-white rounded px-3 py-2 text-sm font-black outline-none focus:border-[#00FFCC]"
               >
                 <option value="">-- Default Appraisal Criteria --</option>
                 {kpiTemplates.map(template => (
@@ -343,30 +343,30 @@ export default function PerformanceAppraisalReport() {
             </div>
           </div>
 
-          <p className="text-sm text-slate-600 dark:text-slate-400 italic">
+          <p className="text-sm text-[#B0B0C3] italic">
             Please provide a critical assessment of the performance of the employee within the review period using the following rating scale provide examples where applicable please use a separate sheet if required
           </p>
 
           {/* Rating Scale Legend */}
-          <div className="grid grid-cols-5 border border-slate-200 dark:border-slate-800 rounded text-xs">
-            <div className="p-2 border-r border-slate-200 dark:border-slate-800">
-              <p className="font-bold">P</p>
+          <div className="grid grid-cols-5 border border-white/10 rounded text-[10px] font-black uppercase tracking-wider text-[#B0B0C3]">
+            <div className="p-2 border-r border-white/10">
+              <p className="font-black text-white">P</p>
               <p>Poor</p>
             </div>
-            <div className="p-2 border-r border-slate-200 dark:border-slate-800">
-              <p className="font-bold">NI</p>
+            <div className="p-2 border-r border-white/10">
+              <p className="font-black text-white">NI</p>
               <p>Need Improvement</p>
             </div>
-            <div className="p-2 border-r border-slate-200 dark:border-slate-800">
-              <p className="font-bold">G</p>
+            <div className="p-2 border-r border-white/10">
+              <p className="font-black text-white">G</p>
               <p>Good</p>
             </div>
-            <div className="p-2 border-r border-slate-200 dark:border-slate-800">
-              <p className="font-bold">VG</p>
+            <div className="p-2 border-r border-white/10">
+              <p className="font-black text-white">VG</p>
               <p>Very Good</p>
             </div>
             <div className="p-2">
-              <p className="font-bold">E</p>
+              <p className="font-black text-white">E</p>
               <p>Excellent</p>
             </div>
           </div>
@@ -374,39 +374,39 @@ export default function PerformanceAppraisalReport() {
           {/* Section A */}
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-lg font-bold text-slate-800 dark:text-white uppercase">A ASSESSMENT OF GOALS OBJECTIVES SET DURING THE REVIEW PERIOD</h2>
+              <h2 className="text-lg font-black text-white uppercase tracking-tight">A ASSESSMENT OF GOALS OBJECTIVES SET DURING THE REVIEW PERIOD</h2>
               <button 
                 onClick={addSectionA}
-                className="no-print bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded text-sm font-bold flex items-center gap-1.5 hover:bg-indigo-100 dark:hover:bg-indigo-900/50"
+                className="no-print bg-[#2A2A3D] text-[#00FFCC] px-3 py-1.5 rounded text-sm font-black uppercase hover:bg-[#3A3A5D] border border-[#00FFCC]/20 flex items-center gap-1.5"
               >
                 <Plus className="w-4 h-4" />
                 Add KPI
               </button>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse border border-slate-200 dark:border-slate-800">
+              <table className="w-full text-left border-collapse border border-white/10">
                 <thead>
-                  <tr className="bg-slate-50 dark:bg-slate-800/50 text-xs font-bold uppercase">
-                    <th className="p-2 border border-slate-200 dark:border-slate-800">Criteria</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800 text-center">Score Input</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800 text-center">Max Score</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800">Comments and examples</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800 w-10 text-center no-print">Act</th>
+                  <tr className="bg-[#1E1E2F] text-[10px] font-black uppercase tracking-wider text-[#B0B0C3]">
+                    <th className="p-2 border border-white/10">Criteria</th>
+                    <th className="p-2 border border-white/10 text-center">Score Input</th>
+                    <th className="p-2 border border-white/10 text-center">Max Score</th>
+                    <th className="p-2 border border-white/10">Comments and examples</th>
+                    <th className="p-2 border border-white/10 w-10 text-center no-print">Act</th>
                   </tr>
                 </thead>
                 <tbody>
                   {sectionA.map((item) => (
                     <tr key={item.id} className="text-sm">
-                      <td className="p-2 border border-slate-200 dark:border-slate-800 font-medium">
+                      <td className="p-2 border border-white/10 font-black text-white">
                         <input 
                           type="text"
                           value={item.criteria}
                           onChange={(e) => updateSectionAField(item.id, 'criteria', e.target.value)}
-                          className={`w-full bg-transparent border-none outline-none ${isDark ? 'text-white' : 'text-slate-800'}`}
+                          className="w-full bg-transparent border-none outline-none text-white"
                           placeholder="Enter KPI criteria"
                         />
                       </td>
-                      <td className="p-2 border border-slate-200 dark:border-slate-800 text-center">
+                      <td className="p-2 border border-white/10 text-center">
                         <input 
                           type="number" 
                           value={item.score}
@@ -416,42 +416,42 @@ export default function PerformanceAppraisalReport() {
                             if (val < 0) val = 0;
                             updateSectionA(item.id, val);
                           }}
-                          className={`w-20 text-center border rounded px-2 py-1 outline-none focus:ring-1 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-300'}`}
+                          className="w-20 text-center border border-white/10 bg-[#1E1E2F] text-white rounded px-2 py-1 outline-none focus:border-[#00FFCC]"
                         />
                       </td>
-                      <td className="p-2 border border-slate-200 dark:border-slate-800 text-center text-slate-500 font-bold">
+                      <td className="p-2 border border-white/10 text-center text-[#B0B0C3] font-black">
                         <input 
                           type="number"
                           value={item.maxScore || 12}
                           onChange={(e) => updateSectionAField(item.id, 'maxScore', parseInt(e.target.value) || 0)}
-                          className={`w-16 text-center bg-transparent border-none outline-none ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
+                          className="w-16 text-center bg-transparent border-none outline-none text-[#B0B0C3]"
                         />
                       </td>
-                      <td className="p-2 border border-slate-200 dark:border-slate-800">
+                      <td className="p-2 border border-white/10">
                         <textarea 
                           value={item.comments}
                           onChange={(e) => updateSectionA(item.id, item.rating, e.target.value)}
-                          className={`w-full border-none outline-none bg-transparent resize-none min-h-[40px] ${isDark ? 'text-white' : 'text-slate-800'}`}
+                          className="w-full border-none outline-none bg-transparent resize-none min-h-[40px] text-white"
                         />
                       </td>
-                      <td className="p-2 border border-slate-200 dark:border-slate-800 text-center no-print">
+                      <td className="p-2 border border-white/10 text-center no-print">
                         <button 
                           onClick={() => removeSectionA(item.id)}
-                          className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                          className="p-1.5 text-red-400 hover:bg-[#3A3A5D] rounded"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </td>
                     </tr>
                   ))}
-                  <tr className="bg-slate-50 dark:bg-slate-800/50 font-bold">
-                    <td colSpan={1} className="p-2 border border-slate-200 dark:border-slate-800 text-right">Total score</td>
-                    <td className="p-2 border border-slate-200 dark:border-slate-800 text-center bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600">{totalA}</td>
-                    <td className="p-2 border border-slate-200 dark:border-slate-800 text-center text-slate-500">
+                  <tr className="bg-[#1E1E2F] font-black text-white">
+                    <td colSpan={1} className="p-2 border border-white/10 text-right">Total score</td>
+                    <td className="p-2 border border-white/10 text-center bg-[#00FFCC]/20 text-[#00FFCC]">{totalA}</td>
+                    <td className="p-2 border border-white/10 text-center text-[#B0B0C3]">
                       {sectionA.reduce((sum, item) => sum + (item.maxScore || 12), 0)}
                     </td>
-                    <td className="p-2 border border-slate-200 dark:border-slate-800"></td>
-                    <td className="p-2 border border-slate-200 dark:border-slate-800 no-print"></td>
+                    <td className="p-2 border border-white/10"></td>
+                    <td className="p-2 border border-white/10 no-print"></td>
                   </tr>
                 </tbody>
               </table>
@@ -460,57 +460,57 @@ export default function PerformanceAppraisalReport() {
 
           {/* Section B */}
           <div className="space-y-4">
-            <h2 className="text-lg font-bold text-slate-800 dark:text-white uppercase">B ASSESSMENT OF OTHER PERFORMANCE STANDARDS AND INDICATORS</h2>
+            <h2 className="text-lg font-black text-white uppercase tracking-tight">B ASSESSMENT OF OTHER PERFORMANCE STANDARDS AND INDICATORS</h2>
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse border border-slate-200 dark:border-slate-800">
+              <table className="w-full text-left border-collapse border border-white/10">
                 <thead>
-                  <tr className="bg-slate-50 dark:bg-slate-800/50 text-xs font-bold uppercase">
-                    <th className="p-2 border border-slate-200 dark:border-slate-800">Criteria</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800 text-center">P (2)</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800 text-center">NI (4)</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800 text-center">G (6)</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800 text-center">VG (9)</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800 text-center">E (10)</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800 text-center">Score</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800">Comments and examples</th>
+                  <tr className="bg-[#1E1E2F] text-[10px] font-black uppercase tracking-wider text-[#B0B0C3]">
+                    <th className="p-2 border border-white/10">Criteria</th>
+                    <th className="p-2 border border-white/10 text-center">P (2)</th>
+                    <th className="p-2 border border-white/10 text-center">NI (4)</th>
+                    <th className="p-2 border border-white/10 text-center">G (6)</th>
+                    <th className="p-2 border border-white/10 text-center">VG (9)</th>
+                    <th className="p-2 border border-white/10 text-center">E (10)</th>
+                    <th className="p-2 border border-white/10 text-center">Score</th>
+                    <th className="p-2 border border-white/10">Comments and examples</th>
                   </tr>
                 </thead>
                 <tbody>
                   {sectionB.map((item) => (
                     <tr key={item.id} className="text-sm">
-                      <td className="p-2 border border-slate-200 dark:border-slate-800 font-medium">{item.criteria}</td>
+                      <td className="p-2 border border-white/10 font-black text-white">{item.criteria}</td>
                       {[2, 4, 6, 9, 10].map(val => (
-                        <td key={val} className="p-2 border border-slate-200 dark:border-slate-800 text-center">
+                        <td key={val} className="p-2 border border-white/10 text-center">
                           <input 
                             type="radio" 
                             name={`sectionB-${item.id}`} 
                             checked={item.rating === val}
                             onChange={() => updateSectionB(item.id, val)}
-                            className="w-4 h-4 text-indigo-600"
+                            className="w-4 h-4 text-[#00FFCC] accent-[#00FFCC]"
                           />
                         </td>
                       ))}
-                      <td className="p-2 border border-slate-200 dark:border-slate-800">
+                      <td className="p-2 border border-white/10">
                         <input 
                           type="number" 
                           value={item.score}
                           readOnly
-                          className={`w-full text-center bg-slate-50 dark:bg-slate-800/50 border-none outline-none ${isDark ? 'text-white' : 'text-slate-800'}`}
+                          className="w-full text-center bg-[#1E1E2F]/50 border-none outline-none text-white"
                         />
                       </td>
-                      <td className="p-2 border border-slate-200 dark:border-slate-800">
+                      <td className="p-2 border border-white/10">
                         <textarea 
                           value={item.comments}
                           onChange={(e) => updateSectionB(item.id, item.rating, e.target.value)}
-                          className={`w-full border-none outline-none bg-transparent resize-none min-h-[40px] ${isDark ? 'text-white' : 'text-slate-800'}`}
+                          className="w-full border-none outline-none bg-transparent resize-none min-h-[40px] text-white"
                         />
                       </td>
                     </tr>
                   ))}
-                  <tr className="bg-slate-50 dark:bg-slate-800/50 font-bold">
-                    <td colSpan={6} className="p-2 border border-slate-200 dark:border-slate-800 text-right">Total score (maximum = 40)</td>
-                    <td className="p-2 border border-slate-200 dark:border-slate-800 text-center bg-indigo-50 dark:bg-indigo-900/30">{totalB}</td>
-                    <td className="p-2 border border-slate-200 dark:border-slate-800"></td>
+                  <tr className="bg-[#1E1E2F] font-black text-white">
+                    <td colSpan={6} className="p-2 border border-white/10 text-right">Total score (maximum = 40)</td>
+                    <td className="p-2 border border-white/10 text-center bg-[#00FFCC]/20 text-[#00FFCC]">{totalB}</td>
+                    <td className="p-2 border border-white/10"></td>
                   </tr>
                 </tbody>
               </table>
@@ -518,39 +518,39 @@ export default function PerformanceAppraisalReport() {
           </div>
 
           {/* Section C */}
-          <div className="grid grid-cols-1 md:grid-cols-2 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
-            <div className="p-6 space-y-6 border-r border-slate-200 dark:border-slate-800">
-              <h2 className="text-lg font-bold text-slate-800 dark:text-white uppercase">C TOTAL SCORE</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 border border-white/10 rounded-2xl overflow-hidden">
+            <div className="p-6 space-y-6 border-r border-white/10 bg-[#1E1E2F]/50">
+              <h2 className="text-lg font-black text-white uppercase tracking-tight">C TOTAL SCORE</h2>
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase">Total score (score a + score b)</p>
-                  <p className="text-2xl font-bold text-indigo-600">{totalA} + {totalB} = {grandTotal}</p>
+                  <p className="text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">Total score (score a + score b)</p>
+                  <p className="text-2xl font-black text-[#00FFCC]">{totalA} + {totalB} = {grandTotal}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase">Classification of employee:</p>
-                  <p className="text-lg font-bold text-slate-800 dark:text-white">{getClassification(grandTotal)}</p>
-                  <p className="text-xs text-slate-500 mt-1">EE (80-100) | AE (75-85) | UE (0-70)</p>
+                  <p className="text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">Classification of employee:</p>
+                  <p className="text-lg font-black text-white uppercase tracking-tight">{getClassification(grandTotal)}</p>
+                  <p className="text-[10px] text-[#B0B0C3] mt-1">EE (80-100) | AE (75-85) | UE (0-70)</p>
                 </div>
               </div>
             </div>
             <div className="p-6 space-y-4">
-              <h2 className="text-sm font-bold text-slate-600 dark:text-slate-400 uppercase">Overall comments recommendations by reviewer</h2>
+              <h2 className="text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">Overall comments recommendations by reviewer</h2>
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Name:</span>
-                  <input type="text" name="reviewerName" value={formData.reviewerName} onChange={handleFormChange} className="flex-1 border-b border-slate-200 dark:border-slate-700 bg-transparent outline-none text-sm" />
+                  <span className="text-sm font-black text-white">Name:</span>
+                  <input type="text" name="reviewerName" value={formData.reviewerName} onChange={handleFormChange} className="flex-1 border-b border-white/10 bg-transparent outline-none text-sm text-white" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Signature:</span>
-                  <input type="text" name="reviewerSignature" value={formData.reviewerSignature} onChange={handleFormChange} className="flex-1 border-b border-slate-200 dark:border-slate-700 bg-transparent outline-none text-sm" />
+                  <span className="text-sm font-black text-white">Signature:</span>
+                  <input type="text" name="reviewerSignature" value={formData.reviewerSignature} onChange={handleFormChange} className="flex-1 border-b border-white/10 bg-transparent outline-none text-sm text-white" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Date:</span>
-                  <input type="date" name="reviewDate" value={formData.reviewDate} onChange={handleFormChange} className="flex-1 border-b border-slate-200 dark:border-slate-700 bg-transparent outline-none text-sm" />
+                  <span className="text-sm font-black text-white">Date:</span>
+                  <input type="date" name="reviewDate" value={formData.reviewDate} onChange={handleFormChange} className="flex-1 border-b border-white/10 bg-transparent outline-none text-sm text-white" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Next review period:</span>
-                  <input type="text" name="nextReviewPeriod" value={formData.nextReviewPeriod} onChange={handleFormChange} className="flex-1 border-b border-slate-200 dark:border-slate-700 bg-transparent outline-none text-sm" />
+                  <span className="text-sm font-black text-white">Next review period:</span>
+                  <input type="text" name="nextReviewPeriod" value={formData.nextReviewPeriod} onChange={handleFormChange} className="flex-1 border-b border-white/10 bg-transparent outline-none text-sm text-white" />
                 </div>
               </div>
             </div>
@@ -558,76 +558,76 @@ export default function PerformanceAppraisalReport() {
 
           {/* Section D */}
           <div className="space-y-4">
-            <h2 className="text-lg font-bold text-slate-800 dark:text-white uppercase">D COMMENTS BY EMPLOYEE</h2>
+            <h2 className="text-lg font-black text-white uppercase tracking-tight">D COMMENTS BY EMPLOYEE</h2>
             <textarea 
               name="employeeComments"
               value={formData.employeeComments}
               onChange={handleFormChange}
               placeholder="Maximum 500 words"
-              className={`w-full border rounded p-4 text-sm min-h-[100px] ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+              className="w-full border border-white/10 bg-[#1E1E2F] text-white rounded-lg p-4 text-sm min-h-[100px] outline-none focus:border-[#00FFCC]"
             />
           </div>
 
           {/* Section E */}
           <div className="space-y-4">
-            <h2 className="text-lg font-bold text-slate-800 dark:text-white uppercase">E DEVELOPMENT PLAN</h2>
+            <h2 className="text-lg font-black text-white uppercase tracking-tight">E DEVELOPMENT PLAN</h2>
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse border border-slate-200 dark:border-slate-800">
+              <table className="w-full text-left border-collapse border border-white/10">
                 <thead>
-                  <tr className="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-bold uppercase">
-                    <th className="p-2 border border-slate-200 dark:border-slate-800 w-1/4">Recommended areas for improvement development</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800 w-1/5">Expected outcome(s)</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800 w-1/5">Responsible person(s) to assist in the achievement of the plan</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800">Start date</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800">End date</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800 w-20 no-print">Action</th>
+                  <tr className="bg-[#1E1E2F] text-[10px] font-black uppercase tracking-wider text-[#B0B0C3]">
+                    <th className="p-2 border border-white/10 w-1/4">Recommended areas for improvement development</th>
+                    <th className="p-2 border border-white/10 w-1/5">Expected outcome(s)</th>
+                    <th className="p-2 border border-white/10 w-1/5">Responsible person(s) to assist in the achievement of the plan</th>
+                    <th className="p-2 border border-white/10">Start date</th>
+                    <th className="p-2 border border-white/10">End date</th>
+                    <th className="p-2 border border-white/10 w-20 no-print">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {developmentPlans.map((plan) => (
                     <tr key={plan.id}>
-                      <td className="p-2 border border-slate-200 dark:border-slate-800">
+                      <td className="p-2 border border-white/10">
                         <textarea 
                           value={plan.improvement}
                           onChange={(e) => setDevelopmentPlans(developmentPlans.map(p => p.id === plan.id ? { ...p, improvement: e.target.value } : p))}
-                          className="w-full bg-transparent border-none outline-none text-xs resize-none min-h-[60px]"
+                          className="w-full bg-transparent border-none outline-none text-xs resize-none min-h-[60px] text-white"
                         />
                       </td>
-                      <td className="p-2 border border-slate-200 dark:border-slate-800">
+                      <td className="p-2 border border-white/10">
                         <textarea 
                           value={plan.outcome}
                           onChange={(e) => setDevelopmentPlans(developmentPlans.map(p => p.id === plan.id ? { ...p, outcome: e.target.value } : p))}
-                          className="w-full bg-transparent border-none outline-none text-xs resize-none min-h-[60px]"
+                          className="w-full bg-transparent border-none outline-none text-xs resize-none min-h-[60px] text-white"
                         />
                       </td>
-                      <td className="p-2 border border-slate-200 dark:border-slate-800">
+                      <td className="p-2 border border-white/10">
                         <input 
                           type="text"
                           value={plan.responsible}
                           onChange={(e) => setDevelopmentPlans(developmentPlans.map(p => p.id === plan.id ? { ...p, responsible: e.target.value } : p))}
-                          className="w-full bg-transparent border-none outline-none text-xs"
+                          className="w-full bg-transparent border-none outline-none text-xs text-white"
                         />
                       </td>
-                      <td className="p-2 border border-slate-200 dark:border-slate-800">
+                      <td className="p-2 border border-white/10">
                         <input 
                           type="date"
                           value={plan.startDate}
                           onChange={(e) => setDevelopmentPlans(developmentPlans.map(p => p.id === plan.id ? { ...p, startDate: e.target.value } : p))}
-                          className="w-full bg-transparent border-none outline-none text-xs"
+                          className="w-full bg-transparent border-none outline-none text-xs text-white"
                         />
                       </td>
-                      <td className="p-2 border border-slate-200 dark:border-slate-800">
+                      <td className="p-2 border border-white/10">
                         <input 
                           type="date"
                           value={plan.endDate}
                           onChange={(e) => setDevelopmentPlans(developmentPlans.map(p => p.id === plan.id ? { ...p, endDate: e.target.value } : p))}
-                          className="w-full bg-transparent border-none outline-none text-xs"
+                          className="w-full bg-transparent border-none outline-none text-xs text-white"
                         />
                       </td>
-                      <td className="p-2 border border-slate-200 dark:border-slate-800 text-center no-print">
+                      <td className="p-2 border border-white/10 text-center no-print">
                         <div className="flex justify-center gap-1">
-                          <button onClick={addDevPlan} className="p-1 bg-cyan-500 text-white rounded"><Plus className="w-3 h-3" /></button>
-                          <button onClick={() => removeDevPlan(plan.id)} className="p-1 bg-red-500 text-white rounded"><Trash2 className="w-3 h-3" /></button>
+                          <button onClick={addDevPlan} className="p-1 bg-[#2A2A3D] text-[#00FFCC] rounded border border-[#00FFCC]/20"><Plus className="w-3 h-3" /></button>
+                          <button onClick={() => removeDevPlan(plan.id)} className="p-1 bg-[#2A2A3D] text-red-400 rounded border border-red-400/20"><Trash2 className="w-3 h-3" /></button>
                         </div>
                       </td>
                     </tr>
@@ -639,38 +639,38 @@ export default function PerformanceAppraisalReport() {
 
           {/* Section F */}
           <div className="space-y-4">
-            <h2 className="text-lg font-bold text-slate-800 dark:text-white uppercase">F KEY GOALS FOR NEXT REVIEW PERIOD</h2>
+            <h2 className="text-lg font-black text-white uppercase tracking-tight">F KEY GOALS FOR NEXT REVIEW PERIOD</h2>
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse border border-slate-200 dark:border-slate-800">
+              <table className="w-full text-left border-collapse border border-white/10">
                 <thead>
-                  <tr className="bg-slate-50 dark:bg-slate-800/50 text-xs font-bold uppercase">
-                    <th className="p-2 border border-slate-200 dark:border-slate-800">Goal (s) set and agreed on with employee</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800 w-1/3">Proposed completion period</th>
-                    <th className="p-2 border border-slate-200 dark:border-slate-800 w-20 no-print">Action</th>
+                  <tr className="bg-[#1E1E2F] text-[10px] font-black uppercase tracking-wider text-[#B0B0C3]">
+                    <th className="p-2 border border-white/10">Goal (s) set and agreed on with employee</th>
+                    <th className="p-2 border border-white/10 w-1/3">Proposed completion period</th>
+                    <th className="p-2 border border-white/10 w-20 no-print">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {keyGoals.map((goal) => (
                     <tr key={goal.id}>
-                      <td className="p-2 border border-slate-200 dark:border-slate-800">
+                      <td className="p-2 border border-white/10">
                         <textarea 
                           value={goal.goal}
                           onChange={(e) => setKeyGoals(keyGoals.map(g => g.id === goal.id ? { ...g, goal: e.target.value } : g))}
-                          className="w-full bg-transparent border-none outline-none text-sm resize-none min-h-[80px]"
+                          className="w-full bg-transparent border-none outline-none text-sm resize-none min-h-[80px] text-white"
                         />
                       </td>
-                      <td className="p-2 border border-slate-200 dark:border-slate-800">
+                      <td className="p-2 border border-white/10">
                         <input 
                           type="date"
                           value={goal.period}
                           onChange={(e) => setKeyGoals(keyGoals.map(g => g.id === goal.id ? { ...g, period: e.target.value } : g))}
-                          className="w-full bg-transparent border-none outline-none text-sm"
+                          className="w-full bg-transparent border-none outline-none text-sm text-white"
                         />
                       </td>
-                      <td className="p-2 border border-slate-200 dark:border-slate-800 text-center no-print">
+                      <td className="p-2 border border-white/10 text-center no-print">
                         <div className="flex justify-center gap-1">
-                          <button onClick={addKeyGoal} className="p-1 bg-cyan-500 text-white rounded"><Plus className="w-3 h-3" /></button>
-                          <button onClick={() => removeKeyGoal(goal.id)} className="p-1 bg-red-500 text-white rounded"><Trash2 className="w-3 h-3" /></button>
+                          <button onClick={addKeyGoal} className="p-1 bg-[#2A2A3D] text-[#00FFCC] rounded border border-[#00FFCC]/20"><Plus className="w-3 h-3" /></button>
+                          <button onClick={() => removeKeyGoal(goal.id)} className="p-1 bg-[#2A2A3D] text-red-400 rounded border border-red-400/20"><Trash2 className="w-3 h-3" /></button>
                         </div>
                       </td>
                     </tr>
@@ -684,7 +684,7 @@ export default function PerformanceAppraisalReport() {
             <button 
               onClick={handleSave}
               disabled={isSaving}
-              className="bg-emerald-600 text-white px-8 py-2 rounded font-bold hover:bg-emerald-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+              className="bg-[#00FFCC] text-[#1E1E2F] px-8 py-2 rounded-lg font-black uppercase hover:bg-[#00D1FF] transition-colors flex items-center gap-2 disabled:opacity-50 shadow-[0_0_8px_rgba(0,255,204,0.4)]"
             >
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               {isSaving ? 'Saving...' : 'Save Appraisal'}
@@ -696,12 +696,12 @@ export default function PerformanceAppraisalReport() {
       <style>{`
         @media print {
           .no-print { display: none !important; }
-          body { background: white !important; }
+          body { background: #1E1E2F !important; color: #FFFFFF !important; }
           .print\:shadow-none { box-shadow: none !important; }
           .print\:border-none { border: none !important; }
           .print\:p-0 { padding: 0 !important; }
-          input[type="radio"] { appearance: none; border: 1px solid #000; width: 12px; height: 12px; border-radius: 50%; position: relative; }
-          input[type="radio"]:checked::after { content: ""; position: absolute; top: 2px; left: 2px; width: 6px; height: 6px; background: #000; border-radius: 50%; }
+          input[type="radio"] { appearance: none; border: 1px solid #FFFFFF; width: 12px; height: 12px; border-radius: 50%; position: relative; }
+          input[type="radio"]:checked::after { content: ""; position: absolute; top: 2px; left: 2px; width: 6px; height: 6px; background: #FFFFFF; border-radius: 50%; }
         }
       `}</style>
     </AdminLayout>

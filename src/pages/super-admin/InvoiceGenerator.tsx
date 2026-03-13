@@ -125,16 +125,16 @@ export default function SuperAdminInvoiceGenerator() {
     <SuperAdminLayout>
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/super-admin/companies')} className="p-2 hover:bg-slate-100 rounded-full">
+          <button onClick={() => navigate('/super-admin/companies')} className="p-2 hover:bg-[#2A2A3D] rounded-full text-[#B0B0C3]">
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-2xl font-bold">Invoice Editor</h1>
+          <h1 className="text-2xl font-black text-white uppercase tracking-tight">Invoice Editor</h1>
         </div>
         <div className="flex gap-2">
-          <button onClick={handleSave} className="bg-emerald-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-emerald-700">
+          <button onClick={handleSave} className="bg-[#00FFCC] text-[#1E1E2F] px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#00D1FF] font-bold shadow-[0_0_8px_rgba(0,255,204,0.4)]">
             <Save className="w-4 h-4" /> Save Changes
           </button>
-          <button onClick={exportPDF} className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-indigo-700">
+          <button onClick={exportPDF} className="bg-transparent border border-[#00FFCC] text-[#00FFCC] px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#00FFCC] hover:text-[#1E1E2F] font-bold">
             <Printer className="w-4 h-4" /> Download PDF
           </button>
         </div>
@@ -143,46 +143,46 @@ export default function SuperAdminInvoiceGenerator() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Editor Panel */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <h3 className="font-bold mb-4 flex items-center gap-2">
-              <Settings className="w-4 h-4" /> Invoice Details
+          <div className="bg-[#2A2A3D] p-6 rounded-2xl border border-white/5 shadow-[0_4px_20px_rgba(0,255,204,0.05)]">
+            <h3 className="font-black text-white uppercase tracking-tight mb-4 flex items-center gap-2">
+              <Settings className="w-4 h-4 text-[#00FFCC]" /> Invoice Details
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-500 uppercase mb-1">Invoice Number</label>
+                <label className="block text-xs font-bold text-[#B0B0C3] uppercase mb-1">Invoice Number</label>
                 <input 
                   type="text" 
                   value={invoice.invoiceNumber} 
                   onChange={(e) => handleUpdateField('invoiceNumber', e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 bg-[#1E1E2F] border border-white/10 rounded-lg focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC] text-white outline-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 uppercase mb-1">Date</label>
+                  <label className="block text-xs font-bold text-[#B0B0C3] uppercase mb-1">Date</label>
                   <input 
                     type="date" 
                     value={invoice.date} 
                     onChange={(e) => handleUpdateField('date', e.target.value)}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 bg-[#1E1E2F] border border-white/10 rounded-lg focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC] text-white outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 uppercase mb-1">Due Date</label>
+                  <label className="block text-xs font-bold text-[#B0B0C3] uppercase mb-1">Due Date</label>
                   <input 
                     type="date" 
                     value={invoice.dueDate} 
                     onChange={(e) => handleUpdateField('dueDate', e.target.value)}
-                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 bg-[#1E1E2F] border border-white/10 rounded-lg focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC] text-white outline-none"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-500 uppercase mb-1">Template</label>
+                <label className="block text-xs font-bold text-[#B0B0C3] uppercase mb-1">Template</label>
                 <select 
                   value={invoice.template} 
                   onChange={(e) => handleUpdateField('template', e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 bg-[#1E1E2F] border border-white/10 rounded-lg focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC] text-white outline-none"
                 >
                   <option value="basic">Basic</option>
                   <option value="pro">Pro</option>
@@ -190,11 +190,11 @@ export default function SuperAdminInvoiceGenerator() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-500 uppercase mb-1">Status</label>
+                <label className="block text-xs font-bold text-[#B0B0C3] uppercase mb-1">Status</label>
                 <select 
                   value={invoice.status} 
                   onChange={(e) => handleUpdateField('status', e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 bg-[#1E1E2F] border border-white/10 rounded-lg focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC] text-white outline-none"
                 >
                   <option value="unpaid">Unpaid</option>
                   <option value="paid">Paid</option>
@@ -204,25 +204,25 @@ export default function SuperAdminInvoiceGenerator() {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <h3 className="font-bold mb-4">Notes & Terms</h3>
+          <div className="bg-[#2A2A3D] p-6 rounded-2xl border border-white/5 shadow-[0_4px_20px_rgba(0,255,204,0.05)]">
+            <h3 className="font-black text-white uppercase tracking-tight mb-4">Notes & Terms</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-500 uppercase mb-1">Notes</label>
+                <label className="block text-xs font-bold text-[#B0B0C3] uppercase mb-1">Notes</label>
                 <textarea 
                   rows={3}
                   value={invoice.notes} 
                   onChange={(e) => handleUpdateField('notes', e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 bg-[#1E1E2F] border border-white/10 rounded-lg focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC] text-white outline-none"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-500 uppercase mb-1">Terms</label>
+                <label className="block text-xs font-bold text-[#B0B0C3] uppercase mb-1">Terms</label>
                 <textarea 
                   rows={3}
                   value={invoice.terms} 
                   onChange={(e) => handleUpdateField('terms', e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 bg-[#1E1E2F] border border-white/10 rounded-lg focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC] text-white outline-none"
                 />
               </div>
             </div>
@@ -231,52 +231,52 @@ export default function SuperAdminInvoiceGenerator() {
 
         {/* Preview Panel */}
         <div className="lg:col-span-2">
-          <div className="bg-slate-100 p-8 rounded-xl min-h-[800px] flex justify-center">
+          <div className="bg-[#1E1E2F] p-8 rounded-2xl min-h-[800px] flex justify-center border border-white/5">
             <div 
               ref={invoiceRef} 
-              className={`bg-white w-full max-w-[800px] p-12 shadow-xl flex flex-col ${
-                invoice.template === 'pro' ? 'border-t-[12px] border-indigo-600' : 
-                invoice.template === 'enterprise' ? 'border-l-[40px] border-slate-900' : ''
+              className={`bg-[#2A2A3D] w-full max-w-[800px] p-12 shadow-[0_4px_20px_rgba(0,255,204,0.05)] flex flex-col ${
+                invoice.template === 'pro' ? 'border-t-[12px] border-[#00FFCC]' : 
+                invoice.template === 'enterprise' ? 'border-l-[40px] border-[#00D1FF]' : ''
               }`}
             >
               {/* Header */}
               <div className="flex justify-between items-start mb-12">
                 <div>
-                  <h2 className={`text-4xl font-bold mb-2 ${invoice.template === 'enterprise' ? 'uppercase tracking-tighter' : ''}`}>
+                  <h2 className={`text-4xl font-black mb-2 text-white ${invoice.template === 'enterprise' ? 'uppercase tracking-tighter' : ''}`}>
                     INVOICE
                   </h2>
-                  <p className="text-slate-500">#{invoice.invoiceNumber}</p>
+                  <p className="text-[#B0B0C3]">#{invoice.invoiceNumber}</p>
                 </div>
                 <div className="text-right">
                   {company.logo ? (
                     <img src={company.logo} alt="Logo" className="h-12 ml-auto mb-2" referrerPolicy="no-referrer" />
                   ) : (
-                    <div className="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-xl ml-auto mb-2">
+                    <div className="w-12 h-12 bg-[#00FFCC] rounded-lg flex items-center justify-center text-[#1E1E2F] font-black text-xl ml-auto mb-2">
                       {company.name.charAt(0)}
                     </div>
                   )}
-                  <p className="font-bold">Super Admin System</p>
-                  <p className="text-sm text-slate-500">123 Admin St, City, Country</p>
+                  <p className="font-black text-white">Super Admin System</p>
+                  <p className="text-sm text-[#B0B0C3]">123 Admin St, City, Country</p>
                 </div>
               </div>
 
               {/* Info Grid */}
               <div className="grid grid-cols-2 gap-12 mb-12">
                 <div>
-                  <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">Bill To</h4>
-                  <p className="font-bold text-lg">{company.name}</p>
-                  <p className="text-slate-600">{company.headOffice || 'Address not provided'}</p>
-                  <p className="text-slate-600">{company.email}</p>
-                  <p className="text-slate-600">{company.mobile}</p>
+                  <h4 className="text-xs font-black text-[#00FFCC] uppercase mb-2">Bill To</h4>
+                  <p className="font-black text-lg text-white">{company.name}</p>
+                  <p className="text-[#B0B0C3]">{company.headOffice || 'Address not provided'}</p>
+                  <p className="text-[#B0B0C3]">{company.email}</p>
+                  <p className="text-[#B0B0C3]">{company.mobile}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">Date</h4>
-                    <p className="font-medium">{invoice.date}</p>
+                    <h4 className="text-xs font-black text-[#00FFCC] uppercase mb-2">Date</h4>
+                    <p className="font-medium text-white">{invoice.date}</p>
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">Due Date</h4>
-                    <p className="font-medium">{invoice.dueDate}</p>
+                    <h4 className="text-xs font-black text-[#00FFCC] uppercase mb-2">Due Date</h4>
+                    <p className="font-medium text-white">{invoice.dueDate}</p>
                   </div>
                 </div>
               </div>
@@ -285,7 +285,7 @@ export default function SuperAdminInvoiceGenerator() {
               <div className="flex-grow">
                 <table className="w-full mb-8">
                   <thead>
-                    <tr className={`border-b-2 border-slate-200 text-left ${invoice.template === 'pro' ? 'bg-slate-50' : ''}`}>
+                    <tr className={`border-b-2 border-white/10 text-left text-white ${invoice.template === 'pro' ? 'bg-white/5' : ''}`}>
                       <th className="py-4 px-2">Description</th>
                       <th className="py-4 px-2 text-center w-24">Qty</th>
                       <th className="py-4 px-2 text-right w-32">Rate</th>
@@ -295,13 +295,13 @@ export default function SuperAdminInvoiceGenerator() {
                   </thead>
                   <tbody>
                     {invoice.items.map((item) => (
-                      <tr key={item.id} className="border-b border-slate-100 group">
+                      <tr key={item.id} className="border-b border-white/5 group">
                         <td className="py-4 px-2">
                           <input 
                             type="text" 
                             value={item.description} 
                             onChange={(e) => handleUpdateItem(item.id, 'description', e.target.value)}
-                            className="w-full bg-transparent border-none focus:ring-0 p-0"
+                            className="w-full bg-transparent border-none focus:ring-0 p-0 text-white"
                             placeholder="Item description..."
                           />
                         </td>
@@ -310,7 +310,7 @@ export default function SuperAdminInvoiceGenerator() {
                             type="number" 
                             value={item.quantity || ''} 
                             onChange={(e) => handleUpdateItem(item.id, 'quantity', e.target.value ? parseInt(e.target.value) : 0)}
-                            className="w-full bg-transparent border-none focus:ring-0 p-0 text-center"
+                            className="w-full bg-transparent border-none focus:ring-0 p-0 text-center text-white"
                           />
                         </td>
                         <td className="py-4 px-2 text-right">
@@ -318,10 +318,10 @@ export default function SuperAdminInvoiceGenerator() {
                             type="number" 
                             value={item.rate || ''} 
                             onChange={(e) => handleUpdateItem(item.id, 'rate', e.target.value ? parseFloat(e.target.value) : 0)}
-                            className="w-full bg-transparent border-none focus:ring-0 p-0 text-right"
+                            className="w-full bg-transparent border-none focus:ring-0 p-0 text-right text-white"
                           />
                         </td>
-                        <td className="py-4 px-2 text-right font-medium">
+                        <td className="py-4 px-2 text-right font-medium text-white">
                           ${item.amount.toFixed(2)}
                         </td>
                         <td className="py-4 px-2 text-right print:hidden">
@@ -338,28 +338,28 @@ export default function SuperAdminInvoiceGenerator() {
                 </table>
                 <button 
                   onClick={addItem}
-                  className="flex items-center gap-2 text-indigo-600 font-medium hover:text-indigo-700 print:hidden"
+                  className="flex items-center gap-2 text-[#00FFCC] font-black uppercase tracking-tight hover:text-[#00D1FF] print:hidden"
                 >
                   <Plus className="w-4 h-4" /> Add Item
                 </button>
               </div>
 
               {/* Footer / Totals */}
-              <div className="mt-12 pt-8 border-t-2 border-slate-200">
+              <div className="mt-12 pt-8 border-t-2 border-white/10">
                 <div className="flex justify-between items-start">
                   <div className="max-w-[300px]">
-                    <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">Notes</h4>
-                    <p className="text-sm text-slate-600 whitespace-pre-wrap">{invoice.notes}</p>
-                    <h4 className="text-xs font-bold text-slate-400 uppercase mt-4 mb-2">Terms</h4>
-                    <p className="text-sm text-slate-600 whitespace-pre-wrap">{invoice.terms}</p>
+                    <h4 className="text-xs font-black text-[#00FFCC] uppercase mb-2">Notes</h4>
+                    <p className="text-sm text-[#B0B0C3] whitespace-pre-wrap">{invoice.notes}</p>
+                    <h4 className="text-xs font-black text-[#00FFCC] uppercase mt-4 mb-2">Terms</h4>
+                    <p className="text-sm text-[#B0B0C3] whitespace-pre-wrap">{invoice.terms}</p>
                   </div>
                   <div className="w-64 space-y-2">
-                    <div className="flex justify-between text-slate-500">
+                    <div className="flex justify-between text-[#B0B0C3]">
                       <span>Subtotal</span>
-                      <span>${invoice.total.toFixed(2)}</span>
+                      <span className="text-white">${invoice.total.toFixed(2)}</span>
                     </div>
-                    <div className={`flex justify-between text-xl font-bold pt-4 border-t ${
-                      invoice.template === 'pro' ? 'text-indigo-600' : ''
+                    <div className={`flex justify-between text-xl font-black pt-4 border-t border-white/10 ${
+                      invoice.template === 'pro' ? 'text-[#00FFCC]' : 'text-white'
                     }`}>
                       <span>Total</span>
                       <span>${invoice.total.toFixed(2)}</span>

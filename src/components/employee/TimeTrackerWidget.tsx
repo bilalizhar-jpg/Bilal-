@@ -9,7 +9,10 @@ export const TimeTrackerWidget = () => {
   const [interval, setInterval] = useState(30);
   const [consented, setConsented] = useState(false);
 
-  if (!user || !trackingData[user.id]) return null;
+  const todayDate = new Date().toISOString().split('T')[0];
+  const docId = `${user?.id}_${todayDate}`;
+
+  if (!user || !trackingData[docId]) return null;
 
   const handleConsent = () => {
     setConsented(true);
@@ -46,7 +49,7 @@ export const TimeTrackerWidget = () => {
         </div>
       ) : (
         <div className="text-sm text-emerald-400">
-          Screen capture is active every {trackingData[user.id].captureInterval} minutes.
+          Screen capture is active every {trackingData[docId].captureInterval} minutes.
         </div>
       )}
     </div>

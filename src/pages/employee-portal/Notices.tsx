@@ -1,6 +1,7 @@
 import React from 'react';
 import EmployeeLayout from '../../components/EmployeeLayout';
 import { Bell, Calendar, Search, Filter } from 'lucide-react';
+import { motion } from 'motion/react';
 import { useTheme } from '../../context/ThemeContext';
 import { useCompanyData } from '../../context/CompanyDataContext';
 
@@ -20,75 +21,103 @@ export default function EmployeeNotices() {
 
   return (
     <EmployeeLayout>
-      <div className="space-y-6 max-w-5xl mx-auto">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Notice Board</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Stay updated with company announcements and events.</p>
+      <div className="space-y-10 max-w-5xl mx-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-end gap-6 pb-8 border-b border-slate-100 dark:border-slate-800">
+          <div className="space-y-2">
+            <h1 className={`text-4xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>Notice Board</h1>
+            <p className="text-slate-500 font-medium text-lg">Stay updated with the latest company announcements and events.</p>
           </div>
           
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="relative flex-1 sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <div className="relative flex-1 sm:w-72">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input 
                 type="text" 
-                placeholder="Search notices..." 
-                className={`w-full pl-9 pr-4 py-2 border rounded-lg text-sm outline-none focus:ring-1 focus:ring-emerald-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'}`}
+                placeholder="Search announcements..." 
+                className={`w-full pl-11 pr-4 py-3 border rounded-2xl text-sm outline-none transition-all focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 ${isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'}`}
               />
             </div>
-            <button className={`p-2 border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${isDark ? 'border-slate-700 text-slate-300' : 'border-slate-200 text-slate-600'}`}>
-              <Filter className="w-5 h-5" />
-            </button>
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           {notices.map((notice) => (
-            <div key={notice.id} className={`p-6 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm relative overflow-hidden transition-all hover:shadow-md`}>
-              {notice.isNew && (
-                <div className="absolute top-0 right-0">
-                  <span className="bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg uppercase tracking-wider">New</span>
-                </div>
-              )}
-              
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className={`p-3 rounded-xl shrink-0 h-fit flex items-center justify-center ${
-                  notice.type === 'Event' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' :
-                  notice.type === 'Policy' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400' :
-                  notice.type === 'Alert' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
-                  'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'
-                }`}>
-                  <Bell className="w-6 h-6" />
-                </div>
-                
-                <div className="flex-1">
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
-                    <div>
-                      <h3 className="text-lg font-bold text-slate-800 dark:text-white">{notice.title}</h3>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                          notice.type === 'Event' ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' :
-                          notice.type === 'Policy' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400' :
-                          notice.type === 'Alert' ? 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400' :
-                          'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
-                        }`}>
-                          {notice.type}
-                        </span>
-                        <span className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
-                          <Calendar className="w-3.5 h-3.5" />
-                          {notice.date}
-                        </span>
-                      </div>
-                    </div>
+            <motion.div 
+              key={notice.id} 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className={`group p-10 rounded-3xl border transition-all hover:shadow-2xl hover:shadow-indigo-500/5 ${
+                isDark 
+                  ? 'bg-slate-900/50 border-slate-800 hover:border-indigo-500/30' 
+                  : 'bg-white border-slate-100 hover:border-indigo-500/20 shadow-xl shadow-slate-200/40'
+              }`}
+            >
+              <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-4">
+                    <h3 className={`text-2xl font-bold tracking-tight group-hover:text-indigo-600 transition-colors ${isDark ? 'text-white' : 'text-slate-900'}`}>{notice.title}</h3>
+                    {notice.isNew && (
+                      <span className="px-3 py-1 rounded-lg bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest animate-pulse">
+                        New
+                      </span>
+                    )}
                   </div>
-                  
-                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mt-3">
-                    {notice.content}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-6 text-sm">
+                    <span className="flex items-center gap-2 text-slate-500 font-bold uppercase tracking-widest text-[10px]">
+                      <Calendar className="w-4 h-4 text-indigo-500" />
+                      {notice.date}
+                    </span>
+                    <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
+                      notice.type === 'Event' ? 'bg-blue-500/10 text-blue-600' :
+                      notice.type === 'Policy' ? 'bg-purple-500/10 text-purple-600' :
+                      notice.type === 'Alert' ? 'bg-rose-500/10 text-rose-600' :
+                      'bg-emerald-500/10 text-emerald-600'
+                    }`}>
+                      {notice.type}
+                    </span>
+                  </div>
+                </div>
+                <div className={`p-4 rounded-2xl transition-all group-hover:scale-110 ${
+                  isDark ? 'bg-slate-800 text-indigo-400 group-hover:bg-indigo-500/20' : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100'
+                }`}>
+                  <Bell className="w-7 h-7" />
                 </div>
               </div>
-            </div>
+              
+              <p className={`leading-relaxed text-lg font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                {notice.content}
+              </p>
+
+              <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div className="flex -space-x-2">
+                  {[1,2,3].map(i => (
+                    <div key={i} className={`w-8 h-8 rounded-full border-2 ${isDark ? 'border-slate-900 bg-slate-800' : 'border-white bg-slate-100'} flex items-center justify-center text-[10px] font-bold text-slate-400`}>
+                      U{i}
+                    </div>
+                  ))}
+                  <div className={`w-8 h-8 rounded-full border-2 ${isDark ? 'border-slate-900 bg-slate-800' : 'border-white bg-slate-100'} flex items-center justify-center text-[10px] font-bold text-slate-400`}>
+                    +12
+                  </div>
+                </div>
+                <button className="text-xs font-bold uppercase tracking-widest text-indigo-600 hover:text-indigo-700 transition-colors">
+                  Acknowledge Receipt
+                </button>
+              </div>
+            </motion.div>
           ))}
+          
+          {notices.length === 0 && (
+            <div className={`py-24 text-center rounded-3xl border-2 border-dashed ${
+              isDark ? 'border-slate-800 text-slate-500' : 'border-slate-200 text-slate-400'
+            }`}>
+              <div className="inline-flex p-6 rounded-3xl bg-slate-100 dark:bg-slate-800 mb-6">
+                <Bell className="w-10 h-10 opacity-50" />
+              </div>
+              <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>No notices found</h3>
+              <p className="text-sm font-medium">Stay tuned for future updates and announcements.</p>
+            </div>
+          )}
         </div>
       </div>
     </EmployeeLayout>

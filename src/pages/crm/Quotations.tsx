@@ -195,37 +195,37 @@ export default function Quotations() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Quotations</h1>
-            <p className="text-[11px] text-slate-500">Home &nbsp; &gt; &nbsp; <span className="font-medium text-slate-900 dark:text-slate-300">Quotations</span></p>
+            <h1 className={`text-2xl font-bold tracking-tighter ${isDark ? 'text-white' : 'text-slate-900'}`}>QUOTATIONS</h1>
+            <p className="text-[11px] text-slate-500 uppercase tracking-widest">Home &nbsp; &gt; &nbsp; <span className="font-medium text-[#00FFCC]">QUOTATIONS</span></p>
           </div>
           <div className="flex gap-2">
-            <button className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-slate-800 text-xs font-medium shadow-sm">
+            <button className="flex items-center gap-1.5 px-4 py-2 border border-white/10 rounded-lg bg-[#1E1E2F] text-[#00FFCC] text-xs font-bold uppercase tracking-wider hover:bg-[#2A2A3D] transition-all">
               <Download className="w-3.5 h-3.5" /> Export <ChevronDown className="w-3.5 h-3.5" />
             </button>
-            <button className="p-1.5 border border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-slate-800 shadow-sm">
-              <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
+            <button className="p-2 border border-white/10 rounded-lg bg-[#1E1E2F] text-slate-400 hover:text-[#00FFCC] transition-all">
+              <RefreshCw className="w-4 h-4" />
             </button>
-            <button className="p-1.5 border border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-slate-800 shadow-sm">
-              <Columns className="w-3.5 h-3.5 text-slate-500" />
+            <button className="p-2 border border-white/10 rounded-lg bg-[#1E1E2F] text-slate-400 hover:text-[#00FFCC] transition-all">
+              <Columns className="w-4 h-4" />
             </button>
           </div>
         </div>
 
         {/* Search and Add */}
-        <div className="flex items-center justify-between py-2">
+        <div className="flex items-center justify-between py-4">
           <div className="relative w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
-              placeholder="Search"
+              placeholder="SEARCH QUOTATIONS..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full pl-9 pr-4 py-2 text-xs rounded-md border ${isDark ? 'bg-slate-900 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+              className={`w-full pl-10 pr-4 py-2.5 text-xs rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#00FFCC]/50 ${isDark ? 'bg-[#1E1E2F] border-white/10 text-white placeholder-slate-500' : 'bg-white border-slate-200'}`}
             />
           </div>
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 bg-[#E11D48] text-white px-4 py-2 rounded-md text-sm font-bold hover:bg-red-700 transition-colors shadow-sm"
+            className="flex items-center gap-2 bg-[#00FFCC] text-[#1E1E2F] px-6 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider hover:shadow-[0_0_15px_rgba(0,255,204,0.4)] transition-all"
           >
             <Plus className="w-4 h-4" /> Add Quotation
           </button>
@@ -249,7 +249,7 @@ export default function Quotations() {
           <div className="relative">
             <button 
               onClick={() => setIsManageColumnsOpen(!isManageColumnsOpen)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#EEF2FF] text-[#4F46E5] border border-[#E0E7FF] rounded text-xs font-medium"
+              className="flex items-center gap-1.5 px-4 py-2 bg-[#2A2A3D] text-[#00FFCC] border border-white/10 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-[#3A3A5A] transition-all"
             >
               <Columns className="w-3.5 h-3.5" /> Manage Columns
             </button>
@@ -300,46 +300,46 @@ export default function Quotations() {
         </div>
 
         {/* Table */}
-        <div className={`rounded-lg border overflow-hidden ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+        <div className={`rounded-lg border overflow-hidden ${isDark ? 'bg-[#1E1E2F] border-white/10' : 'bg-white border-slate-200'}`}>
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left border-collapse">
-              <thead className={`${isDark ? 'bg-slate-900 text-slate-400' : 'bg-slate-50 text-slate-600'} border-b border-slate-200 dark:border-slate-700`}>
+              <thead className={`${isDark ? 'bg-[#2A2A3D] text-[#B0B0C3]' : 'bg-slate-50 text-slate-600'} border-b border-white/10`}>
                 <tr>
-                  {visibleColumns.quoteId && <th className="py-3 px-4 font-bold">Quote ID</th>}
+                  {visibleColumns.quoteId && <th className="py-4 px-4 font-bold uppercase tracking-wider">Quote ID</th>}
                   {visibleColumns.client && (
-                    <th className="py-3 px-4 font-bold">
+                    <th className="py-4 px-4 font-bold uppercase tracking-wider">
                       <div className="flex items-center gap-1"><ArrowUpDown className="w-3 h-3" /> Customer</div>
                     </th>
                   )}
                   {visibleColumns.quoteDate && (
-                    <th className="py-3 px-4 font-bold">
+                    <th className="py-4 px-4 font-bold uppercase tracking-wider">
                       <div className="flex items-center gap-1"><ArrowUpDown className="w-3 h-3" /> Quote Date</div>
                     </th>
                   )}
                   {visibleColumns.validTill && (
-                    <th className="py-3 px-4 font-bold">
+                    <th className="py-4 px-4 font-bold uppercase tracking-wider">
                       <div className="flex items-center gap-1"><ArrowUpDown className="w-3 h-3" /> Valid Till</div>
                     </th>
                   )}
                   {visibleColumns.totalAmount && (
-                    <th className="py-3 px-4 font-bold">
+                    <th className="py-4 px-4 font-bold uppercase tracking-wider">
                       <div className="flex items-center gap-1"><ArrowUpDown className="w-3 h-3" /> Total Amount</div>
                     </th>
                   )}
                   {visibleColumns.discount && (
-                    <th className="py-3 px-4 font-bold">
+                    <th className="py-4 px-4 font-bold uppercase tracking-wider">
                       <div className="flex items-center gap-1"><ArrowUpDown className="w-3 h-3" /> Discount</div>
                     </th>
                   )}
                   {visibleColumns.finalAmount && (
-                    <th className="py-3 px-4 font-bold">
+                    <th className="py-4 px-4 font-bold uppercase tracking-wider">
                       <div className="flex items-center gap-1"><ArrowUpDown className="w-3 h-3" /> Final Amount</div>
                     </th>
                   )}
-                  {visibleColumns.action && <th className="py-3 px-4 font-bold text-center">Action</th>}
+                  {visibleColumns.action && <th className="py-4 px-4 font-bold uppercase tracking-wider text-center">Action</th>}
                 </tr>
               </thead>
-              <tbody className={isDark ? 'text-slate-300' : 'text-slate-800'}>
+              <tbody className={isDark ? 'text-white' : 'text-slate-800'}>
                 {loading ? (
                   <tr>
                     <td colSpan={8} className="py-8 px-4 text-center text-slate-500 italic">
@@ -366,30 +366,30 @@ export default function Quotations() {
                     .map((quote) => {
                       const company = companies.find(c => c.id === quote.customerId);
                       return (
-                        <tr key={quote.id} className="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
-                          {visibleColumns.quoteId && <td className="py-4 px-4 font-medium text-[#E11D48]">{quote.quoteId}</td>}
+                        <tr key={quote.id} className="border-b border-white/5 hover:bg-[#2A2A3D]/50 transition-colors">
+                          {visibleColumns.quoteId && <td className="py-4 px-4 font-medium text-[#00FFCC]">{quote.quoteId}</td>}
                           {visibleColumns.client && (
                             <td className="py-4 px-4">
                               <div className="flex items-center gap-3">
-                                <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200 text-[10px] font-bold text-slate-400">
+                                <div className="w-7 h-7 rounded-full bg-[#2A2A3D] flex items-center justify-center overflow-hidden border border-white/10 text-[10px] font-bold text-[#00FFCC]">
                                   {company?.name?.charAt(0) || '?'}
                                 </div>
                                 <span className="font-medium">{company?.name || 'Unknown'}</span>
                               </div>
                             </td>
                           )}
-                          {visibleColumns.quoteDate && <td className="py-4 px-4">{quote.date}</td>}
-                          {visibleColumns.validTill && <td className="py-4 px-4">{quote.validTill}</td>}
+                          {visibleColumns.quoteDate && <td className="py-4 px-4 text-[#B0B0C3]">{quote.date}</td>}
+                          {visibleColumns.validTill && <td className="py-4 px-4 text-[#B0B0C3]">{quote.validTill}</td>}
                           {visibleColumns.totalAmount && <td className="py-4 px-4 font-medium">{quote.currency} {quote.amount?.toLocaleString()}</td>}
-                          {visibleColumns.discount && <td className="py-4 px-4 font-medium">0%</td>}
-                          {visibleColumns.finalAmount && <td className="py-4 px-4 font-bold text-slate-900 dark:text-white">{quote.currency} {quote.amount?.toLocaleString()}</td>}
+                          {visibleColumns.discount && <td className="py-4 px-4 font-medium text-[#00FFCC]">0%</td>}
+                          {visibleColumns.finalAmount && <td className="py-4 px-4 font-bold text-white">{quote.currency} {quote.amount?.toLocaleString()}</td>}
                           {visibleColumns.action && (
                             <td className="py-4 px-4 text-center">
-                              <div className="flex items-center justify-center gap-4 text-slate-500">
-                                <button className="flex items-center gap-1 hover:text-indigo-600 transition-colors">
+                              <div className="flex items-center justify-center gap-4 text-slate-400">
+                                <button className="flex items-center gap-1 hover:text-[#00FFCC] transition-colors">
                                   <Edit className="w-3.5 h-3.5" /> Edit
                                 </button>
-                                <button className="flex items-center gap-1 hover:text-red-600 transition-colors">
+                                <button className="flex items-center gap-1 hover:text-red-500 transition-colors">
                                   <Trash2 className="w-3.5 h-3.5" /> Delete
                                 </button>
                               </div>
@@ -405,24 +405,24 @@ export default function Quotations() {
         </div>
 
         {/* Footer */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-2">
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <span>Show</span>
-            <select className={`px-1.5 py-1 border rounded ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-4">
+          <div className="flex items-center gap-2 text-xs text-[#B0B0C3]">
+            <span>SHOW</span>
+            <select className={`px-2 py-1.5 border rounded-lg ${isDark ? 'bg-[#1E1E2F] border-white/10 text-white' : 'bg-white border-slate-200'}`}>
               <option>10</option>
               <option>25</option>
               <option>50</option>
             </select>
-            <span>entries</span>
+            <span>ENTRIES</span>
           </div>
           <div className="flex items-center gap-1">
-            <button className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30" disabled>
-              <ChevronLeft className="w-3.5 h-3.5" />
+            <button className="p-2 rounded-lg hover:bg-[#2A2A3D] disabled:opacity-30 transition-all" disabled>
+              <ChevronLeft className="w-4 h-4" />
             </button>
-            <button className="w-6 h-6 flex items-center justify-center rounded bg-red-600 text-white text-xs font-bold shadow-sm">1</button>
-            <button className="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-xs">2</button>
-            <button className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800">
-              <ChevronRight className="w-3.5 h-3.5" />
+            <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#00FFCC] text-[#1E1E2F] text-xs font-bold shadow-lg shadow-[#00FFCC]/20">1</button>
+            <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#2A2A3D] text-xs font-bold text-[#B0B0C3] transition-all">2</button>
+            <button className="p-2 rounded-lg hover:bg-[#2A2A3D] transition-all">
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -439,11 +439,11 @@ export default function Quotations() {
               className={`relative w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden ${isDark ? 'bg-slate-900 border border-slate-800' : 'bg-white'}`}
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-                <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Add New Quotation</h2>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+                <h2 className={`text-lg font-bold uppercase tracking-wider ${isDark ? 'text-white' : 'text-slate-900'}`}>Add New Quotation</h2>
                 <button 
                   onClick={() => setIsModalOpen(false)}
-                  className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  className="p-2 rounded-lg hover:bg-[#2A2A3D] transition-all"
                 >
                   <X className="w-5 h-5 text-slate-400" />
                 </button>
@@ -453,12 +453,12 @@ export default function Quotations() {
               <div className="px-6 py-6 max-h-[80vh] overflow-y-auto space-y-6 custom-scrollbar">
                 {/* Customer Selection */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Company</label>
+                  <label className="text-[10px] font-bold text-[#B0B0C3] uppercase tracking-wider">Company</label>
                   <div className="relative">
                     <select 
                       value={customer}
                       onChange={(e) => setCustomer(e.target.value)}
-                      className={`w-full px-3 py-2.5 text-sm rounded-lg border appearance-none focus:outline-none focus:ring-2 focus:ring-red-500/20 transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-600'}`}
+                      className={`w-full px-4 py-3 text-sm rounded-lg border appearance-none focus:outline-none focus:ring-2 focus:ring-[#00FFCC]/50 transition-all ${isDark ? 'bg-[#1E1E2F] border-white/10 text-white' : 'bg-white border-slate-200'}`}
                     >
                       <option value="">Select Company</option>
                       {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -470,7 +470,7 @@ export default function Quotations() {
                     <motion.div 
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className={`mt-2 p-3 rounded-lg border text-[11px] space-y-1 ${isDark ? 'bg-slate-800/50 border-slate-700 text-slate-400' : 'bg-slate-50 border-slate-100 text-slate-500'}`}
+                      className={`mt-2 p-4 rounded-lg border text-[11px] space-y-1 ${isDark ? 'bg-[#2A2A3D] border-white/10 text-[#B0B0C3]' : 'bg-slate-50 border-slate-100 text-slate-500'}`}
                     >
                       {(() => {
                         const c = companies.find(comp => comp.id === customer);
@@ -478,13 +478,13 @@ export default function Quotations() {
                         return (
                           <>
                             <div className="flex items-center gap-2 italic">
-                              <span className="font-bold">Email:</span> {c.email || 'N/A'}
+                              <span className="font-bold text-white">Email:</span> {c.email || 'N/A'}
                             </div>
                             <div className="flex items-center gap-2 italic">
-                              <span className="font-bold">Phone:</span> {c.phone || 'N/A'}
+                              <span className="font-bold text-white">Phone:</span> {c.phone || 'N/A'}
                             </div>
                             <div className="flex items-center gap-2 italic">
-                              <span className="font-bold">Address:</span> {c.location || 'N/A'}
+                              <span className="font-bold text-white">Address:</span> {c.location || 'N/A'}
                             </div>
                           </>
                         );
@@ -496,23 +496,23 @@ export default function Quotations() {
                 {/* Amount and Currency */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Amount <span className="text-red-500">*</span></label>
+                    <label className="text-[10px] font-bold text-[#B0B0C3] uppercase tracking-wider">Amount <span className="text-[#00FFCC]">*</span></label>
                     <input 
                       type="text"
-                      placeholder="Enter amount"
+                      placeholder="ENTER AMOUNT"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      className={`w-full px-3 py-2.5 text-sm rounded-lg border focus:outline-none focus:ring-2 focus:ring-red-500/20 transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                      className={`w-full px-4 py-3 text-sm rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#00FFCC]/50 transition-all ${isDark ? 'bg-[#1E1E2F] border-white/10 text-white placeholder-slate-600' : 'bg-white border-slate-200'}`}
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Currency <span className="text-red-500">*</span></label>
+                    <label className="text-[10px] font-bold text-[#B0B0C3] uppercase tracking-wider">Currency <span className="text-[#00FFCC]">*</span></label>
                     <input 
                       type="text"
                       placeholder="USD"
                       value={currency}
                       onChange={(e) => setCurrency(e.target.value)}
-                      className={`w-full px-3 py-2.5 text-sm rounded-lg border focus:outline-none focus:ring-2 focus:ring-red-500/20 transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                      className={`w-full px-4 py-3 text-sm rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#00FFCC]/50 transition-all ${isDark ? 'bg-[#1E1E2F] border-white/10 text-white placeholder-slate-600' : 'bg-white border-slate-200'}`}
                     />
                   </div>
                 </div>
@@ -520,55 +520,51 @@ export default function Quotations() {
                 {/* Dates */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Date</label>
-                    <div className="relative">
-                      <input 
-                        type="date"
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
-                        className={`w-full px-3 py-2.5 text-sm rounded-lg border focus:outline-none focus:ring-2 focus:ring-red-500/20 transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
-                      />
-                    </div>
+                    <label className="text-[10px] font-bold text-[#B0B0C3] uppercase tracking-wider">Date</label>
+                    <input 
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      className={`w-full px-4 py-3 text-sm rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#00FFCC]/50 transition-all ${isDark ? 'bg-[#1E1E2F] border-white/10 text-white' : 'bg-white border-slate-200'}`}
+                    />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Valid Till</label>
-                    <div className="relative">
-                      <input 
-                        type="date"
-                        value={validTill}
-                        onChange={(e) => setValidTill(e.target.value)}
-                        className={`w-full px-3 py-2.5 text-sm rounded-lg border focus:outline-none focus:ring-2 focus:ring-red-500/20 transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
-                      />
-                    </div>
+                    <label className="text-[10px] font-bold text-[#B0B0C3] uppercase tracking-wider">Valid Till</label>
+                    <input 
+                      type="date"
+                      value={validTill}
+                      onChange={(e) => setValidTill(e.target.value)}
+                      className={`w-full px-4 py-3 text-sm rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#00FFCC]/50 transition-all ${isDark ? 'bg-[#1E1E2F] border-white/10 text-white' : 'bg-white border-slate-200'}`}
+                    />
                   </div>
                 </div>
 
                 {/* Description with Toolbar */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Description</label>
-                  <div className={`rounded-lg border overflow-hidden ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
-                    <div className={`flex items-center gap-1 px-3 py-2 border-b ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
-                      <select className="text-[10px] bg-transparent border-none focus:ring-0 px-1">
-                        <option>Normal</option>
-                        <option>Heading 1</option>
-                        <option>Heading 2</option>
+                  <label className="text-[10px] font-bold text-[#B0B0C3] uppercase tracking-wider">Description</label>
+                  <div className={`rounded-lg border overflow-hidden ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
+                    <div className={`flex items-center gap-1 px-3 py-2 border-b ${isDark ? 'bg-[#2A2A3D] border-white/10' : 'bg-slate-50 border-slate-200'}`}>
+                      <select className="text-[10px] bg-transparent border-none focus:ring-0 px-1 text-[#B0B0C3]">
+                        <option>NORMAL</option>
+                        <option>HEADING 1</option>
+                        <option>HEADING 2</option>
                       </select>
-                      <div className="w-px h-4 bg-slate-300 mx-1" />
-                      <button className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded"><Bold className="w-3.5 h-3.5" /></button>
-                      <button className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded"><Italic className="w-3.5 h-3.5" /></button>
-                      <button className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded"><Underline className="w-3.5 h-3.5" /></button>
-                      <button className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded"><Link className="w-3.5 h-3.5" /></button>
-                      <div className="w-px h-4 bg-slate-300 mx-1" />
-                      <button className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded"><ListOrdered className="w-3.5 h-3.5" /></button>
-                      <button className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded"><List className="w-3.5 h-3.5" /></button>
-                      <div className="w-px h-4 bg-slate-300 mx-1" />
-                      <button className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded"><Type className="w-3.5 h-3.5" /></button>
+                      <div className="w-px h-4 bg-white/10 mx-1" />
+                      <button className="p-1 hover:bg-[#1E1E2F] rounded text-[#B0B0C3]"><Bold className="w-3.5 h-3.5" /></button>
+                      <button className="p-1 hover:bg-[#1E1E2F] rounded text-[#B0B0C3]"><Italic className="w-3.5 h-3.5" /></button>
+                      <button className="p-1 hover:bg-[#1E1E2F] rounded text-[#B0B0C3]"><Underline className="w-3.5 h-3.5" /></button>
+                      <button className="p-1 hover:bg-[#1E1E2F] rounded text-[#B0B0C3]"><Link className="w-3.5 h-3.5" /></button>
+                      <div className="w-px h-4 bg-white/10 mx-1" />
+                      <button className="p-1 hover:bg-[#1E1E2F] rounded text-[#B0B0C3]"><ListOrdered className="w-3.5 h-3.5" /></button>
+                      <button className="p-1 hover:bg-[#1E1E2F] rounded text-[#B0B0C3]"><List className="w-3.5 h-3.5" /></button>
+                      <div className="w-px h-4 bg-white/10 mx-1" />
+                      <button className="p-1 hover:bg-[#1E1E2F] rounded text-[#B0B0C3]"><Type className="w-3.5 h-3.5" /></button>
                     </div>
                     <textarea 
                       rows={4}
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      className={`w-full px-3 py-2 text-sm focus:outline-none ${isDark ? 'bg-slate-900 text-white' : 'bg-white text-slate-700'}`}
+                      className={`w-full px-4 py-3 text-sm focus:outline-none ${isDark ? 'bg-[#1E1E2F] text-white' : 'bg-white text-slate-700'}`}
                     />
                   </div>
                 </div>
@@ -578,16 +574,16 @@ export default function Quotations() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs text-left border-collapse min-w-[600px]">
                       <thead>
-                        <tr className="border-b border-slate-100 dark:border-slate-800">
-                          <th className="py-2 font-bold w-1/3">Product</th>
-                          <th className="py-2 font-bold">Quantity</th>
-                          <th className="py-2 font-bold">Price</th>
-                          <th className="py-2 font-bold">Discount</th>
-                          <th className="py-2 font-bold">Amount</th>
-                          <th className="py-2 w-8"></th>
+                        <tr className="border-b border-white/10 text-[#B0B0C3]">
+                          <th className="py-3 font-bold uppercase tracking-wider w-1/3">Product</th>
+                          <th className="py-3 font-bold uppercase tracking-wider">Quantity</th>
+                          <th className="py-3 font-bold uppercase tracking-wider">Price</th>
+                          <th className="py-3 font-bold uppercase tracking-wider">Discount</th>
+                          <th className="py-3 font-bold uppercase tracking-wider">Amount</th>
+                          <th className="py-3 w-8"></th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
+                      <tbody className="divide-y divide-white/5">
                         {productRows.map((row) => (
                           <tr key={row.id}>
                             <td className="py-3 pr-4">
@@ -595,11 +591,11 @@ export default function Quotations() {
                                 <select 
                                   value={row.productId}
                                   onChange={(e) => updateProductRow(row.id, 'productId', e.target.value)}
-                                  className={`w-full px-3 py-2 text-xs rounded border appearance-none focus:outline-none focus:ring-1 focus:ring-red-500/20 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                                  className={`w-full px-3 py-2 text-xs rounded border appearance-none focus:outline-none focus:ring-1 focus:ring-[#00FFCC]/50 ${isDark ? 'bg-[#1E1E2F] border-white/10 text-white' : 'bg-white border-slate-200'}`}
                                 >
-                                  <option value="">Select</option>
-                                  <option value="p1">Product A</option>
-                                  <option value="p2">Product B</option>
+                                  <option value="">SELECT</option>
+                                  <option value="p1">PRODUCT A</option>
+                                  <option value="p2">PRODUCT B</option>
                                 </select>
                                 <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none" />
                               </div>
@@ -609,7 +605,7 @@ export default function Quotations() {
                                 type="number"
                                 value={row.quantity || ''}
                                 onChange={(e) => updateProductRow(row.id, 'quantity', e.target.value)}
-                                className={`w-full px-3 py-2 text-xs rounded border focus:outline-none focus:ring-1 focus:ring-red-500/20 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                                className={`w-full px-3 py-2 text-xs rounded border focus:outline-none focus:ring-1 focus:ring-[#00FFCC]/50 ${isDark ? 'bg-[#1E1E2F] border-white/10 text-white' : 'bg-white border-slate-200'}`}
                               />
                             </td>
                             <td className="py-3 pr-4">
@@ -617,7 +613,7 @@ export default function Quotations() {
                                 type="number"
                                 value={row.price || ''}
                                 onChange={(e) => updateProductRow(row.id, 'price', e.target.value)}
-                                className={`w-full px-3 py-2 text-xs rounded border focus:outline-none focus:ring-1 focus:ring-red-500/20 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                                className={`w-full px-3 py-2 text-xs rounded border focus:outline-none focus:ring-1 focus:ring-[#00FFCC]/50 ${isDark ? 'bg-[#1E1E2F] border-white/10 text-white' : 'bg-white border-slate-200'}`}
                               />
                             </td>
                             <td className="py-3 pr-4">
@@ -625,7 +621,7 @@ export default function Quotations() {
                                 <select 
                                   value={row.discount}
                                   onChange={(e) => updateProductRow(row.id, 'discount', e.target.value)}
-                                  className={`w-full px-3 py-2 text-xs rounded border appearance-none focus:outline-none focus:ring-1 focus:ring-red-500/20 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                                  className={`w-full px-3 py-2 text-xs rounded border appearance-none focus:outline-none focus:ring-1 focus:ring-[#00FFCC]/50 ${isDark ? 'bg-[#1E1E2F] border-white/10 text-white' : 'bg-white border-slate-200'}`}
                                 >
                                   <option value="0">0 %</option>
                                   <option value="5">5 %</option>
@@ -640,7 +636,7 @@ export default function Quotations() {
                                 type="text"
                                 readOnly
                                 value={row.amount.toFixed(2)}
-                                className={`w-full px-3 py-2 text-xs rounded border bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800 text-slate-500 font-medium`}
+                                className={`w-full px-3 py-2 text-xs rounded border bg-[#2A2A3D] border-white/10 text-[#B0B0C3] font-bold`}
                               />
                             </td>
                             <td className="py-3 text-right">
@@ -648,7 +644,7 @@ export default function Quotations() {
                                 onClick={() => removeProductRow(row.id)}
                                 className="p-1 text-red-400 hover:text-red-600 transition-colors"
                               >
-                                <X className="w-4 h-4 border border-red-200 rounded-full p-0.5" />
+                                <X className="w-4 h-4 border border-red-900 rounded-full p-0.5" />
                               </button>
                             </td>
                           </tr>
@@ -658,57 +654,57 @@ export default function Quotations() {
                   </div>
                   <button 
                     onClick={addProductRow}
-                    className="text-red-500 text-xs font-bold flex items-center gap-1 hover:text-red-700 transition-colors"
+                    className="text-[#00FFCC] text-xs font-bold uppercase tracking-wider flex items-center gap-1 hover:text-[#00D1FF] transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" /> Add New
                   </button>
                 </div>
 
                 {/* Totals Section */}
-                <div className={`p-6 rounded-xl space-y-3 ${isDark ? 'bg-slate-800/50' : 'bg-slate-50/50'}`}>
+                <div className={`p-6 rounded-xl space-y-3 ${isDark ? 'bg-[#2A2A3D]' : 'bg-slate-50/50'}`}>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="font-bold text-slate-600 dark:text-slate-400">Subtotal</span>
-                    <span className="font-bold text-slate-900 dark:text-white">${subtotal.toLocaleString()}</span>
+                    <span className="font-bold text-[#B0B0C3] uppercase tracking-wider">Subtotal</span>
+                    <span className="font-bold text-white">${subtotal.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="font-bold text-slate-600 dark:text-slate-400">Tax</span>
-                    <span className="font-bold text-slate-900 dark:text-white">${tax.toLocaleString()}</span>
+                    <span className="font-bold text-[#B0B0C3] uppercase tracking-wider">Tax</span>
+                    <span className="font-bold text-white">${tax.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between items-center text-sm pt-3 border-t border-slate-200 dark:border-slate-700">
-                    <span className="font-bold text-slate-900 dark:text-white text-base">Total</span>
-                    <span className="font-bold text-slate-900 dark:text-white text-base">${total.toLocaleString()}</span>
+                  <div className="flex justify-between items-center text-sm pt-3 border-t border-white/10">
+                    <span className="font-bold text-white text-base uppercase tracking-wider">Total</span>
+                    <span className="font-bold text-[#00FFCC] text-base">${total.toLocaleString()}</span>
                   </div>
                 </div>
 
                 {/* Notes and Terms */}
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Notes</label>
+                    <label className="text-[10px] font-bold text-[#B0B0C3] uppercase tracking-wider">Notes</label>
                     <textarea 
                       rows={3}
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      className={`w-full px-3 py-2 text-sm rounded-lg border focus:outline-none focus:ring-2 focus:ring-red-500/20 transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                      className={`w-full px-4 py-3 text-sm rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#00FFCC]/50 transition-all ${isDark ? 'bg-[#1E1E2F] border-white/10 text-white' : 'bg-white border-slate-200'}`}
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Terms & Conditions</label>
+                    <label className="text-[10px] font-bold text-[#B0B0C3] uppercase tracking-wider">Terms & Conditions</label>
                     <textarea 
                       rows={3}
                       value={terms}
                       onChange={(e) => setTerms(e.target.value)}
-                      className={`w-full px-3 py-2 text-sm rounded-lg border focus:outline-none focus:ring-2 focus:ring-red-500/20 transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                      className={`w-full px-4 py-3 text-sm rounded-lg border focus:outline-none focus:ring-2 focus:ring-[#00FFCC]/50 transition-all ${isDark ? 'bg-[#1E1E2F] border-white/10 text-white' : 'bg-white border-slate-200'}`}
                     />
                   </div>
                 </div>
 
                 {/* Custom Fields Section */}
-                <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <div className="space-y-4 pt-4 border-t border-white/10">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">Custom Fields</h3>
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Custom Fields</h3>
                     <button 
                       onClick={addCustomField}
-                      className="text-indigo-600 text-xs font-bold flex items-center gap-1 hover:text-indigo-800 transition-colors"
+                      className="text-[#00FFCC] text-xs font-bold uppercase tracking-wider flex items-center gap-1 hover:text-[#00D1FF] transition-colors"
                     >
                       <Plus className="w-3.5 h-3.5" /> Add Custom Field
                     </button>
@@ -718,28 +714,28 @@ export default function Quotations() {
                       {customFields.map((field, index) => (
                         <div key={index} className="flex gap-3 items-end">
                           <div className="flex-1 space-y-1">
-                            <label className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Field Label</label>
+                            <label className="text-[10px] uppercase tracking-wider font-bold text-[#B0B0C3]">Field Label</label>
                             <input 
                               type="text"
                               placeholder="e.g. Project Code"
                               value={field.label}
                               onChange={(e) => updateCustomField(index, 'label', e.target.value)}
-                              className={`w-full px-3 py-2 text-xs rounded border focus:outline-none ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                              className={`w-full px-4 py-3 text-xs rounded-lg border focus:outline-none ${isDark ? 'bg-[#1E1E2F] border-white/10 text-white' : 'bg-white border-slate-200'}`}
                             />
                           </div>
                           <div className="flex-1 space-y-1">
-                            <label className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Field Value</label>
+                            <label className="text-[10px] uppercase tracking-wider font-bold text-[#B0B0C3]">Field Value</label>
                             <input 
                               type="text"
                               placeholder="e.g. PRJ-2024"
                               value={field.value}
                               onChange={(e) => updateCustomField(index, 'value', e.target.value)}
-                              className={`w-full px-3 py-2 text-xs rounded border focus:outline-none ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                              className={`w-full px-4 py-3 text-xs rounded-lg border focus:outline-none ${isDark ? 'bg-[#1E1E2F] border-white/10 text-white' : 'bg-white border-slate-200'}`}
                             />
                           </div>
                           <button 
                             onClick={() => removeCustomField(index)}
-                            className="p-2 text-slate-400 hover:text-red-500 transition-colors mb-0.5"
+                            className="p-2 text-slate-400 hover:text-red-500 transition-colors mb-1"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -751,23 +747,23 @@ export default function Quotations() {
               </div>
 
               {/* Modal Footer */}
-              <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+              <div className="flex items-center justify-between px-6 py-4 border-t border-white/10 bg-[#1E1E2F]">
                 <button 
                   onClick={() => setIsModalOpen(false)}
-                  className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${isDark ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}
+                  className={`px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${isDark ? 'bg-[#2A2A3D] text-[#B0B0C3] hover:bg-[#3A3A5A]' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}
                 >
                   Cancel
                 </button>
                 <div className="flex gap-3">
                   <button 
                     onClick={handleSave}
-                    className="px-6 py-2 bg-black text-white rounded-lg text-sm font-bold hover:bg-slate-800 transition-all shadow-lg shadow-black/10"
+                    className="px-6 py-2 bg-[#2A2A3D] text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-[#3A3A5A] transition-all"
                   >
                     Save
                   </button>
                   <button 
                     onClick={handleSaveAndSend}
-                    className="px-6 py-2 bg-[#E11D48] text-white rounded-lg text-sm font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-500/20"
+                    className="px-6 py-2 bg-[#00FFCC] text-[#1E1E2F] rounded-lg text-xs font-bold uppercase tracking-wider hover:shadow-[0_0_15px_rgba(0,255,204,0.4)] transition-all"
                   >
                     Save & Send
                   </button>

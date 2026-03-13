@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import * as XLSX from 'xlsx';
+import { useTheme } from '../context/ThemeContext';
 import { 
   Search,
   Plus, 
@@ -28,6 +29,8 @@ import { useCompanyData } from '../context/CompanyDataContext';
 type TabType = 'active' | 'positions' | 'inactive';
 
 export default function EmployeeList() {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const { employees, addEmployee, addEmployees, updateEmployee, deleteEmployee, regenerateCredentials } = useEmployees();
   const { departments, designations, addEntity } = useCompanyData();
   const [activeTab, setActiveTab] = useState<TabType>('active');
@@ -340,37 +343,37 @@ export default function EmployeeList() {
         <div className="flex items-center gap-2 mb-6">
             <button 
               onClick={() => setActiveTab('active')}
-              className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-                activeTab === 'active' ? 'bg-[#28A745] text-white' : 'bg-[#E9ECEF] text-slate-600 hover:bg-slate-200'
+              className={`px-4 py-2 rounded text-sm font-black uppercase tracking-tight transition-colors ${
+                activeTab === 'active' ? 'bg-[#00FFCC] text-[#1E1E2F]' : 'bg-[#2A2A3D] text-[#B0B0C3] hover:bg-[#3A3A5D]'
               }`}
             >
               Employee
             </button>
             <button 
               onClick={() => setActiveTab('positions')}
-              className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-                activeTab === 'positions' ? 'bg-[#28A745] text-white' : 'bg-[#E9ECEF] text-slate-600 hover:bg-slate-200'
+              className={`px-4 py-2 rounded text-sm font-black uppercase tracking-tight transition-colors ${
+                activeTab === 'positions' ? 'bg-[#00FFCC] text-[#1E1E2F]' : 'bg-[#2A2A3D] text-[#B0B0C3] hover:bg-[#3A3A5D]'
               }`}
             >
               Positions
             </button>
             <button 
               onClick={() => setActiveTab('inactive')}
-              className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-                activeTab === 'inactive' ? 'bg-[#28A745] text-white' : 'bg-[#E9ECEF] text-slate-600 hover:bg-slate-200'
+              className={`px-4 py-2 rounded text-sm font-black uppercase tracking-tight transition-colors ${
+                activeTab === 'inactive' ? 'bg-[#00FFCC] text-[#1E1E2F]' : 'bg-[#2A2A3D] text-[#B0B0C3] hover:bg-[#3A3A5D]'
               }`}
             >
               Inactive employees list
             </button>
           </div>
 
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-slate-100 flex justify-between items-center">
-              <h2 className="font-bold text-slate-800">Employee list</h2>
+          <div className="bg-[#2A2A3D] rounded-2xl border border-white/5 shadow-[0_4px_20px_rgba(0,255,204,0.05)] overflow-hidden">
+            <div className="p-4 border-b border-white/5 flex justify-between items-center">
+              <h2 className="font-black text-white uppercase tracking-tight">Employee list</h2>
               <div className="flex gap-2 items-center">
                 <button 
                   onClick={handleDownloadDemo}
-                  className="text-xs font-medium text-indigo-600 hover:text-indigo-800 underline mr-2"
+                  className="text-xs font-black text-[#00FFCC] hover:text-[#00D1FF] underline mr-2"
                 >
                   Download Demo File
                 </button>
@@ -383,28 +386,28 @@ export default function EmployeeList() {
                 />
                 <button 
                   onClick={handleImportClick}
-                  className="bg-[#17A2B8] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#138496]"
+                  className="bg-transparent border border-[#00FFCC] text-[#00FFCC] px-3 py-1.5 rounded text-xs font-black uppercase hover:bg-[#00FFCC] hover:text-[#1E1E2F] flex items-center gap-1.5"
                 >
                   <FileSpreadsheet className="w-3.5 h-3.5" />
                   Import Employee List
                 </button>
                 <button 
                   onClick={() => setIsReportModalOpen(true)}
-                  className="bg-indigo-600 text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-indigo-700"
+                  className="bg-transparent border border-[#00D1FF] text-[#00D1FF] px-3 py-1.5 rounded text-xs font-black uppercase hover:bg-[#00D1FF] hover:text-[#1E1E2F] flex items-center gap-1.5"
                 >
                   <Shield className="w-3.5 h-3.5" />
                   Credentials Report
                 </button>
                 <button 
                   onClick={() => setShowFilters(!showFilters)}
-                  className="bg-[#17A2B8] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#138496]"
+                  className="bg-transparent border border-[#00FFCC] text-[#00FFCC] px-3 py-1.5 rounded text-xs font-black uppercase hover:bg-[#00FFCC] hover:text-[#1E1E2F] flex items-center gap-1.5"
                 >
                   <Filter className="w-3.5 h-3.5" />
                   Filter
                 </button>
                 <button 
                   onClick={openAddModal}
-                  className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838]"
+                  className="bg-[#00FFCC] text-[#1E1E2F] px-3 py-1.5 rounded text-xs font-black uppercase hover:bg-[#00D1FF] flex items-center gap-1.5 shadow-[0_0_8px_rgba(0,255,204,0.4)]"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Add employee
@@ -419,14 +422,14 @@ export default function EmployeeList() {
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  className="p-4 bg-slate-50 border-b border-slate-100 overflow-hidden"
+                  className="p-4 bg-[#1E1E2F] border-b border-white/5 overflow-hidden"
                 >
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     <select 
                       name="employeeName"
                       value={filters.employeeName}
                       onChange={handleFilterChange}
-                      className="border border-slate-200 rounded px-3 py-2 text-sm outline-none bg-white"
+                      className="bg-[#2A2A3D] border border-white/10 rounded px-3 py-2 text-sm outline-none text-white focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC]"
                     >
                       <option value="">Select employee</option>
                       {Array.from(new Set(tabEmployees.map(e => e.name))).map(name => (
@@ -437,7 +440,7 @@ export default function EmployeeList() {
                       name="employeeId"
                       value={filters.employeeId}
                       onChange={handleFilterChange}
-                      className="border border-slate-200 rounded px-3 py-2 text-sm outline-none bg-white"
+                      className="bg-[#2A2A3D] border border-white/10 rounded px-3 py-2 text-sm outline-none text-white focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC]"
                     >
                       <option value="">Select employee id</option>
                       {Array.from(new Set(tabEmployees.map(e => e.employeeId))).map(id => (
@@ -448,7 +451,7 @@ export default function EmployeeList() {
                       name="employeeType"
                       value={filters.employeeType}
                       onChange={handleFilterChange}
-                      className="border border-slate-200 rounded px-3 py-2 text-sm outline-none bg-white"
+                      className="bg-[#2A2A3D] border border-white/10 rounded px-3 py-2 text-sm outline-none text-white focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC]"
                     >
                       <option value="">All employee type</option>
                       {Array.from(new Set(employees.map(e => e.employeeType).filter(Boolean))).map(type => (
@@ -459,7 +462,7 @@ export default function EmployeeList() {
                       name="department"
                       value={filters.department}
                       onChange={handleFilterChange}
-                      className="border border-slate-200 rounded px-3 py-2 text-sm outline-none bg-white"
+                      className="bg-[#2A2A3D] border border-white/10 rounded px-3 py-2 text-sm outline-none text-white focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC]"
                     >
                       <option value="">All department</option>
                       {Array.from(new Set([
@@ -473,7 +476,7 @@ export default function EmployeeList() {
                       name="designation"
                       value={filters.designation}
                       onChange={handleFilterChange}
-                      className="border border-slate-200 rounded px-3 py-2 text-sm outline-none bg-white"
+                      className="bg-[#2A2A3D] border border-white/10 rounded px-3 py-2 text-sm outline-none text-white focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC]"
                     >
                       <option value="">All designation</option>
                       {Array.from(new Set(employees.map(e => e.designation).filter(Boolean))).map(desig => (
@@ -484,7 +487,7 @@ export default function EmployeeList() {
                       name="bloodGroup"
                       value={filters.bloodGroup}
                       onChange={handleFilterChange}
-                      className="border border-slate-200 rounded px-3 py-2 text-sm outline-none bg-white"
+                      className="bg-[#2A2A3D] border border-white/10 rounded px-3 py-2 text-sm outline-none text-white focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC]"
                     >
                       <option value="">All blood group</option>
                       {Array.from(new Set(employees.map(e => e.bloodGroup).filter(Boolean))).map(bg => (
@@ -495,7 +498,7 @@ export default function EmployeeList() {
                       name="location"
                       value={filters.location}
                       onChange={handleFilterChange}
-                      className="border border-slate-200 rounded px-3 py-2 text-sm outline-none bg-white"
+                      className="bg-[#2A2A3D] border border-white/10 rounded px-3 py-2 text-sm outline-none text-white focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC]"
                     >
                       <option value="">All location</option>
                       {Array.from(new Set(employees.map(e => e.location).filter(Boolean))).map(loc => (
@@ -506,7 +509,7 @@ export default function EmployeeList() {
                       name="city"
                       value={filters.city}
                       onChange={handleFilterChange}
-                      className="border border-slate-200 rounded px-3 py-2 text-sm outline-none bg-white"
+                      className="bg-[#2A2A3D] border border-white/10 rounded px-3 py-2 text-sm outline-none text-white focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC]"
                     >
                       <option value="">All city</option>
                       {Array.from(new Set(employees.map(e => e.city).filter(Boolean))).map(city => (
@@ -519,7 +522,7 @@ export default function EmployeeList() {
                         name={key}
                         value={filters[key] || ''}
                         onChange={handleFilterChange}
-                        className="border border-slate-200 rounded px-3 py-2 text-sm outline-none bg-white"
+                        className="bg-[#2A2A3D] border border-white/10 rounded px-3 py-2 text-sm outline-none text-white focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC]"
                       >
                         <option value="">All {key}</option>
                         {Array.from(new Set(employees.flatMap(e => e.customFields?.filter(f => f.key === key).map(f => f.value) || []).filter(Boolean))).map(val => (
@@ -528,11 +531,11 @@ export default function EmployeeList() {
                       </select>
                     ))}
                     <div className="flex gap-2">
-                      <button className="bg-[#28A745] text-white px-4 py-2 rounded text-sm font-bold hover:bg-[#218838]">Find</button>
+                      <button className="bg-[#00FFCC] text-[#1E1E2F] px-4 py-2 rounded text-sm font-black uppercase hover:bg-[#00D1FF]">Find</button>
                       <button 
                         type="button"
                         onClick={resetFilters}
-                        className="bg-[#DC3545] text-white px-4 py-2 rounded text-sm font-bold hover:bg-[#C82333]"
+                        className="bg-white/5 text-[#B0B0C3] px-4 py-2 rounded text-sm font-black uppercase hover:bg-white/10"
                       >
                         Reset
                       </button>
@@ -542,10 +545,10 @@ export default function EmployeeList() {
               )}
             </AnimatePresence>
 
-            <div className="p-4 flex flex-wrap justify-between items-center gap-4">
-              <div className="flex items-center gap-2 text-sm text-slate-600">
+            <div className="p-4 flex flex-wrap justify-between items-center gap-4 border-t border-white/5">
+              <div className="flex items-center gap-2 text-sm text-[#B0B0C3]">
                 Show 
-                <select className="border border-slate-200 rounded px-2 py-1 outline-none">
+                <select className="bg-[#1E1E2F] border border-white/10 rounded px-2 py-1 outline-none text-white">
                   <option>10</option>
                   <option>25</option>
                   <option>50</option>
@@ -555,23 +558,23 @@ export default function EmployeeList() {
               
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-1">
-                  <button className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838]">
+                  <button className="bg-transparent border border-[#00FFCC] text-[#00FFCC] px-3 py-1.5 rounded text-xs font-black uppercase hover:bg-[#00FFCC] hover:text-[#1E1E2F] flex items-center gap-1.5">
                     <FileCsv className="w-3.5 h-3.5" />
                     CSV
                   </button>
-                  <button className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838]">
+                  <button className="bg-transparent border border-[#00FFCC] text-[#00FFCC] px-3 py-1.5 rounded text-xs font-black uppercase hover:bg-[#00FFCC] hover:text-[#1E1E2F] flex items-center gap-1.5">
                     <FileSpreadsheet className="w-3.5 h-3.5" />
                     Excel
                   </button>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-slate-600">Search:</span>
+                  <span className="text-sm text-[#B0B0C3]">Search:</span>
                   <input 
                     type="text" 
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="border border-slate-200 rounded px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="bg-[#1E1E2F] border border-white/10 rounded px-3 py-1.5 text-sm outline-none text-white focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC]"
                   />
                 </div>
               </div>
@@ -580,72 +583,72 @@ export default function EmployeeList() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50/50 border-b border-slate-100">
-                    <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Sl</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Employee id</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Name of employee</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Email</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Mobile no</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Date of birth</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Designation</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Joining date</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Status</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider">Action</th>
+                  <tr className="bg-[#1E1E2F]/50 border-b border-white/5">
+                    <th className="px-4 py-3 text-xs font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Sl</th>
+                    <th className="px-4 py-3 text-xs font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Employee id</th>
+                    <th className="px-4 py-3 text-xs font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Name of employee</th>
+                    <th className="px-4 py-3 text-xs font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Email</th>
+                    <th className="px-4 py-3 text-xs font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Mobile no</th>
+                    <th className="px-4 py-3 text-xs font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Date of birth</th>
+                    <th className="px-4 py-3 text-xs font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Designation</th>
+                    <th className="px-4 py-3 text-xs font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Joining date</th>
+                    <th className="px-4 py-3 text-xs font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Status</th>
+                    <th className="px-4 py-3 text-xs font-black text-[#B0B0C3] uppercase tracking-wider">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-white/5">
                   {filteredEmployees.map((emp, index) => (
-                    <tr key={emp.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{index + 1}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{emp.employeeId}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{emp.name}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{emp.email}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{emp.mobile}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{emp.dob}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{emp.designation}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{emp.joiningDate}</td>
-                      <td className="px-4 py-3 text-sm border-r border-slate-100">
-                        <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider ${
-                          emp.status === 'Active' ? 'bg-emerald-50 text-emerald-600' : 
-                          emp.status === 'Inactive' ? 'bg-slate-100 text-slate-500' :
-                          emp.status === 'Terminated' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'
+                    <tr key={emp.id} className="hover:bg-[#1E1E2F]/50 transition-colors">
+                      <td className="px-4 py-3 text-sm text-white border-r border-white/5">{index + 1}</td>
+                      <td className="px-4 py-3 text-sm text-white border-r border-white/5">{emp.employeeId}</td>
+                      <td className="px-4 py-3 text-sm text-white border-r border-white/5">{emp.name}</td>
+                      <td className="px-4 py-3 text-sm text-white border-r border-white/5">{emp.email}</td>
+                      <td className="px-4 py-3 text-sm text-white border-r border-white/5">{emp.mobile}</td>
+                      <td className="px-4 py-3 text-sm text-white border-r border-white/5">{emp.dob}</td>
+                      <td className="px-4 py-3 text-sm text-white border-r border-white/5">{emp.designation}</td>
+                      <td className="px-4 py-3 text-sm text-white border-r border-white/5">{emp.joiningDate}</td>
+                      <td className="px-4 py-3 text-sm border-r border-white/5">
+                        <span className={`text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-wider ${
+                          emp.status === 'Active' ? 'bg-[#00FFCC]/10 text-[#00FFCC]' : 
+                          emp.status === 'Inactive' ? 'bg-white/10 text-[#B0B0C3]' :
+                          emp.status === 'Terminated' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'
                         }`}>
                           {emp.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600">
+                      <td className="px-4 py-3 text-sm text-white">
                         <div className="flex items-center gap-1">
                           <button 
                             onClick={() => handleRefresh(emp.id)}
-                            className="p-1.5 text-red-600 bg-red-50 rounded border border-red-100 hover:bg-red-100"
+                            className="p-1.5 text-red-500 bg-red-500/10 rounded border border-red-500/20 hover:bg-red-500/20"
                             title="Refresh"
                           >
                             <RefreshCw className="w-3.5 h-3.5" />
                           </button>
                           <button 
                             onClick={() => openViewModal(emp)}
-                            className="p-1.5 text-indigo-600 bg-indigo-50 rounded border border-indigo-100 hover:bg-indigo-100"
+                            className="p-1.5 text-[#00FFCC] bg-[#00FFCC]/10 rounded border border-[#00FFCC]/20 hover:bg-[#00FFCC]/20"
                             title="View Details"
                           >
                             <Eye className="w-3.5 h-3.5" />
                           </button>
                           <button 
                             onClick={() => openEditModal(emp)}
-                            className="p-1.5 text-emerald-600 bg-emerald-50 rounded border border-emerald-100 hover:bg-emerald-100"
+                            className="p-1.5 text-[#00FFCC] bg-[#00FFCC]/10 rounded border border-[#00FFCC]/20 hover:bg-[#00FFCC]/20"
                             title="Edit"
                           >
                             <Edit className="w-3.5 h-3.5" />
                           </button>
                           <button 
                             onClick={() => openCredentialsModal(emp)}
-                            className="p-1.5 text-amber-600 bg-amber-50 rounded border border-amber-100 hover:bg-amber-100"
+                            className="p-1.5 text-amber-500 bg-amber-500/10 rounded border border-amber-500/20 hover:bg-amber-500/20"
                             title="Credentials"
                           >
                             <Key className="w-3.5 h-3.5" />
                           </button>
                           <button 
                             onClick={() => handleDelete(emp.id)}
-                            className="p-1.5 text-red-600 bg-red-50 rounded border border-red-100 hover:bg-red-100"
+                            className="p-1.5 text-red-500 bg-red-500/10 rounded border border-red-500/20 hover:bg-red-500/20"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -657,12 +660,12 @@ export default function EmployeeList() {
               </table>
             </div>
 
-            <div className="p-4 border-t border-slate-100 flex justify-between items-center text-sm text-slate-500">
+            <div className="p-4 border-t border-white/5 flex justify-between items-center text-sm text-[#B0B0C3]">
               <div>Showing 1 to {filteredEmployees.length} of {employees.length} entries</div>
               <div className="flex items-center gap-1">
-                <button className="px-3 py-1 border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-50">Previous</button>
-                <button className="px-3 py-1 bg-[#1A73E8] text-white rounded">1</button>
-                <button className="px-3 py-1 border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-50">Next</button>
+                <button className="px-3 py-1 border border-white/10 rounded hover:bg-white/5 disabled:opacity-50">Previous</button>
+                <button className="px-3 py-1 bg-[#00FFCC] text-[#1E1E2F] rounded font-black">1</button>
+                <button className="px-3 py-1 border border-white/10 rounded hover:bg-white/5 disabled:opacity-50">Next</button>
               </div>
             </div>
           </div>
@@ -678,22 +681,22 @@ export default function EmployeeList() {
                 exit={{ opacity: 0, scale: 0.95 }}
                 className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
               >
-                <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                  <h3 className="font-bold text-slate-800">
+                <div className="p-4 border-b border-white/5 flex justify-between items-center bg-[#2A2A3D]">
+                  <h3 className="font-black text-white uppercase tracking-tight">
                     {isViewOnly ? 'View Employee' : editingEmployee ? 'Edit Employee' : 'Add New Employee'}
                   </h3>
-                  <button onClick={() => setIsModalOpen(false)} className="p-1 hover:bg-slate-200 rounded-full transition-colors">
-                    <X className="w-5 h-5 text-slate-500" />
+                  <button onClick={() => setIsModalOpen(false)} className="p-1 hover:bg-white/10 rounded-full transition-colors">
+                    <X className="w-5 h-5 text-[#B0B0C3]" />
                   </button>
                 </div>
                 
-                <form onSubmit={handleSave} className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                <form onSubmit={handleSave} className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-[#1E1E2F]">
                   <div className="mb-6 flex items-center gap-4">
-                    <div className="relative w-24 h-24 rounded-full border-2 border-slate-200 overflow-hidden bg-slate-50 flex items-center justify-center shrink-0">
+                    <div className="relative w-24 h-24 rounded-full border-2 border-white/10 overflow-hidden bg-[#1E1E2F] flex items-center justify-center shrink-0">
                       {formData.avatar ? (
                         <img src={formData.avatar} alt="Avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                       ) : (
-                        <User className="w-10 h-10 text-slate-400" />
+                        <User className="w-10 h-10 text-[#B0B0C3]" />
                       )}
                       {!isViewOnly && (
                         <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 cursor-pointer transition-opacity">
@@ -717,33 +720,33 @@ export default function EmployeeList() {
                       )}
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-slate-800">Profile Picture</h4>
-                      <p className="text-xs text-slate-500 mt-1">Upload a professional photo. Recommended size 256x256px.</p>
+                      <h4 className="text-sm font-black text-white uppercase tracking-tight">Profile Picture</h4>
+                      <p className="text-xs text-[#B0B0C3] mt-1">Upload a professional photo. Recommended size 256x256px.</p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Employee Name</label>
+                      <label className="text-xs font-black text-[#B0B0C3] uppercase tracking-wider">Employee Name</label>
                       <input 
                         required
                         disabled={isViewOnly}
                         type="text" 
                         value={formData.name}
                         onChange={(e) => setFormData({...formData, name: e.target.value})}
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all disabled:bg-slate-50 disabled:text-slate-500"
+                        className="w-full bg-[#1E1E2F] border border-white/10 rounded-lg px-3 py-2 text-sm outline-none text-white focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC] transition-all disabled:bg-[#2A2A3D] disabled:text-[#B0B0C3]"
                         placeholder="Enter name"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Employee ID</label>
+                      <label className="text-xs font-black text-[#B0B0C3] uppercase tracking-wider">Employee ID</label>
                       <input 
                         required
                         disabled={isViewOnly}
                         type="text" 
                         value={formData.employeeId}
                         onChange={(e) => setFormData({...formData, employeeId: e.target.value})}
-                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all disabled:bg-slate-50 disabled:text-slate-500"
+                        className="w-full bg-[#1E1E2F] border border-white/10 rounded-lg px-3 py-2 text-sm outline-none text-white focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC] transition-all disabled:bg-[#2A2A3D] disabled:text-[#B0B0C3]"
                         placeholder="e.g. 000032"
                       />
                     </div>

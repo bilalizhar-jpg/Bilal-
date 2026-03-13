@@ -60,7 +60,9 @@ import RoleManagement from './pages/settings/RoleManagement';
 import Permissions from './pages/settings/Permissions';
 import SetupRules from './pages/settings/SetupRules';
 import GeneralSettings from './pages/settings/GeneralSettings';
+import GmailIntegration from './pages/settings/GmailIntegration';
 import InvoiceGenerator from './pages/InvoiceGenerator';
+import OAuthCallback from './pages/OAuthCallback';
 import Companies from './pages/crm/Companies';
 import AddCompany from './pages/crm/AddCompany';
 import Products from './pages/crm/Products';
@@ -202,6 +204,7 @@ function AppContent() {
             <Route path="/careers/:companyId/apply/:jobId" element={<ApplyPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/auth/callback" element={<OAuthCallback />} />
             <Route path="/employee-login" element={<EmployeeLoginPage />} />
             
             {/* Admin Routes */}
@@ -273,6 +276,7 @@ function AppContent() {
             <Route path="/permissions" element={<ProtectedRoute allowedRoles={['admin']}><Permissions /></ProtectedRoute>} />
             <Route path="/setup-rules" element={<ProtectedRoute allowedRoles={['admin']}><SetupRules /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute allowedRoles={['admin']}><GeneralSettings /></ProtectedRoute>} />
+            <Route path="/settings/gmail-integration" element={<ProtectedRoute allowedRoles={['admin']}><GmailIntegration /></ProtectedRoute>} />
             <Route path="/crm/companies" element={<ProtectedRoute allowedRoles={['admin']}><Companies /></ProtectedRoute>} />
             <Route path="/crm/companies/add" element={<ProtectedRoute allowedRoles={['admin']}><AddCompany /></ProtectedRoute>} />
             <Route path="/crm/products" element={<ProtectedRoute allowedRoles={['admin']}><Products /></ProtectedRoute>} />

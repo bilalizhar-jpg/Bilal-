@@ -10,9 +10,12 @@ export const ScreenCapture = () => {
   const streamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
-    if (!user || !trackingData[user.id] || !trackingData[user.id].captureInterval) return;
+    const todayDate = new Date().toISOString().split('T')[0];
+    const docId = `${user?.id}_${todayDate}`;
+    
+    if (!user || !trackingData[docId] || !trackingData[docId].captureInterval) return;
 
-    const intervalMinutes = trackingData[user.id].captureInterval!;
+    const intervalMinutes = trackingData[docId].captureInterval!;
     const intervalMs = intervalMinutes * 60 * 1000;
 
     const capture = async () => {

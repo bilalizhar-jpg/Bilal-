@@ -5,7 +5,8 @@ import {
   doc, 
   setDoc, 
   updateDoc, 
-  query
+  query,
+  where
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from './AuthContext';
@@ -14,6 +15,8 @@ import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHand
 export interface TrackingData {
   employeeId: string;
   employeeName: string;
+  companyId?: string;
+  date: string;
   status: 'Online' | 'Idle' | 'Offline';
   workingTime: number; // in seconds
   idleTime: number; // in seconds
@@ -28,7 +31,7 @@ export interface TrackingData {
 interface TimeTrackingContextType {
   trackingData: Record<string, TrackingData>;
   updateTracking: (employeeId: string, data: Partial<TrackingData>) => void;
-  startTracking: (employeeId: string, employeeName: string) => void;
+  startTracking: (employeeId: string, employeeName: string, companyId: string) => void;
   stopTracking: (employeeId: string) => void;
   setCaptureInterval: (employeeId: string, interval: number) => void;
 }
@@ -48,60 +51,74 @@ export const TimeTrackingProvider = ({ children }: { children: ReactNode }) => {
   const [trackingData, setTrackingData] = useState<Record<string, TrackingData>>({});
   const lastUpdateRef = useRef<Record<string, number>>({});
 
+  const todayDate = React.useMemo(() => new Date().toISOString().split('T')[0], []);
+  const trackingDataRef = useRef<Record<string, TrackingData>>({});
+
   useEffect(() => {
     if (!user) {
       setTrackingData({});
+      trackingDataRef.current = {};
       return;
     }
 
-    const q = query(collection(db, 'timeTracking'));
+    const q = query(collection(db, 'timeTracking'), where('date', '==', todayDate));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data: Record<string, TrackingData> = {};
       snapshot.docs.forEach(doc => {
         data[doc.id] = doc.data() as TrackingData;
       });
       setTrackingData(data);
+      trackingDataRef.current = data;
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'timeTracking');
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, todayDate]);
 
-  const updateTracking = async (employeeId: string, data: Partial<TrackingData>) => {
+  const updateTracking = React.useCallback(async (employeeId: string, data: Partial<TrackingData>) => {
+    const docId = `${employeeId}_${todayDate}`;
+    
+    const current = trackingDataRef.current[docId];
     const updatedData = {
-      ...trackingData[employeeId],
+      ...(current || {}),
       ...data,
-      lastActive: data.status === 'Online' ? Date.now() : (trackingData[employeeId]?.lastActive || Date.now())
-    };
+      employeeId,
+      date: todayDate,
+      companyId: user?.companyId,
+      lastActive: data.status === 'Online' ? Date.now() : (current?.lastActive || Date.now())
+    } as TrackingData;
 
-    // Update local state immediately
-    setTrackingData(prev => ({ ...prev, [employeeId]: updatedData as TrackingData }));
+    // Update ref and state
+    trackingDataRef.current[docId] = updatedData;
+    setTrackingData(prev => ({ ...prev, [docId]: updatedData }));
 
-    // Throttle Firestore updates (every 10 seconds or on status change)
+    // Throttle Firestore updates
     const now = Date.now();
-    const lastUpdate = lastUpdateRef.current[employeeId] || 0;
-    const statusChanged = data.status && data.status !== trackingData[employeeId]?.status;
+    const lastUpdate = lastUpdateRef.current[docId] || 0;
+    const statusChanged = data.status !== undefined && data.status !== current?.status;
 
     if (statusChanged || now - lastUpdate > 10000) {
-      lastUpdateRef.current[employeeId] = now;
-      try {
-        await setDoc(doc(db, 'timeTracking', employeeId), updatedData);
-      } catch (error) {
+      lastUpdateRef.current[docId] = now;
+      setDoc(doc(db, 'timeTracking', docId), updatedData).catch(error => {
         console.error("Error updating time tracking:", error);
-      }
+      });
     }
-  };
+  }, [user?.companyId, todayDate]);
 
-  const startTracking = async (employeeId: string, employeeName: string) => {
-    const existingData = trackingData[employeeId];
+  const startTracking = async (employeeId: string, employeeName: string, companyId: string) => {
+    const docId = `${employeeId}_${todayDate}`;
+    const existingData = trackingDataRef.current[docId];
     const newData: TrackingData = existingData ? {
       ...existingData,
       status: 'Online',
-      lastActive: Date.now()
+      lastActive: Date.now(),
+      companyId
     } : {
       employeeId,
       employeeName,
+      companyId,
+      date: todayDate,
       status: 'Online',
       workingTime: 0,
       idleTime: 0,
@@ -111,23 +128,27 @@ export const TimeTrackingProvider = ({ children }: { children: ReactNode }) => {
       currentTask: 'General Work'
     };
     
-    setTrackingData(prev => ({ ...prev, [employeeId]: newData }));
+    trackingDataRef.current[docId] = newData;
+    setTrackingData(prev => ({ ...prev, [docId]: newData }));
     try {
-      await setDoc(doc(db, 'timeTracking', employeeId), newData);
+      await setDoc(doc(db, 'timeTracking', docId), newData);
     } catch (error) {
       console.error("Error starting tracking:", error);
     }
   };
 
   const stopTracking = async (employeeId: string) => {
-    if (!trackingData[employeeId]) return;
+    const docId = `${employeeId}_${todayDate}`;
+    const current = trackingDataRef.current[docId];
+    if (!current) return;
     const updatedData: TrackingData = {
-      ...trackingData[employeeId],
+      ...current,
       status: 'Offline'
     };
-    setTrackingData(prev => ({ ...prev, [employeeId]: updatedData }));
+    trackingDataRef.current[docId] = updatedData;
+    setTrackingData(prev => ({ ...prev, [docId]: updatedData }));
     try {
-      await setDoc(doc(db, 'timeTracking', employeeId), updatedData);
+      await setDoc(doc(db, 'timeTracking', docId), updatedData);
     } catch (error) {
       console.error("Error stopping tracking:", error);
     }
@@ -137,37 +158,47 @@ export const TimeTrackingProvider = ({ children }: { children: ReactNode }) => {
     updateTracking(employeeId, { captureInterval: interval });
   };
 
-  // Global timer to increment working/idle time for active employees
+  // Global timer to increment working/idle time for the logged-in employee
   useEffect(() => {
+    if (!user || user.role !== 'employee') return;
+
     const interval = setInterval(() => {
+      const docId = `${user.id}_${todayDate}`;
       setTrackingData(prev => {
-        const next = { ...prev };
-        let changed = false;
+        const current = prev[docId];
+        if (!current || current.status === 'Offline') return prev;
 
-        Object.keys(next).forEach(id => {
-          const data = next[id];
-          if (data.status === 'Online') {
-            data.workingTime += 1;
-            changed = true;
-            
-            // Auto-idle detection: if no activity for 5 minutes
-            if (Date.now() - data.lastActive > 5 * 60 * 1000) {
-              data.status = 'Idle';
-            }
-          } else if (data.status === 'Idle') {
-            data.idleTime += 1;
-            changed = true;
-
-            // If activity resumed (this would be handled by updateTracking from client)
+        const next = { ...current };
+        if (next.status === 'Online') {
+          next.workingTime += 1;
+          // Auto-idle detection: if no activity for 5 minutes
+          if (Date.now() - next.lastActive > 5 * 60 * 1000) {
+            next.status = 'Idle';
           }
-        });
+        } else if (next.status === 'Idle') {
+          next.idleTime += 1;
+        }
 
-        return changed ? next : prev;
+        return { ...prev, [docId]: next };
       });
     }, 1000);
 
-    return () => clearInterval(interval);
-  }, []);
+    // Periodically sync to Firestore (every 10 seconds) to ensure working/idle time is saved
+    const syncInterval = setInterval(() => {
+      const docId = `${user.id}_${todayDate}`;
+      const current = trackingDataRef.current[docId];
+      if (current && current.status !== 'Offline') {
+        setDoc(doc(db, 'timeTracking', docId), current).catch(err => 
+          console.error("Error syncing time tracking:", err)
+        );
+      }
+    }, 10000);
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(syncInterval);
+    };
+  }, [user, todayDate]);
 
   return (
     <TimeTrackingContext.Provider value={{ trackingData, updateTracking, startTracking, stopTracking, setCaptureInterval }}>

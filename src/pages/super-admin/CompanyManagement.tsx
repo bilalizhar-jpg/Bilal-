@@ -83,49 +83,49 @@ export default function CompanyManagement() {
 
   return (
     <SuperAdminLayout>
-      <h1 className="text-2xl font-bold mb-6">Company Management</h1>
+      <h1 className="text-2xl font-bold mb-6 text-white">Company Management</h1>
       
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+        <div className="bg-red-900/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-2xl mb-6" role="alert">
           <strong className="font-bold">Error: </strong>
           <span className="block sm:inline">{error}</span>
         </div>
       )}
       
-      <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mb-8">
-        <h2 className="text-lg font-bold mb-4">Register New Company</h2>
+      <div className="bg-[#2A2A3D] p-6 border border-white/5 rounded-2xl shadow-[0_4px_20px_rgba(0,255,204,0.05)] mb-8">
+        <h2 className="text-lg font-black text-white uppercase tracking-tight mb-6">Register New Company</h2>
         <form onSubmit={handleAdd} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <input type="text" placeholder="Company Name" className="p-2 border rounded" value={newCompany.name} onChange={e => setNewCompany({...newCompany, name: e.target.value})} required />
-          <input type="email" placeholder="Email" className="p-2 border rounded" value={newCompany.email} onChange={e => setNewCompany({...newCompany, email: e.target.value})} required />
-          <input type="text" placeholder="Mobile" className="p-2 border rounded" value={newCompany.mobile} onChange={e => setNewCompany({...newCompany, mobile: e.target.value})} required />
-          <input type="text" placeholder="Unique Code (Optional)" className="p-2 border rounded" value={newCompany.uniqueCode} onChange={e => setNewCompany({...newCompany, uniqueCode: e.target.value})} />
-          <input type="text" placeholder="Subsidiary" className="p-2 border rounded" value={newCompany.subsidiary} onChange={e => setNewCompany({...newCompany, subsidiary: e.target.value})} />
-          <input type="text" placeholder="Head Office Location" className="p-2 border rounded" value={newCompany.headOffice} onChange={e => setNewCompany({...newCompany, headOffice: e.target.value})} />
-          <input type="text" placeholder="Factory Location" className="p-2 border rounded" value={newCompany.factoryLocation} onChange={e => setNewCompany({...newCompany, factoryLocation: e.target.value})} />
-          <input type="text" placeholder="Admin Username" className="p-2 border rounded" value={newCompany.adminUsername} onChange={e => setNewCompany({...newCompany, adminUsername: e.target.value})} required />
-          <input type="password" placeholder="Admin Password" className="p-2 border rounded" value={newCompany.adminPassword} onChange={e => setNewCompany({...newCompany, adminPassword: e.target.value})} required />
-          <label className="flex items-center gap-2 p-2 border rounded cursor-pointer">
+          <input type="text" placeholder="Company Name" className="p-3 bg-[#1E1E2F] border border-white/10 rounded-xl text-white placeholder-[#B0B0C3] focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC] outline-none" value={newCompany.name} onChange={e => setNewCompany({...newCompany, name: e.target.value})} required />
+          <input type="email" placeholder="Email" className="p-3 bg-[#1E1E2F] border border-white/10 rounded-xl text-white placeholder-[#B0B0C3] focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC] outline-none" value={newCompany.email} onChange={e => setNewCompany({...newCompany, email: e.target.value})} required />
+          <input type="text" placeholder="Mobile" className="p-3 bg-[#1E1E2F] border border-white/10 rounded-xl text-white placeholder-[#B0B0C3] focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC] outline-none" value={newCompany.mobile} onChange={e => setNewCompany({...newCompany, mobile: e.target.value})} required />
+          <input type="text" placeholder="Unique Code (Optional)" className="p-3 bg-[#1E1E2F] border border-white/10 rounded-xl text-white placeholder-[#B0B0C3] focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC] outline-none" value={newCompany.uniqueCode} onChange={e => setNewCompany({...newCompany, uniqueCode: e.target.value})} />
+          <input type="text" placeholder="Subsidiary" className="p-3 bg-[#1E1E2F] border border-white/10 rounded-xl text-white placeholder-[#B0B0C3] focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC] outline-none" value={newCompany.subsidiary} onChange={e => setNewCompany({...newCompany, subsidiary: e.target.value})} />
+          <input type="text" placeholder="Head Office Location" className="p-3 bg-[#1E1E2F] border border-white/10 rounded-xl text-white placeholder-[#B0B0C3] focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC] outline-none" value={newCompany.headOffice} onChange={e => setNewCompany({...newCompany, headOffice: e.target.value})} />
+          <input type="text" placeholder="Factory Location" className="p-3 bg-[#1E1E2F] border border-white/10 rounded-xl text-white placeholder-[#B0B0C3] focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC] outline-none" value={newCompany.factoryLocation} onChange={e => setNewCompany({...newCompany, factoryLocation: e.target.value})} />
+          <input type="text" placeholder="Admin Username" className="p-3 bg-[#1E1E2F] border border-white/10 rounded-xl text-white placeholder-[#B0B0C3] focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC] outline-none" value={newCompany.adminUsername} onChange={e => setNewCompany({...newCompany, adminUsername: e.target.value})} required />
+          <input type="password" placeholder="Admin Password" className="p-3 bg-[#1E1E2F] border border-white/10 rounded-xl text-white placeholder-[#B0B0C3] focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC] outline-none" value={newCompany.adminPassword} onChange={e => setNewCompany({...newCompany, adminPassword: e.target.value})} required />
+          <label className="flex items-center gap-2 p-3 bg-[#1E1E2F] border border-white/10 rounded-xl cursor-pointer text-[#B0B0C3] hover:text-white transition-colors">
             <Upload className="w-4 h-4" /> Upload Logo
             <input type="file" accept="image/*" className="hidden" onChange={(e) => handleLogoUpload(e, false)} />
           </label>
-          <select className="p-2 border rounded" value={newCompany.subscriptionPlan} onChange={e => setNewCompany({...newCompany, subscriptionPlan: e.target.value})}>
+          <select className="p-3 bg-[#1E1E2F] border border-white/10 rounded-xl text-white outline-none" value={newCompany.subscriptionPlan} onChange={e => setNewCompany({...newCompany, subscriptionPlan: e.target.value})}>
             <option value="Basic">Basic</option>
             <option value="Pro">Pro</option>
             <option value="Enterprise">Enterprise</option>
           </select>
-          <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded flex items-center gap-2 col-span-full">
+          <button type="submit" className="bg-[#00FFCC] hover:opacity-80 text-[#1E1E2F] px-4 py-3 rounded-xl flex items-center justify-center gap-2 col-span-full font-black uppercase tracking-widest transition-all shadow-[0_0_8px_#00FFCC]">
             <Plus className="w-4 h-4" /> Register Company
           </button>
         </form>
       </div>
 
-      <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-          <h2 className="text-lg font-bold">Registered Companies</h2>
+      <div className="bg-[#2A2A3D] p-8 border border-white/5 rounded-2xl shadow-[0_4px_20px_rgba(0,255,204,0.05)]">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+          <h2 className="text-xl font-black text-white uppercase tracking-tight">Registered Companies</h2>
           <div className="w-full sm:w-64">
-            <label className="block text-[10px] text-slate-500 mb-1 font-bold">Select Company to Manage</label>
+            <label className="block text-[10px] text-[#B0B0C3] mb-1 font-black uppercase tracking-widest">Select Company to Manage</label>
             <select 
-              className="w-full text-xs p-1.5 rounded border bg-slate-50 border-slate-200 text-slate-900 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+              className="w-full text-xs p-3 rounded-xl border bg-[#1E1E2F] border-white/10 text-white outline-none"
               value={user?.companyId || ''}
               onChange={(e) => impersonateCompany(e.target.value || null)}
             >
@@ -139,79 +139,79 @@ export default function CompanyManagement() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="text-left text-sm text-slate-500 border-b border-slate-200 dark:border-slate-700">
-                <th className="pb-3">Logo</th>
-                <th className="pb-3">Name</th>
-                <th className="pb-3">Unique Code</th>
-                <th className="pb-3">Admin Credentials</th>
-                <th className="pb-3 text-center">Status</th>
-                <th className="pb-3 text-center">Edit Company</th>
-                <th className="pb-3 text-center">Menu Access</th>
-                <th className="pb-3">Action</th>
+              <tr className="text-left text-[10px] font-black text-[#B0B0C3] uppercase tracking-widest border-b border-white/5">
+                <th className="pb-4">Logo</th>
+                <th className="pb-4">Name</th>
+                <th className="pb-4">Unique Code</th>
+                <th className="pb-4">Admin Credentials</th>
+                <th className="pb-4 text-center">Status</th>
+                <th className="pb-4 text-center">Edit Company</th>
+                <th className="pb-4 text-center">Menu Access</th>
+                <th className="pb-4">Action</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="text-sm text-[#B0B0C3]">
               {companies.map(company => (
-                <tr key={company.id} className="border-b border-slate-100 dark:border-slate-700">
+                <tr key={company.id} className="border-b border-white/5 hover:bg-[#1E1E2F] transition-colors">
                   {editingId === company.id ? (
                     <>
-                      <td className="py-3"><input type="file" accept="image/*" onChange={(e) => handleLogoUpload(e, true)} /></td>
-                      <td className="py-3"><input className="p-1 border rounded w-full" value={editForm?.name} onChange={e => setEditForm({...editForm!, name: e.target.value})} /></td>
-                      <td className="py-3"><input className="p-1 border rounded w-full" value={editForm?.uniqueCode} onChange={e => setEditForm({...editForm!, uniqueCode: e.target.value})} /></td>
-                      <td className="py-3 text-xs">
+                      <td className="py-4"><input type="file" accept="image/*" onChange={(e) => handleLogoUpload(e, true)} /></td>
+                      <td className="py-4"><input className="p-2 bg-[#1E1E2F] border border-white/10 rounded-lg w-full text-white" value={editForm?.name} onChange={e => setEditForm({...editForm!, name: e.target.value})} /></td>
+                      <td className="py-4"><input className="p-2 bg-[#1E1E2F] border border-white/10 rounded-lg w-full text-white" value={editForm?.uniqueCode} onChange={e => setEditForm({...editForm!, uniqueCode: e.target.value})} /></td>
+                      <td className="py-4 text-xs">
                         <div>User: {company.adminUsername}</div>
                         <div>Pass: {company.adminPassword}</div>
                       </td>
-                      <td className="py-3 text-center">
-                         <span className="text-xs text-slate-400">Save to edit status</span>
+                      <td className="py-4 text-center">
+                         <span className="text-xs text-[#B0B0C3]">Save to edit status</span>
                       </td>
-                      <td className="py-3 text-center">
-                         <span className="text-xs text-slate-400">Save to edit access</span>
+                      <td className="py-4 text-center">
+                         <span className="text-xs text-[#B0B0C3]">Save to edit access</span>
                       </td>
-                      <td className="py-3 flex gap-2">
-                        <button onClick={saveEdit} className="text-emerald-500 hover:text-emerald-700"><Save className="w-5 h-5" /></button>
-                        <button onClick={() => setEditingId(null)} className="text-slate-500 hover:text-slate-700"><X className="w-5 h-5" /></button>
+                      <td className="py-4 flex gap-2">
+                        <button onClick={saveEdit} className="text-[#00FFCC] hover:opacity-80"><Save className="w-5 h-5" /></button>
+                        <button onClick={() => setEditingId(null)} className="text-[#B0B0C3] hover:text-white"><X className="w-5 h-5" /></button>
                       </td>
                     </>
                   ) : (
                     <>
-                      <td className="py-3"><img src={company.logo} alt="Logo" className="w-10 h-10 object-contain" referrerPolicy="no-referrer" /></td>
-                      <td className="py-3">{company.name}</td>
-                      <td className="py-3 font-mono">{company.uniqueCode}</td>
-                      <td className="py-3 text-xs text-slate-600">
+                      <td className="py-4"><img src={company.logo} alt="Logo" className="w-10 h-10 object-contain rounded-lg bg-[#1E1E2F] p-1" referrerPolicy="no-referrer" /></td>
+                      <td className="py-4 font-bold text-white">{company.name}</td>
+                      <td className="py-4 font-mono text-[#00FFCC]">{company.uniqueCode}</td>
+                      <td className="py-4 text-xs text-[#B0B0C3]">
                         <div>User: {company.adminUsername}</div>
                         <div>Pass: {company.adminPassword}</div>
                       </td>
-                      <td className="py-3 text-center">
+                      <td className="py-4 text-center">
                         <button 
                           onClick={() => updateCompanyStatus(company.id, company.isActive ? 'inactive' : 'active')}
-                          className={`px-3 py-1 rounded font-bold text-xs flex items-center gap-1 mx-auto ${
+                          className={`px-3 py-1 rounded-lg font-black text-[10px] uppercase tracking-widest flex items-center gap-1 mx-auto ${
                             company.isActive 
-                              ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' 
-                              : 'bg-red-100 text-red-700 hover:bg-red-200'
+                              ? 'bg-[#00FFCC]/10 text-[#00FFCC] border border-[#00FFCC]/20 hover:bg-[#00FFCC]/20' 
+                              : 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20'
                           }`}
                         >
                           {company.isActive ? 'Active' : 'Inactive'}
                         </button>
                       </td>
-                      <td className="py-3 text-center">
+                      <td className="py-4 text-center">
                         <button 
                           onClick={() => startEdit(company)}
-                          className="px-3 py-1 rounded bg-amber-100 text-amber-700 font-bold text-xs hover:bg-amber-200 flex items-center gap-1 mx-auto"
+                          className="px-3 py-1 rounded-lg bg-[#00FFCC]/10 text-[#00FFCC] border border-[#00FFCC]/20 font-black text-[10px] uppercase tracking-widest hover:bg-[#00FFCC]/20 flex items-center gap-1 mx-auto"
                         >
-                          <Edit2 className="w-3 h-3" /> Edit Company
+                          <Edit2 className="w-3 h-3" /> Edit
                         </button>
                       </td>
-                      <td className="py-3 text-center">
+                      <td className="py-4 text-center">
                         <button 
                           onClick={() => openAccessModal(company)}
-                          className="px-3 py-1 rounded bg-indigo-100 text-indigo-700 font-bold text-xs hover:bg-indigo-200 flex items-center gap-1 mx-auto"
+                          className="px-3 py-1 rounded-lg bg-[#00FFCC]/10 text-[#00FFCC] border border-[#00FFCC]/20 font-black text-[10px] uppercase tracking-widest hover:bg-[#00FFCC]/20 flex items-center gap-1 mx-auto"
                         >
-                          <Shield className="w-3 h-3" /> Manage Access
+                          <Shield className="w-3 h-3" /> Access
                         </button>
                       </td>
-                      <td className="py-3 flex gap-2">
-                        <button onClick={() => deleteCompany(company.id)} className="text-red-500 hover:text-red-700"><Trash2 className="w-5 h-5" /></button>
+                      <td className="py-4 flex gap-2">
+                        <button onClick={() => deleteCompany(company.id)} className="text-red-400 hover:text-red-300"><Trash2 className="w-5 h-5" /></button>
                       </td>
                     </>
                   )}
@@ -230,66 +230,66 @@ export default function CompanyManagement() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar"
+              className="bg-[#2A2A3D] rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar"
             >
-              <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center sticky top-0 bg-white dark:bg-slate-800 z-10">
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Edit Company Details</h2>
-                <button onClick={() => setEditModalOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">
-                  <XIcon className="w-6 h-6 text-slate-500" />
+              <div className="p-6 border-b border-white/5 flex justify-between items-center sticky top-0 bg-[#2A2A3D] z-10">
+                <h2 className="text-xl font-bold text-white">Edit Company Details</h2>
+                <button onClick={() => setEditModalOpen(false)} className="p-2 hover:bg-[#1E1E2F] rounded-full transition-colors">
+                  <XIcon className="w-6 h-6 text-[#B0B0C3]" />
                 </button>
               </div>
               
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Company Name</label>
-                    <input type="text" className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-700" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} required />
+                    <label className="block text-sm font-medium text-[#B0B0C3] mb-1">Company Name</label>
+                    <input type="text" className="w-full p-2 border rounded bg-[#1E1E2F] border-white/10 text-white" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} required />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email</label>
-                    <input type="email" className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-700" value={editForm.email} onChange={e => setEditForm({...editForm, email: e.target.value})} required />
+                    <label className="block text-sm font-medium text-[#B0B0C3] mb-1">Email</label>
+                    <input type="email" className="w-full p-2 border rounded bg-[#1E1E2F] border-white/10 text-white" value={editForm.email} onChange={e => setEditForm({...editForm, email: e.target.value})} required />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Mobile</label>
-                    <input type="text" className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-700" value={editForm.mobile} onChange={e => setEditForm({...editForm, mobile: e.target.value})} required />
+                    <label className="block text-sm font-medium text-[#B0B0C3] mb-1">Mobile</label>
+                    <input type="text" className="w-full p-2 border rounded bg-[#1E1E2F] border-white/10 text-white" value={editForm.mobile} onChange={e => setEditForm({...editForm, mobile: e.target.value})} required />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Unique Code</label>
-                    <input type="text" className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-700" value={editForm.uniqueCode} onChange={e => setEditForm({...editForm, uniqueCode: e.target.value})} />
+                    <label className="block text-sm font-medium text-[#B0B0C3] mb-1">Unique Code</label>
+                    <input type="text" className="w-full p-2 border rounded bg-[#1E1E2F] border-white/10 text-white" value={editForm.uniqueCode} onChange={e => setEditForm({...editForm, uniqueCode: e.target.value})} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Subsidiary</label>
-                    <input type="text" className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-700" value={editForm.subsidiary || ''} onChange={e => setEditForm({...editForm, subsidiary: e.target.value})} />
+                    <label className="block text-sm font-medium text-[#B0B0C3] mb-1">Subsidiary</label>
+                    <input type="text" className="w-full p-2 border rounded bg-[#1E1E2F] border-white/10 text-white" value={editForm.subsidiary || ''} onChange={e => setEditForm({...editForm, subsidiary: e.target.value})} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Head Office Location</label>
-                    <input type="text" className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-700" value={editForm.headOffice || ''} onChange={e => setEditForm({...editForm, headOffice: e.target.value})} />
+                    <label className="block text-sm font-medium text-[#B0B0C3] mb-1">Head Office Location</label>
+                    <input type="text" className="w-full p-2 border rounded bg-[#1E1E2F] border-white/10 text-white" value={editForm.headOffice || ''} onChange={e => setEditForm({...editForm, headOffice: e.target.value})} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Factory Location</label>
-                    <input type="text" className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-700" value={editForm.factoryLocation || ''} onChange={e => setEditForm({...editForm, factoryLocation: e.target.value})} />
+                    <label className="block text-sm font-medium text-[#B0B0C3] mb-1">Factory Location</label>
+                    <input type="text" className="w-full p-2 border rounded bg-[#1E1E2F] border-white/10 text-white" value={editForm.factoryLocation || ''} onChange={e => setEditForm({...editForm, factoryLocation: e.target.value})} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Admin Username</label>
-                    <input type="text" className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-700" value={editForm.adminUsername || ''} onChange={e => setEditForm({...editForm, adminUsername: e.target.value})} />
+                    <label className="block text-sm font-medium text-[#B0B0C3] mb-1">Admin Username</label>
+                    <input type="text" className="w-full p-2 border rounded bg-[#1E1E2F] border-white/10 text-white" value={editForm.adminUsername || ''} onChange={e => setEditForm({...editForm, adminUsername: e.target.value})} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Admin Password</label>
-                    <input type="text" className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-700" value={editForm.adminPassword || ''} onChange={e => setEditForm({...editForm, adminPassword: e.target.value})} />
+                    <label className="block text-sm font-medium text-[#B0B0C3] mb-1">Admin Password</label>
+                    <input type="text" className="w-full p-2 border rounded bg-[#1E1E2F] border-white/10 text-white" value={editForm.adminPassword || ''} onChange={e => setEditForm({...editForm, adminPassword: e.target.value})} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Subscription Plan</label>
-                    <select className="w-full p-2 border rounded dark:bg-slate-900 dark:border-slate-700" value={editForm.subscriptionPlan} onChange={e => setEditForm({...editForm, subscriptionPlan: e.target.value as any})}>
+                    <label className="block text-sm font-medium text-[#B0B0C3] mb-1">Subscription Plan</label>
+                    <select className="w-full p-2 border rounded bg-[#1E1E2F] border-white/10 text-white" value={editForm.subscriptionPlan} onChange={e => setEditForm({...editForm, subscriptionPlan: e.target.value as any})}>
                       <option value="Basic">Basic</option>
                       <option value="Pro">Pro</option>
                       <option value="Enterprise">Enterprise</option>
                     </select>
                   </div>
                   <div className="col-span-full">
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Upload New Logo</label>
+                    <label className="block text-sm font-medium text-[#B0B0C3] mb-1">Upload New Logo</label>
                     <div className="flex items-center gap-4">
                       {editForm.logo && <img src={editForm.logo} alt="Current Logo" className="w-12 h-12 object-contain border rounded p-1" />}
-                      <label className="flex items-center gap-2 p-2 border rounded cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                      <label className="flex items-center gap-2 p-2 border rounded cursor-pointer hover:bg-[#1E1E2F] transition-colors">
                         <Upload className="w-4 h-4" /> Choose File
                         <input type="file" accept="image/*" className="hidden" onChange={(e) => handleLogoUpload(e, true)} />
                       </label>
@@ -298,9 +298,9 @@ export default function CompanyManagement() {
                 </div>
               </div>
               
-              <div className="p-6 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3 sticky bottom-0 bg-white dark:bg-slate-800 z-10">
-                <button onClick={() => setEditModalOpen(false)} className="px-4 py-2 border rounded text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-700">Cancel</button>
-                <button onClick={saveEdit} className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 flex items-center gap-2">
+              <div className="p-6 border-t border-white/5 flex justify-end gap-3 sticky bottom-0 bg-[#2A2A3D] z-10">
+                <button onClick={() => setEditModalOpen(false)} className="px-4 py-2 border rounded text-[#B0B0C3] hover:bg-[#1E1E2F]">Cancel</button>
+                <button onClick={saveEdit} className="px-4 py-2 bg-[#00FFCC] text-[#1E1E2F] rounded hover:opacity-80 flex items-center gap-2">
                   <Save className="w-4 h-4" /> Save Changes
                 </button>
               </div>
@@ -317,15 +317,15 @@ export default function CompanyManagement() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+              className="bg-[#2A2A3D] rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
             >
-              <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900">
+              <div className="p-6 border-b border-white/5 flex justify-between items-center bg-[#1E1E2F]">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">All Menu Access Control</h2>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">Manage menu visibility for <span className="font-bold text-indigo-600">{selectedCompany.name}</span></p>
+                  <h2 className="text-xl font-bold text-white">All Menu Access Control</h2>
+                  <p className="text-sm text-[#B0B0C3]">Manage menu visibility for <span className="font-bold text-[#00FFCC]">{selectedCompany.name}</span></p>
                 </div>
-                <button onClick={() => setAccessModalOpen(false)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors">
-                  <XIcon className="w-6 h-6 text-slate-500" />
+                <button onClick={() => setAccessModalOpen(false)} className="p-2 hover:bg-[#2A2A3D] rounded-full transition-colors">
+                  <XIcon className="w-6 h-6 text-[#B0B0C3]" />
                 </button>
               </div>
               
@@ -340,26 +340,26 @@ export default function CompanyManagement() {
                         className={`
                           cursor-pointer p-4 rounded-lg border-2 transition-all duration-200 flex items-center justify-between
                           ${isAllowed 
-                            ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' 
-                            : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300'
+                            ? 'border-[#00FFCC] bg-[#00FFCC]/10' 
+                            : 'border-white/10 bg-[#1E1E2F] hover:border-white/20'
                           }
                         `}
                       >
                         <div className="flex items-center gap-3">
                           <div className={`
                             w-5 h-5 rounded flex items-center justify-center border
-                            ${isAllowed ? 'bg-emerald-500 border-emerald-500' : 'bg-white border-slate-300'}
+                            ${isAllowed ? 'bg-[#00FFCC] border-[#00FFCC]' : 'bg-[#1E1E2F] border-white/20'}
                           `}>
-                            {isAllowed && <Check className="w-3 h-3 text-white" />}
+                            {isAllowed && <Check className="w-3 h-3 text-[#1E1E2F]" />}
                           </div>
-                          <span className={`font-medium ${isAllowed ? 'text-emerald-900 dark:text-emerald-100' : 'text-slate-600 dark:text-slate-300'}`}>
+                          <span className={`font-medium ${isAllowed ? 'text-[#00FFCC]' : 'text-[#B0B0C3]'}`}>
                             {menu}
                           </span>
                         </div>
                         {isAllowed ? (
-                          <span className="text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-1 rounded-full">Allowed</span>
+                          <span className="text-xs font-bold text-[#00FFCC] bg-[#00FFCC]/10 px-2 py-1 rounded-full">Allowed</span>
                         ) : (
-                          <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-full">Blocked</span>
+                          <span className="text-xs font-bold text-[#B0B0C3] bg-[#1E1E2F] px-2 py-1 rounded-full">Blocked</span>
                         )}
                       </div>
                     );
@@ -367,10 +367,10 @@ export default function CompanyManagement() {
                 </div>
               </div>
 
-              <div className="p-6 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 flex justify-end">
+              <div className="p-6 border-t border-white/5 bg-[#1E1E2F] flex justify-end">
                 <button 
                   onClick={() => setAccessModalOpen(false)}
-                  className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors shadow-sm"
+                  className="px-6 py-2 bg-[#00FFCC] text-[#1E1E2F] rounded-lg font-medium hover:opacity-80 transition-colors shadow-[0_0_8px_#00FFCC]"
                 >
                   Done
                 </button>

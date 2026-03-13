@@ -26,56 +26,77 @@ export default function EmployeeProjects() {
 
   return (
     <EmployeeLayout>
-      <div className="space-y-6">
+      <div className="space-y-8 max-w-6xl mx-auto">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-white">My Projects</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">View and manage the projects you are currently assigned to.</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">My Projects</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">View and manage the projects you are currently assigned to.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {projects.map((project) => (
-            <div key={project.id} className={`p-6 rounded-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-sm flex flex-col`}>
-              <div className="flex justify-between items-start mb-4">
-                <div className={`p-3 rounded-lg ${
-                  project.status === 'Completed' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                  project.status === 'In Progress' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' :
-                  'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
+            <div 
+              key={project.id} 
+              className={`group p-8 rounded-3xl border transition-all hover:shadow-2xl hover:-translate-y-1 ${
+                isDark 
+                  ? 'bg-slate-900 border-slate-800 hover:border-indigo-500/30' 
+                  : 'bg-white border-slate-100 hover:border-indigo-500/30'
+              }`}
+            >
+              <div className="flex justify-between items-start mb-6">
+                <div className={`p-4 rounded-2xl transition-colors ${
+                  project.status === 'Completed' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400' :
+                  project.status === 'In Progress' ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400' :
+                  'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'
                 }`}>
-                  <ClipboardList className="w-6 h-6" />
+                  <ClipboardList className="w-8 h-8" />
                 </div>
-                <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                   project.status === 'Completed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                  project.status === 'In Progress' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                  project.status === 'In Progress' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400' :
                   'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                 }`}>
                   {project.status}
                 </span>
               </div>
               
-              <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1">{project.name}</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Role: {project.role}</p>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-indigo-500 transition-colors">{project.name}</h3>
+              <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 font-medium">Role: {project.role}</p>
               
-              <div className="mt-auto">
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-slate-600 dark:text-slate-300 font-medium">Progress</span>
-                  <span className="text-slate-800 dark:text-white font-bold">{project.progress}%</span>
-                </div>
-                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 mb-4">
-                  <div 
-                    className={`h-2 rounded-full ${
-                      project.progress === 100 ? 'bg-emerald-500' : 'bg-blue-500'
-                    }`} 
-                    style={{ width: `${project.progress}%` }}
-                  ></div>
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-[10px]">Progress</span>
+                    <span className="text-slate-900 dark:text-white font-bold">{project.progress}%</span>
+                  </div>
+                  <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full transition-all duration-1000 ${
+                        project.progress === 100 ? 'bg-emerald-500' : 'bg-indigo-600'
+                      }`} 
+                      style={{ width: `${project.progress}%` }}
+                    ></div>
+                  </div>
                 </div>
                 
-                <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-4">
+                <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-6">
                   <Clock className="w-4 h-4" />
-                  <span>Deadline: {project.deadline}</span>
+                  <span className="font-medium">Deadline: {project.deadline}</span>
                 </div>
               </div>
             </div>
           ))}
+          
+          {projects.length === 0 && (
+            <div className={`col-span-full py-20 text-center rounded-3xl border-2 border-dashed ${
+              isDark ? 'border-slate-800 text-slate-500' : 'border-slate-200 text-slate-400'
+            }`}>
+              <div className="inline-flex p-6 rounded-full bg-slate-100 dark:bg-slate-800 mb-6">
+                <ClipboardList className="w-12 h-12 opacity-50" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white">No projects assigned</h3>
+              <p className="mt-2">You don't have any active projects at the moment.</p>
+            </div>
+          )}
         </div>
       </div>
     </EmployeeLayout>

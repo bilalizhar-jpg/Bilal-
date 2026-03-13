@@ -191,49 +191,49 @@ export default function LeaveManagement() {
         <div className="flex items-center gap-2 mb-6">
             <button 
               onClick={() => setActiveTab('weekly')}
-              className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-                activeTab === 'weekly' ? 'bg-[#28A745] text-white' : 'bg-[#E9ECEF] text-slate-600 hover:bg-slate-200'
+              className={`px-4 py-2 rounded text-sm font-black uppercase tracking-tight transition-colors ${
+                activeTab === 'weekly' ? 'bg-[#00FFCC] text-[#1E1E2F]' : 'bg-[#2A2A3D] text-[#B0B0C3] hover:bg-[#3A3A5D]'
               }`}
             >
               Weekly holiday
             </button>
             <button 
               onClick={() => setActiveTab('holiday')}
-              className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-                activeTab === 'holiday' ? 'bg-[#28A745] text-white' : 'bg-[#E9ECEF] text-slate-600 hover:bg-slate-200'
+              className={`px-4 py-2 rounded text-sm font-black uppercase tracking-tight transition-colors ${
+                activeTab === 'holiday' ? 'bg-[#00FFCC] text-[#1E1E2F]' : 'bg-[#2A2A3D] text-[#B0B0C3] hover:bg-[#3A3A5D]'
               }`}
             >
               Holiday
             </button>
             <button 
               onClick={() => setActiveTab('type')}
-              className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-                activeTab === 'type' ? 'bg-[#28A745] text-white' : 'bg-[#E9ECEF] text-slate-600 hover:bg-slate-200'
+              className={`px-4 py-2 rounded text-sm font-black uppercase tracking-tight transition-colors ${
+                activeTab === 'type' ? 'bg-[#00FFCC] text-[#1E1E2F]' : 'bg-[#2A2A3D] text-[#B0B0C3] hover:bg-[#3A3A5D]'
               }`}
             >
               Leave type
             </button>
             <button 
               onClick={() => setActiveTab('approval')}
-              className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-                activeTab === 'approval' ? 'bg-[#28A745] text-white' : 'bg-[#E9ECEF] text-slate-600 hover:bg-slate-200'
+              className={`px-4 py-2 rounded text-sm font-black uppercase tracking-tight transition-colors ${
+                activeTab === 'approval' ? 'bg-[#00FFCC] text-[#1E1E2F]' : 'bg-[#2A2A3D] text-[#B0B0C3] hover:bg-[#3A3A5D]'
               }`}
             >
               Leave approval
             </button>
             <button 
               onClick={() => setActiveTab('report')}
-              className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-                activeTab === 'report' ? 'bg-[#28A745] text-white' : 'bg-[#E9ECEF] text-slate-600 hover:bg-slate-200'
+              className={`px-4 py-2 rounded text-sm font-black uppercase tracking-tight transition-colors ${
+                activeTab === 'report' ? 'bg-[#00FFCC] text-[#1E1E2F]' : 'bg-[#2A2A3D] text-[#B0B0C3] hover:bg-[#3A3A5D]'
               }`}
             >
               Leave report
             </button>
           </div>
 
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-slate-100 flex justify-between items-center">
-              <h2 className="font-bold text-slate-800 capitalize">
+          <div className="bg-[#2A2A3D] rounded-2xl border border-white/5 shadow-[0_4px_20px_rgba(0,255,204,0.05)] overflow-hidden">
+            <div className="p-4 border-b border-white/5 flex justify-between items-center bg-[#1E1E2F]/50">
+              <h2 className="font-black text-white uppercase tracking-tight">
                 {activeTab === 'weekly' && 'Weekly holiday'}
                 {activeTab === 'holiday' && 'Holiday list'}
                 {activeTab === 'type' && 'Leave type list'}
@@ -249,7 +249,7 @@ export default function LeaveManagement() {
                       setHolidayForm({ name: '', fromDate: '', toDate: '', totalDays: 0 });
                       setIsModalOpen(true);
                     }}
-                    className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838]"
+                    className="bg-[#00FFCC] text-[#1E1E2F] px-3 py-1.5 rounded text-xs font-black uppercase hover:bg-[#00D1FF] flex items-center gap-1.5 shadow-[0_0_8px_rgba(0,255,204,0.4)]"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     Add holiday
@@ -263,7 +263,7 @@ export default function LeaveManagement() {
                       setTypeForm({ name: '', days: 0, customFields: [] });
                       setIsModalOpen(true);
                     }}
-                    className="bg-[#28A745] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#218838]"
+                    className="bg-[#00FFCC] text-[#1E1E2F] px-3 py-1.5 rounded text-xs font-black uppercase hover:bg-[#00D1FF] flex items-center gap-1.5 shadow-[0_0_8px_rgba(0,255,204,0.4)]"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     Add leave type
@@ -272,7 +272,7 @@ export default function LeaveManagement() {
                 {activeTab === 'report' && (
                   <button 
                     onClick={handlePrintAllReports}
-                    className="bg-[#17A2B8] text-white px-3 py-1.5 rounded text-xs font-bold flex items-center gap-1.5 hover:bg-[#138496]"
+                    className="bg-transparent border border-[#00D1FF] text-[#00D1FF] px-3 py-1.5 rounded text-xs font-black uppercase hover:bg-[#00D1FF] hover:text-[#1E1E2F] flex items-center gap-1.5"
                   >
                     <Download className="w-3.5 h-3.5" />
                     Print as PDF
@@ -287,24 +287,24 @@ export default function LeaveManagement() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-slate-50/50 border-b border-slate-100">
-                        <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Sl</th>
-                        <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Day name</th>
-                        <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider">Action</th>
+                      <tr className="bg-[#1E1E2F]/50 border-b border-white/5">
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Sl</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Day name</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">Action</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">1</td>
-                        <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{weeklyHolidays?.days.join(', ') || 'None'}</td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
+                      <tr className="hover:bg-[#3A3A5D]/50 transition-colors border-b border-white/5">
+                        <td className="px-4 py-3 text-xs text-white border-r border-white/5">1</td>
+                        <td className="px-4 py-3 text-xs text-white border-r border-white/5">{weeklyHolidays?.days.join(', ') || 'None'}</td>
+                        <td className="px-4 py-3 text-xs text-white">
                           <button 
                             onClick={() => {
                               setModalType('weekly');
                               setWeeklyForm(weeklyHolidays?.days || []);
                               setIsModalOpen(true);
                             }}
-                            className="p-1.5 text-indigo-600 bg-indigo-50 rounded border border-indigo-100 hover:bg-indigo-100"
+                            className="p-1.5 text-[#00FFCC] bg-[#2A2A3D] rounded border border-[#00FFCC]/20 hover:bg-[#3A3A5D]"
                           >
                             <Edit className="w-3.5 h-3.5" />
                           </button>
@@ -319,24 +319,24 @@ export default function LeaveManagement() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-slate-50/50 border-b border-slate-100">
-                        <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Sl</th>
-                        <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Holiday name</th>
-                        <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">From date</th>
-                        <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">To date</th>
-                        <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Total days</th>
-                        <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider">Action</th>
+                      <tr className="bg-[#1E1E2F]/50 border-b border-white/5">
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Sl</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Holiday name</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">From date</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">To date</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Total days</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-white/5">
                       {holidays.map((h, idx) => (
-                        <tr key={h.id} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{idx + 1}</td>
-                          <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{h.name}</td>
-                          <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{h.fromDate}</td>
-                          <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{h.toDate}</td>
-                          <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{h.totalDays}</td>
-                          <td className="px-4 py-3 text-sm text-slate-600">
+                        <tr key={h.id} className="hover:bg-[#3A3A5D]/50 transition-colors">
+                          <td className="px-4 py-3 text-xs text-white border-r border-white/5">{idx + 1}</td>
+                          <td className="px-4 py-3 text-xs text-white border-r border-white/5">{h.name}</td>
+                          <td className="px-4 py-3 text-xs text-white border-r border-white/5">{h.fromDate}</td>
+                          <td className="px-4 py-3 text-xs text-white border-r border-white/5">{h.toDate}</td>
+                          <td className="px-4 py-3 text-xs text-white border-r border-white/5">{h.totalDays}</td>
+                          <td className="px-4 py-3 text-xs text-white">
                             <div className="flex gap-1">
                               <button 
                                 onClick={() => {
@@ -345,13 +345,13 @@ export default function LeaveManagement() {
                                   setHolidayForm(h);
                                   setIsModalOpen(true);
                                 }}
-                                className="p-1.5 text-indigo-600 bg-indigo-50 rounded border border-indigo-100 hover:bg-indigo-100"
+                                className="p-1.5 text-[#00FFCC] bg-[#2A2A3D] rounded border border-[#00FFCC]/20 hover:bg-[#3A3A5D]"
                               >
                                 <Edit className="w-3.5 h-3.5" />
                               </button>
                               <button 
                                 onClick={() => deleteHoliday(h.id)}
-                                className="p-1.5 text-red-600 bg-red-50 rounded border border-red-100 hover:bg-red-100"
+                                className="p-1.5 text-red-400 bg-[#2A2A3D] rounded border border-red-400/20 hover:bg-[#3A3A5D]"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -368,20 +368,20 @@ export default function LeaveManagement() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-slate-50/50 border-b border-slate-100">
-                        <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Sl</th>
-                        <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Leave type</th>
-                        <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Days</th>
-                        <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider">Action</th>
+                      <tr className="bg-[#1E1E2F]/50 border-b border-white/5">
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Sl</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Leave type</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Days</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-white/5">
                       {leaveTypes.map((t, idx) => (
-                        <tr key={t.id} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{idx + 1}</td>
-                          <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{t.name}</td>
-                          <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{t.days}</td>
-                          <td className="px-4 py-3 text-sm text-slate-600">
+                        <tr key={t.id} className="hover:bg-[#3A3A5D]/50 transition-colors">
+                          <td className="px-4 py-3 text-xs text-white border-r border-white/5">{idx + 1}</td>
+                          <td className="px-4 py-3 text-xs text-white border-r border-white/5">{t.name}</td>
+                          <td className="px-4 py-3 text-xs text-white border-r border-white/5">{t.days}</td>
+                          <td className="px-4 py-3 text-xs text-white">
                             <div className="flex gap-1">
                               <button 
                                 onClick={() => {
@@ -390,13 +390,13 @@ export default function LeaveManagement() {
                                   setTypeForm(t);
                                   setIsModalOpen(true);
                                 }}
-                                className="p-1.5 text-indigo-600 bg-indigo-50 rounded border border-indigo-100 hover:bg-indigo-100"
+                                className="p-1.5 text-[#00FFCC] bg-[#2A2A3D] rounded border border-[#00FFCC]/20 hover:bg-[#3A3A5D]"
                               >
                                 <Edit className="w-3.5 h-3.5" />
                               </button>
                               <button 
                                 onClick={() => deleteLeaveType(t.id)}
-                                className="p-1.5 text-red-600 bg-red-50 rounded border border-red-100 hover:bg-red-100"
+                                className="p-1.5 text-red-400 bg-[#2A2A3D] rounded border border-red-400/20 hover:bg-[#3A3A5D]"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -413,53 +413,53 @@ export default function LeaveManagement() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-slate-50/50 border-b border-slate-100">
-                        <th className="px-4 py-3 text-[10px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Sl</th>
-                        <th className="px-4 py-3 text-[10px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Employee name</th>
-                        <th className="px-4 py-3 text-[10px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Type</th>
-                        <th className="px-4 py-3 text-[10px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Apply date</th>
-                        <th className="px-4 py-3 text-[10px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Leave start</th>
-                        <th className="px-4 py-3 text-[10px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Leave end</th>
-                        <th className="px-4 py-3 text-[10px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Days</th>
-                        <th className="px-4 py-3 text-[10px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Reason</th>
-                        <th className="px-4 py-3 text-[10px] font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Status</th>
-                        <th className="px-4 py-3 text-[10px] font-bold text-slate-600 uppercase tracking-wider">Action</th>
+                      <tr className="bg-[#1E1E2F]/50 border-b border-white/5">
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Sl</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Employee name</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Type</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Apply date</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Leave start</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Leave end</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Days</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Reason</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Status</th>
+                        <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-white/5">
                       {filteredApplications.map((app, idx) => (
-                        <tr key={app.id} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">{idx + 1}</td>
-                          <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">{app.employeeName}</td>
-                          <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">{app.type}</td>
-                          <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">{app.appliedDate}</td>
-                          <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">{app.startDate}</td>
-                          <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">{app.endDate}</td>
-                          <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">{app.days}</td>
-                          <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100 truncate max-w-[150px]" title={app.reason}>{app.reason}</td>
-                          <td className="px-4 py-3 text-xs border-r border-slate-100">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                              app.status === 'Approved' ? 'bg-emerald-50 text-emerald-600' : 
-                              app.status === 'Rejected' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'
+                        <tr key={app.id} className="hover:bg-[#3A3A5D]/50 transition-colors">
+                          <td className="px-4 py-3 text-xs text-white border-r border-white/5">{idx + 1}</td>
+                          <td className="px-4 py-3 text-xs text-white border-r border-white/5">{app.employeeName}</td>
+                          <td className="px-4 py-3 text-xs text-white border-r border-white/5">{app.type}</td>
+                          <td className="px-4 py-3 text-xs text-white border-r border-white/5">{app.appliedDate}</td>
+                          <td className="px-4 py-3 text-xs text-white border-r border-white/5">{app.startDate}</td>
+                          <td className="px-4 py-3 text-xs text-white border-r border-white/5">{app.endDate}</td>
+                          <td className="px-4 py-3 text-xs text-white border-r border-white/5">{app.days}</td>
+                          <td className="px-4 py-3 text-xs text-white border-r border-white/5 truncate max-w-[150px]" title={app.reason}>{app.reason}</td>
+                          <td className="px-4 py-3 text-xs border-r border-white/5">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                              app.status === 'Approved' ? 'bg-[#00FFCC]/20 text-[#00FFCC]' : 
+                              app.status === 'Rejected' ? 'bg-red-400/20 text-red-400' : 'bg-amber-400/20 text-amber-400'
                             }`}>
                               {app.status}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-xs text-slate-600">
+                          <td className="px-4 py-3 text-xs text-white">
                             <div className="flex gap-1">
                               {app.status === 'Pending' && (
                                 <>
                                   <button 
                                     onClick={() => handleApprove(app.id)}
                                     title="Approve"
-                                    className="p-1.5 text-emerald-600 bg-emerald-50 rounded border border-emerald-100 hover:bg-emerald-100"
+                                    className="p-1.5 text-[#00FFCC] bg-[#2A2A3D] rounded border border-[#00FFCC]/20 hover:bg-[#3A3A5D]"
                                   >
                                     <Check className="w-3.5 h-3.5" />
                                   </button>
                                   <button 
                                     onClick={() => handleReject(app.id)}
                                     title="Reject"
-                                    className="p-1.5 text-red-600 bg-red-50 rounded border border-red-100 hover:bg-red-100"
+                                    className="p-1.5 text-red-400 bg-[#2A2A3D] rounded border border-red-400/20 hover:bg-[#3A3A5D]"
                                   >
                                     <X className="w-3.5 h-3.5" />
                                   </button>
@@ -469,7 +469,7 @@ export default function LeaveManagement() {
                                 <button 
                                   onClick={() => handleRevert(app.id)}
                                   title="Revert to Pending"
-                                  className="p-1.5 text-amber-600 bg-amber-50 rounded border border-amber-100 hover:bg-amber-100"
+                                  className="p-1.5 text-amber-400 bg-[#2A2A3D] rounded border border-amber-400/20 hover:bg-[#3A3A5D]"
                                 >
                                   <RefreshCw className="w-3.5 h-3.5" />
                                 </button>
@@ -481,7 +481,7 @@ export default function LeaveManagement() {
                                   setApprovalForm(app);
                                   setIsModalOpen(true);
                                 }}
-                                className="p-1.5 text-indigo-600 bg-indigo-50 rounded border border-indigo-100 hover:bg-indigo-100"
+                                className="p-1.5 text-[#00FFCC] bg-[#2A2A3D] rounded border border-[#00FFCC]/20 hover:bg-[#3A3A5D]"
                               >
                                 <Edit className="w-3.5 h-3.5" />
                               </button>
@@ -496,10 +496,10 @@ export default function LeaveManagement() {
 
               {activeTab === 'report' && (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-100">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-[#1E1E2F] p-4 rounded-2xl border border-white/5">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Employee</label>
-                      <select className="w-full border border-slate-200 rounded px-3 py-1.5 text-sm outline-none bg-white">
+                      <label className="text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">Employee</label>
+                      <select className="w-full border border-white/10 rounded-lg px-3 py-2 text-sm outline-none bg-[#2A2A3D] text-white focus:border-[#00FFCC] transition-colors">
                         <option>All Employees</option>
                         {activeEmployees.map(e => (
                           <option key={e.id} value={e.name}>{e.name}</option>
@@ -507,14 +507,14 @@ export default function LeaveManagement() {
                       </select>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Leave Type</label>
-                      <select className="w-full border border-slate-200 rounded px-3 py-1.5 text-sm outline-none bg-white">
+                      <label className="text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">Leave Type</label>
+                      <select className="w-full border border-white/10 rounded-lg px-3 py-2 text-sm outline-none bg-[#2A2A3D] text-white focus:border-[#00FFCC] transition-colors">
                         <option>All Types</option>
                       </select>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Status</label>
-                      <select className="w-full border border-slate-200 rounded px-3 py-1.5 text-sm outline-none bg-white">
+                      <label className="text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">Status</label>
+                      <select className="w-full border border-white/10 rounded-lg px-3 py-2 text-sm outline-none bg-[#2A2A3D] text-white focus:border-[#00FFCC] transition-colors">
                         <option>All Status</option>
                         <option>Approved</option>
                         <option>Pending</option>
@@ -522,7 +522,7 @@ export default function LeaveManagement() {
                       </select>
                     </div>
                     <div className="flex items-end">
-                      <button className="w-full bg-indigo-600 text-white px-4 py-1.5 rounded text-sm font-bold hover:bg-indigo-700">
+                      <button className="w-full bg-[#00FFCC] text-[#1E1E2F] px-4 py-2 rounded-lg text-sm font-black uppercase hover:bg-[#00D1FF] shadow-[0_0_8px_rgba(0,255,204,0.4)]">
                         Filter Report
                       </button>
                     </div>
@@ -531,31 +531,31 @@ export default function LeaveManagement() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="bg-slate-50/50 border-b border-slate-100">
-                          <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Sl</th>
-                          <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Employee</th>
-                          <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Total Leave</th>
-                          <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Used</th>
-                          <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-100">Remaining</th>
-                          <th className="px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider">Action</th>
+                        <tr className="bg-[#1E1E2F]/50 border-b border-white/5">
+                          <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Sl</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Employee</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Total Leave</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Used</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider border-r border-white/5">Remaining</th>
+                          <th className="px-4 py-3 text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">Action</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody className="divide-y divide-white/5">
                         {activeEmployees.map((emp, idx) => (
-                          <tr key={emp.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{idx + 1}</td>
-                            <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">{emp.name}</td>
-                            <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">30</td>
-                            <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">
+                          <tr key={emp.id} className="hover:bg-[#3A3A5D]/50 transition-colors">
+                            <td className="px-4 py-3 text-xs text-white border-r border-white/5">{idx + 1}</td>
+                            <td className="px-4 py-3 text-xs text-white border-r border-white/5">{emp.name}</td>
+                            <td className="px-4 py-3 text-xs text-white border-r border-white/5">30</td>
+                            <td className="px-4 py-3 text-xs text-white border-r border-white/5">
                               {applications.filter(a => (a.employeeName === emp.name || a.employeeId === emp.id) && a.status === 'Approved').reduce((sum, a) => sum + a.days, 0)}
                             </td>
-                            <td className="px-4 py-3 text-sm text-slate-600 border-r border-slate-100">
+                            <td className="px-4 py-3 text-xs text-white border-r border-white/5">
                               {30 - applications.filter(a => (a.employeeName === emp.name || a.employeeId === emp.id) && a.status === 'Approved').reduce((sum, a) => sum + a.days, 0)}
                             </td>
-                            <td className="px-4 py-3 text-sm text-slate-600">
+                            <td className="px-4 py-3 text-xs text-white">
                               <button 
                                 onClick={() => handleDownloadReport(emp.name)}
-                                className="p-1.5 text-indigo-600 bg-indigo-50 rounded border border-indigo-100 hover:bg-indigo-100"
+                                className="p-1.5 text-[#00FFCC] bg-[#2A2A3D] rounded border border-[#00FFCC]/20 hover:bg-[#3A3A5D]"
                               >
                                 <Download className="w-3.5 h-3.5" />
                               </button>
@@ -580,12 +580,12 @@ export default function LeaveManagement() {
                 exit={{ opacity: 0, scale: 0.95 }}
                 className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col"
               >
-                <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                  <h3 className="font-bold text-slate-800">
+                <div className="p-4 border-b border-white/5 flex justify-between items-center bg-[#1E1E2F]">
+                  <h3 className="font-black text-white uppercase tracking-tight">
                     {modalType === 'holiday' ? (editingItem ? 'Edit Holiday' : 'Add Holiday') : (editingItem ? 'Edit Leave Type' : 'Add Leave Type')}
                   </h3>
-                  <button onClick={() => setIsModalOpen(false)} className="p-1 hover:bg-slate-200 rounded-full transition-colors">
-                    <X className="w-5 h-5 text-slate-500" />
+                  <button onClick={() => setIsModalOpen(false)} className="p-1 hover:bg-[#3A3A5D] rounded-full transition-colors">
+                    <X className="w-5 h-5 text-[#B0B0C3]" />
                   </button>
                 </div>
                 
@@ -594,10 +594,10 @@ export default function LeaveManagement() {
                   modalType === 'type' ? handleSaveLeaveType : 
                   modalType === 'weekly' ? handleSaveWeeklyHoliday :
                   handleSaveApproval
-                } className="p-6 space-y-4">
+                } className="p-6 space-y-4 bg-[#2A2A3D]">
                   {modalType === 'weekly' ? (
                     <div className="space-y-3">
-                      <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Select Days</label>
+                      <label className="text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">Select Days</label>
                       <div className="grid grid-cols-2 gap-2">
                         {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
                           <label key={day} className="flex items-center gap-2 cursor-pointer">
@@ -611,9 +611,9 @@ export default function LeaveManagement() {
                                   setWeeklyForm(weeklyForm.filter(d => d !== day));
                                 }
                               }}
-                              className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                              className="rounded border-white/10 bg-[#1E1E2F] text-[#00FFCC] focus:ring-[#00FFCC]"
                             />
-                            <span className="text-sm text-slate-700">{day}</span>
+                            <span className="text-sm text-white">{day}</span>
                           </label>
                         ))}
                       </div>
@@ -621,40 +621,40 @@ export default function LeaveManagement() {
                   ) : modalType === 'holiday' ? (
                     <>
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Holiday Name</label>
+                        <label className="text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">Holiday Name</label>
                         <input 
                           required
                           type="text" 
                           value={holidayForm.name}
                           onChange={(e) => setHolidayForm({...holidayForm, name: e.target.value})}
-                          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                          className="w-full border border-white/10 bg-[#1E1E2F] text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-[#00FFCC] transition-all"
                           placeholder="Eid Vacation"
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">From Date</label>
+                          <label className="text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">From Date</label>
                           <input 
                             required
                             type="date" 
                             value={holidayForm.fromDate}
                             onChange={(e) => setHolidayForm({...holidayForm, fromDate: e.target.value})}
-                            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                            className="w-full border border-white/10 bg-[#1E1E2F] text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-[#00FFCC] transition-all"
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">To Date</label>
+                          <label className="text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">To Date</label>
                           <input 
                             required
                             type="date" 
                             value={holidayForm.toDate}
                             onChange={(e) => setHolidayForm({...holidayForm, toDate: e.target.value})}
-                            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                            className="w-full border border-white/10 bg-[#1E1E2F] text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-[#00FFCC] transition-all"
                           />
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Total Days</label>
+                        <label className="text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">Total Days</label>
                         <input 
                           required
                           type="number" 
@@ -664,25 +664,25 @@ export default function LeaveManagement() {
                             const num = parseInt(val);
                             setHolidayForm({...holidayForm, totalDays: isNaN(num) ? 0 : num});
                           }}
-                          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                          className="w-full border border-white/10 bg-[#1E1E2F] text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-[#00FFCC] transition-all"
                         />
                       </div>
                     </>
                   ) : modalType === 'type' ? (
                     <>
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Leave Type Name</label>
+                        <label className="text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">Leave Type Name</label>
                         <input 
                           required
                           type="text" 
                           value={typeForm.name}
                           onChange={(e) => setTypeForm({...typeForm, name: e.target.value})}
-                          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                          className="w-full border border-white/10 bg-[#1E1E2F] text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-[#00FFCC] transition-all"
                           placeholder="Medical Leave"
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Days</label>
+                        <label className="text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">Days</label>
                         <input 
                           required
                           type="number" 
@@ -692,18 +692,18 @@ export default function LeaveManagement() {
                             const num = parseInt(val);
                             setTypeForm({...typeForm, days: isNaN(num) ? 0 : num});
                           }}
-                          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                          className="w-full border border-white/10 bg-[#1E1E2F] text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-[#00FFCC] transition-all"
                         />
                       </div>
                       
                       {/* Custom Fields */}
-                      <div className="pt-4 border-t border-slate-100">
+                      <div className="pt-4 border-t border-white/5">
                         <div className="flex items-center justify-between mb-2">
-                          <label className="text-[10px] font-bold text-slate-500 uppercase">Custom Fields</label>
+                          <label className="text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">Custom Fields</label>
                           <button 
                             type="button"
                             onClick={() => setTypeForm(prev => ({ ...prev, customFields: [...(prev.customFields || []), { key: '', value: '' }] }))}
-                            className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700"
+                            className="text-[10px] font-black text-[#00FFCC] hover:text-[#00D1FF]"
                           >
                             + Add Field
                           </button>
@@ -719,7 +719,7 @@ export default function LeaveManagement() {
                                   updated[idx].key = e.target.value;
                                   setTypeForm({ ...typeForm, customFields: updated });
                                 }}
-                                className="flex-1 border border-slate-200 rounded px-2 py-1 text-xs outline-none"
+                                className="flex-1 border border-white/10 bg-[#1E1E2F] text-white rounded px-2 py-1 text-xs outline-none"
                               />
                               <input 
                                 placeholder="Value"
@@ -729,12 +729,12 @@ export default function LeaveManagement() {
                                   updated[idx].value = e.target.value;
                                   setTypeForm({ ...typeForm, customFields: updated });
                                 }}
-                                className="flex-1 border border-slate-200 rounded px-2 py-1 text-xs outline-none"
+                                className="flex-1 border border-white/10 bg-[#1E1E2F] text-white rounded px-2 py-1 text-xs outline-none"
                               />
                               <button 
                                 type="button"
                                 onClick={() => setTypeForm(prev => ({ ...prev, customFields: (prev.customFields || []).filter((_, i) => i !== idx) }))}
-                                className="text-red-500 hover:bg-red-50 p-1 rounded"
+                                className="text-red-400 hover:bg-[#3A3A5D] p-1 rounded"
                               >
                                 <Trash2 className="w-3 h-3" />
                               </button>
@@ -746,38 +746,38 @@ export default function LeaveManagement() {
                   ) : (
                     <>
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Employee Name</label>
+                        <label className="text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">Employee Name</label>
                         <input 
                           disabled
                           type="text" 
                           value={approvalForm.employeeName || ''}
-                          className="w-full border border-slate-200 bg-slate-50 rounded-lg px-3 py-2 text-sm outline-none"
+                          className="w-full border border-white/10 bg-[#1E1E2F]/50 text-white rounded-lg px-3 py-2 text-sm outline-none"
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Leave Type</label>
+                        <label className="text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">Leave Type</label>
                         <input 
                           disabled
                           type="text" 
                           value={approvalForm.type || ''}
-                          className="w-full border border-slate-200 bg-slate-50 rounded-lg px-3 py-2 text-sm outline-none"
+                          className="w-full border border-white/10 bg-[#1E1E2F]/50 text-white rounded-lg px-3 py-2 text-sm outline-none"
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Reason</label>
+                        <label className="text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">Reason</label>
                         <textarea 
                           disabled
                           rows={2}
                           value={(editingItem as any)?.reason || ''}
-                          className="w-full border border-slate-200 bg-slate-50 rounded-lg px-3 py-2 text-sm outline-none resize-none"
+                          className="w-full border border-white/10 bg-[#1E1E2F]/50 text-white rounded-lg px-3 py-2 text-sm outline-none resize-none"
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">Status</label>
+                        <label className="text-[10px] font-black text-[#B0B0C3] uppercase tracking-wider">Status</label>
                         <select 
                           value={approvalForm.status || 'Pending'}
                           onChange={(e) => setApprovalForm({...approvalForm, status: e.target.value as any})}
-                          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                          className="w-full border border-white/10 bg-[#1E1E2F] text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-[#00FFCC] transition-all"
                         >
                           <option value="Pending">Pending</option>
                           <option value="Approved">Approved</option>
@@ -791,15 +791,15 @@ export default function LeaveManagement() {
                     <button 
                       type="button"
                       onClick={() => setIsModalOpen(false)}
-                      className="px-4 py-2 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+                      className="px-4 py-2 rounded-lg text-sm font-black text-[#B0B0C3] hover:bg-[#3A3A5D] transition-colors"
                     >
                       Cancel
                     </button>
                     <button 
                       type="submit"
-                      className="px-4 py-2 rounded-lg text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all"
+                      className="px-4 py-2 rounded-lg text-sm font-black text-[#1E1E2F] bg-[#00FFCC] hover:bg-[#00D1FF] shadow-[0_0_8px_rgba(0,255,204,0.4)] transition-all"
                     >
-                      Save Changes
+                      Save
                     </button>
                   </div>
                 </form>

@@ -84,7 +84,6 @@ export default function EmployeeProcurement() {
       await addEntity('procurementRequests', payload);
       alert("Procurement request saved successfully!");
       setIsEditing(false);
-      // Assuming we want to stay on the page or navigate somewhere
     } catch (error) {
       console.error("Error saving procurement request:", error);
       alert("Failed to save request");
@@ -96,9 +95,22 @@ export default function EmployeeProcurement() {
   if (!hasNewRequestPermission) {
     return (
       <EmployeeLayout>
-        <div className="p-6 text-center">
-          <h2 className="text-xl font-bold text-slate-800 dark:text-white">Access Denied</h2>
-          <p className="text-slate-500">You do not have permission to create new procurement requests.</p>
+        <div className="min-h-[60vh] flex items-center justify-center p-6">
+          <div className={`max-w-md w-full p-10 rounded-3xl border text-center space-y-6 shadow-2xl shadow-indigo-500/10 ${
+            isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'
+          }`}>
+            <div className={`mx-auto w-20 h-20 rounded-full flex items-center justify-center border-2 ${
+              isDark ? 'bg-slate-800 border-rose-500/50 text-rose-400' : 'bg-rose-50 border-rose-200 text-rose-600'
+            }`}>
+              <Briefcase className="w-10 h-10" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Access Denied</h2>
+              <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
+                You do not have permission to create new procurement requests. Please contact your department head.
+              </p>
+            </div>
+          </div>
         </div>
       </EmployeeLayout>
     );
@@ -106,112 +118,119 @@ export default function EmployeeProcurement() {
 
   return (
     <EmployeeLayout>
-      <div className="space-y-6 pb-12">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <FileText className="w-6 h-6 text-indigo-600" />
-            <h2 className="text-xl font-bold text-slate-800 dark:text-white">New Procurement Request</h2>
+      <div className="space-y-8 max-w-5xl mx-auto pb-12">
+        <div className="flex flex-col sm:flex-row justify-between items-end gap-4">
+          <div className="flex items-center gap-4">
+            <div className={`p-3 rounded-2xl ${isDark ? 'bg-indigo-900/30 text-indigo-400' : 'bg-indigo-50 text-indigo-600'}`}>
+              <FileText className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">New Procurement Request</h1>
+              <p className="text-slate-500 dark:text-slate-400 mt-1">Submit a new request for equipment or supplies.</p>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <button 
-              onClick={handleSaveRequest}
-              disabled={isSaving}
-              className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-700 disabled:opacity-50"
-            >
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              Submit Request
-            </button>
-          </div>
+          <button 
+            onClick={handleSaveRequest}
+            disabled={isSaving}
+            className="flex items-center gap-2 bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 transition-all active:scale-95 disabled:opacity-50"
+          >
+            {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+            Submit Request
+          </button>
         </div>
 
-        <div className={`max-w-4xl mx-auto p-8 shadow-xl border ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} rounded-xl space-y-8`}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-wider border-b border-indigo-50 dark:border-indigo-900/30 pb-1">Employee Information</h3>
-              <div className="space-y-3">
+        <div className={`p-8 rounded-3xl border shadow-xl ${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'} space-y-10`}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-widest">Employee Information</h3>
+              </div>
+              <div className="space-y-4">
                 <InfoField label="Employee Name" name="employeeName" value={requestData.employeeName} onChange={handleDataChange} isEditing={isEditing} isDark={isDark} />
                 <InfoField label="Employee ID" name="employeeId" value={requestData.employeeId} onChange={handleDataChange} isEditing={isEditing} isDark={isDark} />
                 <InfoField label="Department" name="department" value={requestData.department} onChange={handleDataChange} isEditing={isEditing} isDark={isDark} />
               </div>
             </div>
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-wider border-b border-indigo-50 dark:border-indigo-900/30 pb-1">Request Details</h3>
-              <div className="space-y-3">
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-widest">Request Details</h3>
+              </div>
+              <div className="space-y-4">
                 <InfoField label="Request Date" name="requestDate" value={requestData.requestDate} onChange={handleDataChange} type="date" isEditing={isEditing} isDark={isDark} />
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Priority</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase mb-1.5 block tracking-wider">Priority Level</label>
                   <select 
-                      name="priority"
-                      value={requestData.priority}
-                      onChange={handleDataChange}
-                      className={`w-full border rounded px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
-                    >
-                      <option>Low</option>
-                      <option>Normal</option>
-                      <option>High</option>
-                      <option>Urgent</option>
-                    </select>
+                    name="priority"
+                    value={requestData.priority}
+                    onChange={handleDataChange}
+                    className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-all focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`}
+                  >
+                    <option>Low</option>
+                    <option>Normal</option>
+                    <option>High</option>
+                    <option>Urgent</option>
+                  </select>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2">
-              <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-wider">Requested Items</h3>
+              <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-widest">Requested Items</h3>
               <button 
-                  onClick={addItem}
-                  className="flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-700"
-                >
-                  <Plus className="w-3 h-3" />
-                  Add Item
-                </button>
+                onClick={addItem}
+                className="flex items-center gap-2 text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Add New Item
+              </button>
             </div>
-            <div className="overflow-x-auto border border-slate-100 dark:border-slate-800 rounded-lg">
+            <div className="overflow-hidden border border-slate-100 dark:border-slate-800 rounded-2xl">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-bold uppercase">
-                    <th className="p-3 border-b border-slate-100 dark:border-slate-800">Item Name / Category</th>
-                    <th className="p-3 border-b border-slate-100 dark:border-slate-800 w-24">Qty</th>
-                    <th className="p-3 border-b border-slate-100 dark:border-slate-800">Description / Reason</th>
-                    <th className="p-3 border-b border-slate-100 dark:border-slate-800 w-10"></th>
+                  <tr className="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    <th className="p-4 border-b border-slate-100 dark:border-slate-800">Item Name / Category</th>
+                    <th className="p-4 border-b border-slate-100 dark:border-slate-800 w-24">Qty</th>
+                    <th className="p-4 border-b border-slate-100 dark:border-slate-800">Description / Reason</th>
+                    <th className="p-4 border-b border-slate-100 dark:border-slate-800 w-12"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {items.map((item) => (
-                    <tr key={item.id} className="text-sm">
-                      <td className="p-3">
+                    <tr key={item.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                      <td className="p-4">
                         <input 
                           type="text" 
                           value={item.itemName}
                           onChange={(e) => updateItem(item.id, 'itemName', e.target.value)}
                           placeholder="e.g. Wireless Keyboard"
-                          className={`w-full border rounded px-2 py-1 text-sm ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                          className={`w-full border rounded-xl px-3 py-2 text-sm transition-all focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
                         />
                       </td>
-                      <td className="p-3">
+                      <td className="p-4">
                         <input 
                           type="number" 
                           value={item.quantity}
                           onChange={(e) => updateItem(item.id, 'quantity', parseInt(e.target.value))}
-                          className={`w-full border rounded px-2 py-1 text-sm ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                          className={`w-full border rounded-xl px-3 py-2 text-sm transition-all focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
                         />
                       </td>
-                      <td className="p-3">
+                      <td className="p-4">
                         <input 
                           type="text" 
                           value={item.description}
                           onChange={(e) => updateItem(item.id, 'description', e.target.value)}
                           placeholder="Reason for request..."
-                          className={`w-full border rounded px-2 py-1 text-sm ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+                          className={`w-full border rounded-xl px-3 py-2 text-sm transition-all focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
                         />
                       </td>
-                      <td className="p-3">
+                      <td className="p-4">
                         <button 
                           onClick={() => removeItem(item.id)}
-                          className="text-red-400 hover:text-red-600"
+                          className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-all"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-5 h-5" />
                         </button>
                       </td>
                     </tr>
@@ -229,13 +248,13 @@ export default function EmployeeProcurement() {
 function InfoField({ label, name, value, onChange, type = 'text', isEditing, isDark }: any) {
   return (
     <div>
-      <label className="text-[10px] font-bold text-slate-500 uppercase mb-1 block">{label}</label>
+      <label className="text-[10px] font-bold text-slate-500 uppercase mb-1.5 block tracking-wider">{label}</label>
       <input 
         type={type} 
         name={name}
         value={value}
         onChange={onChange}
-        className={`w-full border rounded px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+        className={`w-full border rounded-xl px-4 py-2.5 text-sm outline-none transition-all focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'}`}
       />
     </div>
   );

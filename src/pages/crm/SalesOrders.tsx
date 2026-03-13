@@ -206,18 +206,18 @@ export default function SalesOrders() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Sales Orders</h1>
-            <p className="text-[11px] text-slate-500">Home &nbsp; &gt; &nbsp; <span className="font-medium text-slate-900 dark:text-slate-300">Sales Orders</span></p>
+            <h1 className="text-xl font-black text-white uppercase tracking-tight">Sales Orders</h1>
+            <p className="text-[11px] text-[#B0B0C3]">Home &nbsp; &gt; &nbsp; <span className="font-medium text-white">Sales Orders</span></p>
           </div>
           <div className="flex gap-2">
-            <button className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-slate-800 text-xs font-medium shadow-sm">
+            <button className="flex items-center gap-1.5 px-3 py-1.5 border border-white/10 rounded bg-[#2A2A3D] text-[#B0B0C3] text-xs font-black uppercase shadow-sm hover:bg-[#3A3A5D]">
               <Download className="w-3.5 h-3.5" /> Export <ChevronDown className="w-3.5 h-3.5" />
             </button>
-            <button className="p-1.5 border border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-slate-800 shadow-sm">
-              <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
+            <button className="p-1.5 border border-white/10 rounded bg-[#2A2A3D] text-[#B0B0C3] shadow-sm hover:bg-[#3A3A5D]">
+              <RefreshCw className="w-3.5 h-3.5" />
             </button>
-            <button className="p-1.5 border border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-slate-800 shadow-sm">
-              <Columns className="w-3.5 h-3.5 text-slate-500" />
+            <button className="p-1.5 border border-white/10 rounded bg-[#2A2A3D] text-[#B0B0C3] shadow-sm hover:bg-[#3A3A5D]">
+              <Columns className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -225,18 +225,18 @@ export default function SalesOrders() {
         {/* Search and Add */}
         <div className="flex items-center justify-between py-2">
           <div className="relative w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#B0B0C3]" />
             <input
               type="text"
               placeholder="Search"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full pl-9 pr-4 py-2 text-xs rounded-md border ${isDark ? 'bg-slate-900 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
+              className="w-full pl-9 pr-4 py-2 text-xs rounded-md border bg-[#1E1E2F] border-white/10 text-white focus:border-[#00FFCC] focus:ring-1 focus:ring-[#00FFCC]"
             />
           </div>
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 bg-[#E11D48] text-white px-4 py-2 rounded-md text-sm font-bold hover:bg-red-700 transition-colors shadow-sm"
+            className="flex items-center gap-2 bg-[#00FFCC] text-[#1E1E2F] px-4 py-2 rounded-md text-sm font-black uppercase hover:bg-[#00D1FF] transition-colors shadow-[0_0_8px_rgba(0,255,204,0.4)]"
           >
             <Plus className="w-4 h-4" /> Add Sales Order
           </button>
@@ -244,23 +244,23 @@ export default function SalesOrders() {
 
         {/* Filters */}
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-slate-800 text-xs font-medium shadow-sm">
-            <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" /> Sort By <ChevronDown className="w-3.5 h-3.5" />
+          <button className="flex items-center gap-1.5 px-3 py-1.5 border border-white/10 rounded bg-[#2A2A3D] text-[#B0B0C3] text-xs font-black uppercase shadow-sm hover:bg-[#3A3A5D]">
+            <ArrowUpDown className="w-3.5 h-3.5" /> Sort By <ChevronDown className="w-3.5 h-3.5" />
           </button>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-slate-800 text-xs font-medium shadow-sm">
-            <Calendar className="w-3.5 h-3.5 text-slate-400" /> 11 Feb 26 - 12 Mar 26
+          <button className="flex items-center gap-1.5 px-3 py-1.5 border border-white/10 rounded bg-[#2A2A3D] text-[#B0B0C3] text-xs font-black uppercase shadow-sm hover:bg-[#3A3A5D]">
+            <Calendar className="w-3.5 h-3.5" /> 11 Feb 26 - 12 Mar 26
           </button>
           <div className="flex-1" />
           <button 
             onClick={() => setIsFilterOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-slate-800 text-xs font-medium shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 border border-white/10 rounded bg-[#2A2A3D] text-[#B0B0C3] text-xs font-black uppercase shadow-sm hover:bg-[#3A3A5D]"
           >
-            <Filter className="w-3.5 h-3.5 text-slate-400" /> Filter <ChevronDown className="w-3.5 h-3.5" />
+            <Filter className="w-3.5 h-3.5" /> Filter <ChevronDown className="w-3.5 h-3.5" />
           </button>
           <div className="relative">
             <button 
               onClick={() => setIsManageColumnsOpen(!isManageColumnsOpen)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#EEF2FF] text-[#4F46E5] border border-[#E0E7FF] rounded text-xs font-medium"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#00FFCC]/10 text-[#00FFCC] border border-[#00FFCC]/20 rounded text-xs font-black uppercase"
             >
               <Columns className="w-3.5 h-3.5" /> Manage Columns
             </button>
@@ -276,7 +276,7 @@ export default function SalesOrders() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className={`absolute right-0 mt-2 w-64 rounded-xl shadow-2xl border z-20 p-3 space-y-1 ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-100'}`}
+                    className="absolute right-0 mt-2 w-64 rounded-xl shadow-2xl border border-white/10 z-20 p-3 space-y-1 bg-[#1E1E2F]"
                   >
                     {[
                       { id: 'orderId', label: 'Order ID' },
@@ -288,14 +288,14 @@ export default function SalesOrders() {
                       { id: 'orderStatus', label: 'Order Status' },
                       { id: 'action', label: 'Action' },
                     ].map((col) => (
-                      <div key={col.id} className="flex items-center justify-between p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg transition-colors group">
+                      <div key={col.id} className="flex items-center justify-between p-2 hover:bg-[#2A2A3D] rounded-lg transition-colors group">
                         <div className="flex items-center gap-3">
-                          <GripVertical className="w-4 h-4 text-slate-300 group-hover:text-slate-400 transition-colors cursor-grab" />
-                          <span className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{col.label}</span>
+                          <GripVertical className="w-4 h-4 text-[#B0B0C3] group-hover:text-white transition-colors cursor-grab" />
+                          <span className="text-sm font-medium text-[#B0B0C3]">{col.label}</span>
                         </div>
                         <button 
                           onClick={() => setVisibleColumns(prev => ({ ...prev, [col.id]: !prev[col.id as keyof typeof prev] }))}
-                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${visibleColumns[col.id as keyof typeof visibleColumns] ? 'bg-[#E11D48]' : 'bg-slate-200 dark:bg-slate-700'}`}
+                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${visibleColumns[col.id as keyof typeof visibleColumns] ? 'bg-[#00FFCC]' : 'bg-[#2A2A3D]'}`}
                         >
                           <span
                             className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${visibleColumns[col.id as keyof typeof visibleColumns] ? 'translate-x-5' : 'translate-x-1'}`}
@@ -311,55 +311,55 @@ export default function SalesOrders() {
         </div>
 
         {/* Table */}
-        <div className={`rounded-lg border overflow-hidden ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+        <div className="rounded-lg border border-white/5 overflow-hidden bg-[#2A2A3D]">
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left border-collapse">
-              <thead className={`${isDark ? 'bg-slate-900 text-slate-400' : 'bg-slate-50 text-slate-600'} border-b border-slate-200 dark:border-slate-700`}>
+              <thead className="bg-[#1E1E2F] text-[#B0B0C3] border-b border-white/5">
                 <tr>
-                  {visibleColumns.orderId && <th className="py-3 px-4 font-bold">Order ID</th>}
+                  {visibleColumns.orderId && <th className="py-3 px-4 font-black uppercase tracking-wider">Order ID</th>}
                   {visibleColumns.company && (
-                    <th className="py-3 px-4 font-bold">
+                    <th className="py-3 px-4 font-black uppercase tracking-wider">
                       <div className="flex items-center gap-1"><ArrowUpDown className="w-3 h-3" /> Company</div>
                     </th>
                   )}
                   {visibleColumns.orderDate && (
-                    <th className="py-3 px-4 font-bold">
+                    <th className="py-3 px-4 font-black uppercase tracking-wider">
                       <div className="flex items-center gap-1"><ArrowUpDown className="w-3 h-3" /> Order Date</div>
                     </th>
                   )}
                   {visibleColumns.orderValue && (
-                    <th className="py-3 px-4 font-bold">
+                    <th className="py-3 px-4 font-black uppercase tracking-wider">
                       <div className="flex items-center gap-1"><ArrowUpDown className="w-3 h-3" /> Order value</div>
                     </th>
                   )}
                   {visibleColumns.netAmount && (
-                    <th className="py-3 px-4 font-bold">
+                    <th className="py-3 px-4 font-black uppercase tracking-wider">
                       <div className="flex items-center gap-1"><ArrowUpDown className="w-3 h-3" /> Net Amount</div>
                     </th>
                   )}
                   {visibleColumns.paymentStatus && (
-                    <th className="py-3 px-4 font-bold">
+                    <th className="py-3 px-4 font-black uppercase tracking-wider">
                       <div className="flex items-center gap-1"><ArrowUpDown className="w-3 h-3" /> Payment Status</div>
                     </th>
                   )}
                   {visibleColumns.orderStatus && (
-                    <th className="py-3 px-4 font-bold">
+                    <th className="py-3 px-4 font-black uppercase tracking-wider">
                       <div className="flex items-center gap-1"><ArrowUpDown className="w-3 h-3" /> Order Status</div>
                     </th>
                   )}
-                  {visibleColumns.action && <th className="py-3 px-4 font-bold text-center">Action</th>}
+                  {visibleColumns.action && <th className="py-3 px-4 font-black uppercase tracking-wider text-center">Action</th>}
                 </tr>
               </thead>
-              <tbody className={isDark ? 'text-slate-300' : 'text-slate-800'}>
+              <tbody className="text-white">
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="py-8 px-4 text-center text-slate-500 italic">
+                    <td colSpan={8} className="py-8 px-4 text-center text-[#B0B0C3] italic">
                       Loading sales orders...
                     </td>
                   </tr>
                 ) : salesOrders.length === 0 ? (
-                  <tr className="border-b border-slate-100 dark:border-slate-700">
-                    <td colSpan={8} className="py-8 px-4 text-center text-slate-500">
+                  <tr className="border-b border-white/5">
+                    <td colSpan={8} className="py-8 px-4 text-center text-[#B0B0C3]">
                       No sales orders found. Click "Add Sales Order" to create one.
                     </td>
                   </tr>
@@ -376,12 +376,12 @@ export default function SalesOrders() {
                     .map((order) => {
                       const company = companies.find(c => c.id === order.customerId);
                       return (
-                        <tr key={order.id} className="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                          {visibleColumns.orderId && <td className="py-3 px-4 font-medium text-[#E11D48]">{order.orderId}</td>}
+                        <tr key={order.id} className="border-b border-white/5 hover:bg-[#1E1E2F]/50 transition-colors">
+                          {visibleColumns.orderId && <td className="py-3 px-4 font-medium text-[#00FFCC]">{order.orderId}</td>}
                           {visibleColumns.company && (
                             <td className="py-3 px-4">
                               <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                                <div className="w-6 h-6 rounded-full bg-[#1E1E2F] flex items-center justify-center text-[10px] font-bold text-[#B0B0C3]">
                                   {company?.name?.charAt(0) || '?'}
                                 </div>
                                 <span>{company?.name || 'Unknown'}</span>
@@ -393,14 +393,14 @@ export default function SalesOrders() {
                           {visibleColumns.netAmount && <td className="py-3 px-4 font-bold">{order.currency} {order.netAmount?.toLocaleString()}</td>}
                           {visibleColumns.paymentStatus && (
                             <td className="py-3 px-4">
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${getPaymentStatusColor(order.paymentStatus)}`}>
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${getPaymentStatusColor(order.paymentStatus)}`}>
                                 {order.paymentStatus}
                               </span>
                             </td>
                           )}
                           {visibleColumns.orderStatus && (
                             <td className="py-3 px-4">
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${getStatusColor(order.orderStatus)}`}>
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${getStatusColor(order.orderStatus)}`}>
                                 {order.orderStatus}
                               </span>
                             </td>
@@ -408,8 +408,8 @@ export default function SalesOrders() {
                           {visibleColumns.action && (
                             <td className="py-3 px-4">
                               <div className="flex items-center justify-center gap-2">
-                                <button className="p-1 text-slate-400 hover:text-blue-500 transition-colors"><Edit className="w-3.5 h-3.5" /></button>
-                                <button className="p-1 text-slate-400 hover:text-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                                <button className="p-1 text-[#B0B0C3] hover:text-[#00FFCC] transition-colors"><Edit className="w-3.5 h-3.5" /></button>
+                                <button className="p-1 text-[#B0B0C3] hover:text-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                               </div>
                             </td>
                           )}
@@ -424,9 +424,9 @@ export default function SalesOrders() {
 
         {/* Footer */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-2">
-          <div className="flex items-center gap-2 text-xs text-slate-500">
+          <div className="flex items-center gap-2 text-xs text-[#B0B0C3]">
             <span>Show</span>
-            <select className={`px-1.5 py-1 border rounded ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
+            <select className="px-1.5 py-1 border rounded bg-[#1E1E2F] border-white/5">
               <option>10</option>
               <option>25</option>
               <option>50</option>
@@ -434,12 +434,12 @@ export default function SalesOrders() {
             <span>entries</span>
           </div>
           <div className="flex items-center gap-1">
-            <button className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30" disabled>
+            <button className="p-1.5 rounded hover:bg-[#2A2A3D] disabled:opacity-30 text-[#B0B0C3]" disabled>
               <ChevronLeft className="w-3.5 h-3.5" />
             </button>
-            <button className="w-7 h-7 flex items-center justify-center rounded bg-[#E11D48] text-white text-xs font-medium">1</button>
-            <button className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-medium">2</button>
-            <button className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800">
+            <button className="w-7 h-7 flex items-center justify-center rounded bg-[#00FFCC] text-[#1E1E2F] text-xs font-black">1</button>
+            <button className="w-7 h-7 flex items-center justify-center rounded hover:bg-[#2A2A3D] text-[#B0B0C3] text-xs font-black">2</button>
+            <button className="p-1.5 rounded hover:bg-[#2A2A3D] text-[#B0B0C3]">
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
