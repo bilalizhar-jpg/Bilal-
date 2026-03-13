@@ -153,8 +153,16 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
     },
 
     // Permission-based
-    { name: 'Projects', icon: ClipboardList, path: '/employee-portal/projects' },
-    { name: 'Procurement', icon: Briefcase, path: '/employee-portal/procurement' },
+    { name: 'Project Management', icon: ClipboardList, path: '/employee-portal/projects' },
+    { 
+      name: 'Procurement', 
+      icon: Briefcase, 
+      hasSub: true,
+      subItems: [
+        { name: 'New Request', path: '/employee-portal/procurement' },
+        { name: 'Request History', path: '/employee-portal/procurement/history' }
+      ]
+    },
     { name: 'Recruitment', icon: UserCheck, path: '/employee-portal/recruitment' },
     { name: 'Marketing', icon: MessageSquare, path: '/employee-portal/marketing' },
     { name: 'Message', icon: MessageSquare, path: '/employee-portal/messages' },
@@ -182,15 +190,18 @@ export default function EmployeeLayout({ children }: EmployeeLayoutProps) {
         // Always visible items
         if (alwaysVisible.includes(item.name)) return true;
 
-        // Permission-based items
-        const isAllowed = currentEmployee?.allowedMenus?.includes(item.name);
+        // Special handling for Accounting
+        if (item.name === 'Accounting') {
+          return currentEmployee?.allowedMenus?.includes('Accounting');
+        }
 
         // If it has sub-items, it's visible if any sub-item is visible
         if (item.hasSub && item.subItems && item.subItems.length > 0) {
-          return true;
+          return item.subItems.length > 0;
         }
 
-        return isAllowed;
+        // Permission-based items
+        return currentEmployee?.allowedMenus?.includes(item.name);
       });
   };
 

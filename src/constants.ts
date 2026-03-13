@@ -122,7 +122,8 @@ export const ADMIN_MENU_ITEMS = [
   { name: 'Message', icon: MessageSquare, path: '/message' },
   { name: 'Supply Chain Management', icon: Briefcase, path: '#' },
   { name: 'Procurement', icon: Briefcase, hasSub: true, subItems: [
-      { name: 'Item Request', path: '/procurement/request' },
+      { name: 'New Request', path: '/procurement/request' },
+      { name: 'Item Request Received', path: '/procurement/received' },
       { name: 'Request History', path: '/procurement/history' },
       { name: 'Procurement Settings', path: '/procurement/settings' }
     ]

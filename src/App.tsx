@@ -29,6 +29,7 @@ import PerformanceAppraisalReport from './pages/performance/PerformanceAppraisal
 import KPIs from './pages/performance/KPIs';
 import Training from './pages/performance/Training';
 import ProcurementRequest from './pages/procurement/ProcurementRequest';
+import ProcurementReceived from './pages/procurement/ProcurementReceived';
 import ProcurementHistory from './pages/procurement/ProcurementHistory';
 import ProcurementSettings from './pages/procurement/ProcurementSettings';
 import AssetManagement from './pages/assets/AssetManagement';
@@ -124,6 +125,7 @@ import EmployeePayroll from './pages/employee-portal/Payroll';
 import EmployeeNotices from './pages/employee-portal/Notices';
 import EmployeeProjects from './pages/employee-portal/Projects';
 import EmployeeProcurement from './pages/employee-portal/Procurement';
+import EmployeeProcurementHistory from './pages/employee-portal/ProcurementHistory';
 import EmployeeRecruitment from './pages/employee-portal/Recruitment';
 import EmployeeMarketing from './pages/employee-portal/Marketing';
 import EmployeeMessages from './pages/employee-portal/Messages';
@@ -242,6 +244,7 @@ function AppContent() {
             <Route path="/performance/appraisal-report" element={<ProtectedRoute allowedRoles={['admin']}><PerformanceAppraisalReport /></ProtectedRoute>} />
             <Route path="/performance/training" element={<ProtectedRoute allowedRoles={['admin']}><Training /></ProtectedRoute>} />
             <Route path="/procurement/request" element={<ProtectedRoute allowedRoles={['admin']}><ProcurementRequest /></ProtectedRoute>} />
+            <Route path="/procurement/received" element={<ProtectedRoute allowedRoles={['admin']}><ProcurementReceived /></ProtectedRoute>} />
             <Route path="/procurement/history" element={<ProtectedRoute allowedRoles={['admin']}><ProcurementHistory /></ProtectedRoute>} />
             <Route path="/procurement/settings" element={<ProtectedRoute allowedRoles={['admin']}><ProcurementSettings /></ProtectedRoute>} />
             <Route path="/assets/management" element={<ProtectedRoute allowedRoles={['admin']}><AssetManagement /></ProtectedRoute>} />
@@ -330,6 +333,7 @@ function AppContent() {
             <Route path="/employee-portal/notices" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeNotices /></ProtectedRoute>} />
             <Route path="/employee-portal/projects" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeProjects /></ProtectedRoute>} />
             <Route path="/employee-portal/procurement" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeProcurement /></ProtectedRoute>} />
+            <Route path="/employee-portal/procurement/history" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeProcurementHistory /></ProtectedRoute>} />
             <Route path="/employee-portal/recruitment" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeRecruitment /></ProtectedRoute>} />
             <Route path="/employee-portal/marketing" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeMarketing /></ProtectedRoute>} />
             <Route path="/employee-portal/messages" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeMessages /></ProtectedRoute>} />

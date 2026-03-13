@@ -55,6 +55,7 @@ interface CompanyDataContextType {
   addEntity: (collectionName: string, data: any) => Promise<void>;
   updateEntity: (collectionName: string, id: string, data: any) => Promise<void>;
   deleteEntity: (collectionName: string, id: string) => Promise<void>;
+  clearNotices: () => Promise<void>;
 }
 
 const CompanyDataContext = createContext<CompanyDataContextType | undefined>(undefined);
@@ -183,6 +184,16 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const clearNotices = async () => {
+    if (!user?.companyId) return;
+    try {
+      const batch = notices.map(notice => deleteDoc(doc(db, 'notices', notice.id)));
+      await Promise.all(batch);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, 'notices');
+    }
+  };
+
   return (
     <CompanyDataContext.Provider value={{ 
       awards, 
@@ -219,7 +230,8 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
       loading,
       addEntity,
       updateEntity,
-      deleteEntity
+      deleteEntity,
+      clearNotices
     }}>
       {children}
     </CompanyDataContext.Provider>

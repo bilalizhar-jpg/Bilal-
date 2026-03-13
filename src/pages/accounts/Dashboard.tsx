@@ -1,13 +1,17 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { LayoutDashboard, TrendingUp, Users, FileText, DollarSign, ArrowUpRight, ArrowDownRight, CreditCard, Building2 } from 'lucide-react';
+import { LayoutDashboard, TrendingUp, Users, FileText, DollarSign, ArrowUpRight, ArrowDownRight, CreditCard, Building2, CheckCircle2 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { useCompanyData } from '../../context/CompanyDataContext';
 
 import AdminLayout from '../../components/AdminLayout';
 
 export default function AccountingDashboard() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const { procurementRequests } = useCompanyData();
+
+  const approvedRequests = procurementRequests.filter(req => req.status === 'Approved');
 
   const cards = [
     { title: 'Bank', balance: '$ 45,231.89', status: '12 to reconcile', icon: Building2, color: 'text-blue-500', bg: 'bg-blue-500/10' },
@@ -64,8 +68,8 @@ export default function AccountingDashboard() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className={`p-6 rounded-xl border ${isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'} shadow-sm`}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className={`p-6 rounded-xl border ${isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'} shadow-sm lg:col-span-2`}>
             <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>Recent Transactions</h3>
             <div className="space-y-4">
               {[1, 2, 3, 4, 5].map((i) => (
@@ -88,9 +92,21 @@ export default function AccountingDashboard() {
           </div>
 
           <div className={`p-6 rounded-xl border ${isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-200'} shadow-sm`}>
-            <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>Cash Flow</h3>
-            <div className="h-64 flex items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
-              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Chart visualization will appear here</p>
+            <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>Approved Procurement</h3>
+            <div className="space-y-4">
+              {approvedRequests.length === 0 ? (
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>No approved requests.</p>
+              ) : (
+                approvedRequests.map((req) => (
+                  <div key={req.id} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                    <div>
+                      <div className={`font-medium text-sm ${isDark ? 'text-white' : 'text-slate-800'}`}>{req.employeeName}</div>
+                      <div className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{req.items.length} items</div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>

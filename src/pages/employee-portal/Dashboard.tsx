@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import EmployeeLayout from '../../components/EmployeeLayout';
-import { Clock, Calendar, FileText, Bell, CheckCircle2, User, Mail, Phone, MapPin, Briefcase, Hash } from 'lucide-react';
+import { Clock, Calendar, FileText, Bell, CheckCircle2, User, Mail, Phone, MapPin, Briefcase, Hash, Check, X } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { useEmployees } from '../../context/EmployeeContext';
@@ -15,11 +15,29 @@ export default function EmployeeDashboard() {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const { user } = useAuth();
-  const { employees } = useEmployees();
+  const { employees, updateEmployee } = useEmployees();
   const { getEmployeeLeaves } = useLeaves();
   const { invitations, acceptInvitation, rejectInvitation } = useChat();
-  const { notices, tasks } = useCompanyData();
+  const { notices, tasks, clearNotices } = useCompanyData();
   const isDark = theme === 'dark';
+
+  const handleClearNotices = async () => {
+    if (window.confirm('Are you sure you want to clear all notices?')) {
+      await clearNotices();
+    }
+  };
+
+  const handleAccept = async (notification: string) => {
+    if (!currentEmployee) return;
+    const updatedNotifications = currentEmployee.notifications?.filter(n => n !== notification) || [];
+    await updateEmployee(currentEmployee.id, { notifications: updatedNotifications });
+  };
+
+  const handleReject = async (notification: string) => {
+    if (!currentEmployee) return;
+    const updatedNotifications = currentEmployee.notifications?.filter(n => n !== notification) || [];
+    await updateEmployee(currentEmployee.id, { notifications: updatedNotifications });
+  };
 
   const currentEmployee = employees.find(emp => emp.id === user?.id);
   const myLeaves = user ? getEmployeeLeaves(user.employeeId || user.id) : [];
@@ -60,6 +78,14 @@ export default function EmployeeDashboard() {
                         {notification}
                       </p>
                     </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => handleAccept(notification)} className="p-2 rounded-full bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-all">
+                      <Check className="w-5 h-5" />
+                    </button>
+                    <button onClick={() => handleReject(notification)} className="p-2 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all">
+                      <X className="w-5 h-5" />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -202,7 +228,10 @@ export default function EmployeeDashboard() {
           <div className="glass-card border border-white/5 overflow-hidden">
             <div className="p-6 border-b border-white/5 flex justify-between items-center">
               <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Broadcast Feed</h3>
-              <button onClick={() => navigate('/employee-portal/notices')} className="text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:text-indigo-300">View All</button>
+              <div className="flex gap-4">
+                <button onClick={handleClearNotices} className="text-[10px] font-black text-red-400 uppercase tracking-widest hover:text-red-300">Clear All</button>
+                <button onClick={() => navigate('/employee-portal/notices')} className="text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:text-indigo-300">View All</button>
+              </div>
             </div>
             <div className="divide-y divide-white/[0.02]">
               {recentNotices.map((notice, i) => (
