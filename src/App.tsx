@@ -36,6 +36,7 @@ import AssetManagement from './pages/assets/AssetManagement';
 import ProjectManagement from './pages/project-management/ProjectManagement';
 import Milestones from './pages/project-management/Milestones';
 import ProjectReports from './pages/project-management/ProjectReports';
+import BidderDetails from './pages/project-management/BidderDetails';
 import CareerPage from './pages/CareerPage';
 import ApplyPage from './pages/ApplyPage';
 import Reports from './pages/Reports';
@@ -61,7 +62,6 @@ import Permissions from './pages/settings/Permissions';
 import SetupRules from './pages/settings/SetupRules';
 import GeneralSettings from './pages/settings/GeneralSettings';
 import GmailIntegration from './pages/settings/GmailIntegration';
-import InvoiceGenerator from './pages/InvoiceGenerator';
 import OAuthCallback from './pages/OAuthCallback';
 import Companies from './pages/crm/Companies';
 import AddCompany from './pages/crm/AddCompany';
@@ -73,41 +73,11 @@ import AddOpportunity from './pages/crm/AddOpportunity';
 import SalesTarget from './pages/crm/SalesTarget';
 import Quotations from './pages/crm/Quotations';
 import SalesOrders from './pages/crm/SalesOrders';
-
-// Accounts Imports
-import AccountingDashboard from './pages/accounts/Dashboard';
-import ChartOfAccounts from './pages/accounts/configuration/ChartOfAccounts';
-import JournalEntries from './pages/accounts/accounting/JournalEntries';
-import GeneralLedger from './pages/accounts/accounting/GeneralLedger';
-import Invoices from './pages/accounts/customers/Invoices';
-import CreditNotes from './pages/accounts/customers/CreditNotes';
-import CustomerPayments from './pages/accounts/customers/Payments';
-import CustomerList from './pages/accounts/customers/CustomerList';
-import Bills from './pages/accounts/vendors/Bills';
-import Refunds from './pages/accounts/vendors/Refunds';
-import VendorPayments from './pages/accounts/vendors/Payments';
-import VendorList from './pages/accounts/vendors/VendorList';
-import ProfitAndLoss from './pages/accounts/reporting/ProfitAndLoss';
-import BalanceSheet from './pages/accounts/reporting/BalanceSheet';
-import CashFlow from './pages/accounts/reporting/CashFlow';
-import ExecutiveSummary from './pages/accounts/reporting/ExecutiveSummary';
-import Taxes from './pages/accounts/configuration/Taxes';
-import Journals from './pages/accounts/configuration/Journals';
-import AccountingPeriods from './pages/accounts/configuration/AccountingPeriods';
+import CallLogs from './pages/crm/CallLogs';
+import Ticketing from './pages/crm/Ticketing';
+import TicketingHistoryReport from './pages/crm/TicketingHistoryReport';
 
 // Legacy Accounts Imports
-import AddBank from './pages/accounts/bank/AddBank';
-import BankList from './pages/accounts/bank/BankList';
-import CreateTransfer from './pages/accounts/bank/CreateTransfer';
-import TransferList from './pages/accounts/bank/TransferList';
-import CreatePayment from './pages/accounts/payment/CreatePayment';
-import PaymentList from './pages/accounts/payment/PaymentList';
-import CreateVoucher from './pages/accounts/voucher/CreateVoucher';
-import VoucherList from './pages/accounts/voucher/VoucherList';
-import LedgerManagement from './pages/accounts/ledger/LedgerManagement';
-import BillManagement from './pages/accounts/bill/BillManagement';
-import PeopleManagement from './pages/accounts/people/PeopleManagement';
-import AccountReports from './pages/accounts/reports/AccountReports';
 
 import TimeTracker from './pages/TimeTracker';
 import OrgChart from './pages/OrgChart';
@@ -254,6 +224,7 @@ function AppContent() {
             <Route path="/project-management" element={<ProtectedRoute allowedRoles={['admin']}><ProjectManagement /></ProtectedRoute>} />
             <Route path="/project-management/milestones" element={<ProtectedRoute allowedRoles={['admin']}><Milestones /></ProtectedRoute>} />
             <Route path="/project-management/reports" element={<ProtectedRoute allowedRoles={['admin']}><ProjectReports /></ProtectedRoute>} />
+            <Route path="/project-management/bidder-details" element={<ProtectedRoute allowedRoles={['admin']}><BidderDetails /></ProtectedRoute>} />
             <Route path="/reports" element={<ProtectedRoute allowedRoles={['admin']}><Reports /></ProtectedRoute>} />
             <Route path="/reward-points" element={<ProtectedRoute allowedRoles={['admin']}><RewardPoints /></ProtectedRoute>} />
             <Route path="/recruitment/career-page-settings" element={<ProtectedRoute allowedRoles={['admin']}><CareerPageSettings /></ProtectedRoute>} />
@@ -279,6 +250,7 @@ function AppContent() {
             <Route path="/settings/gmail-integration" element={<ProtectedRoute allowedRoles={['admin']}><GmailIntegration /></ProtectedRoute>} />
             <Route path="/crm/companies" element={<ProtectedRoute allowedRoles={['admin']}><Companies /></ProtectedRoute>} />
             <Route path="/crm/companies/add" element={<ProtectedRoute allowedRoles={['admin']}><AddCompany /></ProtectedRoute>} />
+            <Route path="/crm/companies/edit/:id" element={<ProtectedRoute allowedRoles={['admin']}><AddCompany /></ProtectedRoute>} />
             <Route path="/crm/products" element={<ProtectedRoute allowedRoles={['admin']}><Products /></ProtectedRoute>} />
             <Route path="/crm/products/add" element={<ProtectedRoute allowedRoles={['admin']}><AddProduct /></ProtectedRoute>} />
             <Route path="/crm/products/:id" element={<ProtectedRoute allowedRoles={['admin']}><ProductDetails /></ProtectedRoute>} />
@@ -287,43 +259,10 @@ function AppContent() {
             <Route path="/crm/sales-target" element={<ProtectedRoute allowedRoles={['admin']}><SalesTarget /></ProtectedRoute>} />
             <Route path="/crm/quotations" element={<ProtectedRoute allowedRoles={['admin']}><Quotations /></ProtectedRoute>} />
             <Route path="/crm/sales-orders" element={<ProtectedRoute allowedRoles={['admin']}><SalesOrders /></ProtectedRoute>} />
-            <Route path="/invoice" element={<ProtectedRoute allowedRoles={['admin']}><InvoiceGenerator /></ProtectedRoute>} />
+            <Route path="/crm/call-logs" element={<ProtectedRoute allowedRoles={['admin']}><CallLogs /></ProtectedRoute>} />
+            <Route path="/crm/ticketing" element={<ProtectedRoute allowedRoles={['admin']}><Ticketing /></ProtectedRoute>} />
+            <Route path="/crm/ticketing-history-report" element={<ProtectedRoute allowedRoles={['admin']}><TicketingHistoryReport /></ProtectedRoute>} />
             
-            {/* Accounts Routes */}
-            <Route path="/accounts/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><AccountingDashboard /></ProtectedRoute>} />
-            <Route path="/accounts/customers/invoices" element={<ProtectedRoute allowedRoles={['admin']}><Invoices /></ProtectedRoute>} />
-            <Route path="/accounts/customers/credit-notes" element={<ProtectedRoute allowedRoles={['admin']}><CreditNotes /></ProtectedRoute>} />
-            <Route path="/accounts/customers/payments" element={<ProtectedRoute allowedRoles={['admin']}><CustomerPayments /></ProtectedRoute>} />
-            <Route path="/accounts/customers/list" element={<ProtectedRoute allowedRoles={['admin']}><CustomerList /></ProtectedRoute>} />
-            <Route path="/accounts/vendors/bills" element={<ProtectedRoute allowedRoles={['admin']}><Bills /></ProtectedRoute>} />
-            <Route path="/accounts/vendors/refunds" element={<ProtectedRoute allowedRoles={['admin']}><Refunds /></ProtectedRoute>} />
-            <Route path="/accounts/vendors/payments" element={<ProtectedRoute allowedRoles={['admin']}><VendorPayments /></ProtectedRoute>} />
-            <Route path="/accounts/vendors/list" element={<ProtectedRoute allowedRoles={['admin']}><VendorList /></ProtectedRoute>} />
-            <Route path="/accounts/accounting/journal-entries" element={<ProtectedRoute allowedRoles={['admin']}><JournalEntries /></ProtectedRoute>} />
-            <Route path="/accounts/accounting/general-ledger" element={<ProtectedRoute allowedRoles={['admin']}><GeneralLedger /></ProtectedRoute>} />
-            <Route path="/accounts/reporting/profit-and-loss" element={<ProtectedRoute allowedRoles={['admin']}><ProfitAndLoss /></ProtectedRoute>} />
-            <Route path="/accounts/reporting/balance-sheet" element={<ProtectedRoute allowedRoles={['admin']}><BalanceSheet /></ProtectedRoute>} />
-            <Route path="/accounts/reporting/cash-flow" element={<ProtectedRoute allowedRoles={['admin']}><CashFlow /></ProtectedRoute>} />
-            <Route path="/accounts/reporting/executive-summary" element={<ProtectedRoute allowedRoles={['admin']}><ExecutiveSummary /></ProtectedRoute>} />
-            <Route path="/accounts/configuration/chart-of-accounts" element={<ProtectedRoute allowedRoles={['admin']}><ChartOfAccounts /></ProtectedRoute>} />
-            <Route path="/accounts/configuration/taxes" element={<ProtectedRoute allowedRoles={['admin']}><Taxes /></ProtectedRoute>} />
-            <Route path="/accounts/configuration/journals" element={<ProtectedRoute allowedRoles={['admin']}><Journals /></ProtectedRoute>} />
-            <Route path="/accounts/configuration/accounting-periods" element={<ProtectedRoute allowedRoles={['admin']}><AccountingPeriods /></ProtectedRoute>} />
-            
-            {/* Legacy Accounts Routes (kept for reference or backward compatibility if needed) */}
-            <Route path="/accounts/bank/add" element={<ProtectedRoute allowedRoles={['admin']}><AddBank /></ProtectedRoute>} />
-            <Route path="/accounts/bank/list" element={<ProtectedRoute allowedRoles={['admin']}><BankList /></ProtectedRoute>} />
-            <Route path="/accounts/bank/transfer" element={<ProtectedRoute allowedRoles={['admin']}><CreateTransfer /></ProtectedRoute>} />
-            <Route path="/accounts/bank/transfer-list" element={<ProtectedRoute allowedRoles={['admin']}><TransferList /></ProtectedRoute>} />
-            <Route path="/accounts/payment/create/:type" element={<ProtectedRoute allowedRoles={['admin']}><CreatePayment /></ProtectedRoute>} />
-            <Route path="/accounts/payment/list/:type" element={<ProtectedRoute allowedRoles={['admin']}><PaymentList /></ProtectedRoute>} />
-            <Route path="/accounts/voucher/:type/create" element={<ProtectedRoute allowedRoles={['admin']}><CreateVoucher /></ProtectedRoute>} />
-            <Route path="/accounts/voucher/:type/list" element={<ProtectedRoute allowedRoles={['admin']}><VoucherList /></ProtectedRoute>} />
-            <Route path="/accounts/ledger" element={<ProtectedRoute allowedRoles={['admin']}><LedgerManagement /></ProtectedRoute>} />
-            <Route path="/accounts/bill" element={<ProtectedRoute allowedRoles={['admin']}><BillManagement /></ProtectedRoute>} />
-            <Route path="/accounts/people" element={<ProtectedRoute allowedRoles={['admin']}><PeopleManagement /></ProtectedRoute>} />
-            <Route path="/accounts/reports" element={<ProtectedRoute allowedRoles={['admin']}><AccountReports /></ProtectedRoute>} />
-
             <Route path="/super-admin/dashboard" element={<ProtectedRoute allowedRoles={['superadmin']}><SuperAdminDashboard /></ProtectedRoute>} />
             <Route path="/super-admin/companies" element={<ProtectedRoute allowedRoles={['superadmin']}><CompanyManagement /></ProtectedRoute>} />
             <Route path="/super-admin/subscription-plans" element={<ProtectedRoute allowedRoles={['superadmin']}><SubscriptionPlans /></ProtectedRoute>} />
@@ -359,7 +298,6 @@ import { LeaveProvider } from './context/LeaveContext';
 import { PolicyProvider } from './context/PolicyContext';
 import { LetterProvider } from './context/LetterContext';
 import { CompanyDataProvider } from './context/CompanyDataContext';
-import { InvoiceProvider } from './context/InvoiceContext';
 import { ChatProvider } from './context/ChatContext';
 import { MarketingProvider } from './context/MarketingContext';
 import { TrainingProvider } from './context/TrainingContext';
@@ -378,15 +316,13 @@ export default function App() {
                     <PolicyProvider>
                       <LetterProvider>
                         <CompanyDataProvider>
-                          <InvoiceProvider>
-                            <ChatProvider>
-                              <MarketingProvider>
-                                <Router>
-                                  <AppContent />
-                                </Router>
-                              </MarketingProvider>
-                            </ChatProvider>
-                          </InvoiceProvider>
+                          <ChatProvider>
+                            <MarketingProvider>
+                              <Router>
+                                <AppContent />
+                              </Router>
+                            </MarketingProvider>
+                          </ChatProvider>
                         </CompanyDataProvider>
                       </LetterProvider>
                     </PolicyProvider>

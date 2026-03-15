@@ -76,7 +76,7 @@ export default function SuperAdminDashboard() {
                     </span>
                   </td>
                   <td className="py-5 px-4 text-right text-sm text-[#B0B0C3] font-mono">
-                    {company.subscriptionPlan.toUpperCase()}
+                    {company.subscriptionPlan?.toUpperCase() || 'N/A'}
                   </td>
                 </tr>
               ))}

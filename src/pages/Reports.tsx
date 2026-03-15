@@ -9,10 +9,11 @@ export default function Reports() {
   const isDark = theme === 'dark';
 
   const reportTypes = [
-    { title: 'Attendance Report', description: 'Daily and monthly attendance statistics.', icon: BarChart2, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-    { title: 'Payroll Summary', description: 'Overview of company-wide salary distribution.', icon: FileText, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-    { title: 'Employee Performance', description: 'KPI and appraisal reports for all staff.', icon: BarChart2, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20' },
-    { title: 'Leave Statistics', description: 'Analysis of leave types and frequencies.', icon: FileText, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
+    { title: 'Attendance Report', description: 'Daily and monthly attendance statistics.', icon: BarChart2, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', link: '/attendance' },
+    { title: 'Payroll Summary', description: 'Overview of company-wide salary distribution.', icon: FileText, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20', link: '/payroll/company-payroll' },
+    { title: 'Employee Performance', description: 'KPI and appraisal reports for all staff.', icon: BarChart2, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20', link: '/performance/appraisal-list' },
+    { title: 'Leave Statistics', description: 'Analysis of leave types and frequencies.', icon: FileText, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-900/20', link: '/leave' },
+    { title: 'Ticketing History Report', description: 'Overview of resolved and closed tickets.', icon: FileText, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-900/20', link: '/crm/ticketing-history-report' },
     { title: 'Project Reports', description: 'Status and progress of ongoing projects.', icon: BarChart2, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/20', link: '/project-management/reports' },
   ];
 

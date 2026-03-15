@@ -107,7 +107,8 @@ export const ADMIN_MENU_ITEMS = [
     subItems: [
       { name: 'Projects', path: '/project-management' },
       { name: 'Milestone', path: '/project-management/milestones' },
-      { name: 'Reports', path: '/project-management/reports' }
+      { name: 'Reports', path: '/project-management/reports' },
+      { name: 'Bidder Details', path: '/project-management/bidder-details' }
     ]
   },
   { name: 'Marketing', icon: MessageSquare, hasSub: true, subItems: [
@@ -131,62 +132,7 @@ export const ADMIN_MENU_ITEMS = [
   { 
     name: 'Accounting', 
     icon: FileText, 
-    hasSub: true,
-    subItems: [
-      {
-        name: 'Dashboard',
-        path: '/accounts/dashboard'
-      },
-      {
-        name: 'Customers',
-        hasSub: true,
-        subItems: [
-          { name: 'Invoices', path: '/accounts/customers/invoices' },
-          { name: 'Credit Notes', path: '/accounts/customers/credit-notes' },
-          { name: 'Payments', path: '/accounts/customers/payments' },
-          { name: 'Customers', path: '/accounts/customers/list' }
-        ]
-      },
-      {
-        name: 'Vendors',
-        hasSub: true,
-        subItems: [
-          { name: 'Bills', path: '/accounts/vendors/bills' },
-          { name: 'Refunds', path: '/accounts/vendors/refunds' },
-          { name: 'Payments', path: '/accounts/vendors/payments' },
-          { name: 'Vendors', path: '/accounts/vendors/list' }
-        ]
-      },
-      {
-        name: 'Accounting',
-        hasSub: true,
-        subItems: [
-          { name: 'Journal Entries', path: '/accounts/accounting/journal-entries' },
-          { name: 'General Ledger', path: '/accounts/accounting/general-ledger' },
-          { name: 'Vouchers', path: '/accounts/voucher/list' }
-        ]
-      },
-      {
-        name: 'Reporting',
-        hasSub: true,
-        subItems: [
-          { name: 'Profit and Loss', path: '/accounts/reporting/profit-and-loss' },
-          { name: 'Balance Sheet', path: '/accounts/reporting/balance-sheet' },
-          { name: 'Executive Summary', path: '/accounts/reporting/executive-summary' },
-          { name: 'Cash Flow', path: '/accounts/reporting/cash-flow' }
-        ]
-      },
-      {
-        name: 'Configuration',
-        hasSub: true,
-        subItems: [
-          { name: 'Chart of Accounts', path: '/accounts/configuration/chart-of-accounts' },
-          { name: 'Taxes', path: '/accounts/configuration/taxes' },
-          { name: 'Journals', path: '/accounts/configuration/journals' },
-          { name: 'Accounting Periods', path: '/accounts/configuration/accounting-periods' }
-        ]
-      }
-    ]
+    path: '#'
   },
   { 
     name: 'CRM', 
@@ -198,7 +144,9 @@ export const ADMIN_MENU_ITEMS = [
       { name: 'Opportunities', path: '/crm/opportunities' },
       { name: 'Quotations', path: '/crm/quotations' },
       { name: 'Sales Orders', path: '/crm/sales-orders' },
-      { name: 'Sales Target', path: '/crm/sales-target' }
+      { name: 'Sales Target', path: '/crm/sales-target' },
+      { name: 'Call Logs', path: '/crm/call-logs' },
+      { name: 'Ticketing System', path: '/crm/ticketing' }
     ]
   },
   { name: 'Purchase Dep', icon: Briefcase, path: '#' },

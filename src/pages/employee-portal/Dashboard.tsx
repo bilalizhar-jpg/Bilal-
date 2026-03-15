@@ -20,7 +20,7 @@ export default function EmployeeDashboard() {
   const { employees, updateEmployee } = useEmployees();
   const { getEmployeeLeaves } = useLeaves();
   const { invitations, acceptInvitation, rejectInvitation } = useChat();
-  const { notices, tasks, clearNotices } = useCompanyData();
+  const { notices, tasks, clearNotices, tickets, updateEntity } = useCompanyData();
   const isDark = theme === 'dark';
 
   // Notes state
@@ -58,6 +58,11 @@ export default function EmployeeDashboard() {
   const latestLeave = myLeaves[0];
 
   const pendingTasksCount = tasks.filter(t => t.assignee === user?.name && t.status !== 'Done').length;
+  const myTickets = tickets.filter(t => t.assignedTo === user?.name && t.status !== 'Resolved' && t.status !== 'Closed');
+  
+  const handleSolveTicket = async (ticketId: string) => {
+    await updateEntity('tickets', ticketId, { status: 'Resolved' });
+  };
   const newNoticesCount = notices.filter(n => new Date(n.date) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length;
   const recentNotices = notices.slice(0, 3);
 
@@ -347,6 +352,39 @@ export default function EmployeeDashboard() {
               <div className="lg:col-span-3 py-16 text-center border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-3xl">
                 <Calendar className="w-10 h-10 mx-auto mb-4 text-slate-300 dark:text-slate-700" />
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">No active leave requests</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Tickets Section */}
+        <div className={`p-10 rounded-3xl border ${isDark ? 'bg-slate-900/50 border-slate-800' : 'bg-white border-slate-100 shadow-xl shadow-slate-200/50 dark:shadow-none'}`}>
+          <div className="flex items-center justify-between mb-10">
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">My Tickets</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {myTickets.length > 0 ? myTickets.map(ticket => (
+              <div key={ticket.id} className={`flex items-center justify-between p-8 rounded-2xl border transition-all ${isDark ? 'bg-slate-800/50 border-slate-700 hover:border-indigo-500/50' : 'bg-slate-50/50 border-slate-100 hover:border-indigo-500/30'}`}>
+                <div className="flex items-center gap-5">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center">
+                    <FileText className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{ticket.ticketId}</p>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">{ticket.status}</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => handleSolveTicket(ticket.id)}
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors text-xs font-bold"
+                >
+                  Solved
+                </button>
+              </div>
+            )) : (
+              <div className="lg:col-span-3 py-16 text-center border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-3xl">
+                <FileText className="w-10 h-10 mx-auto mb-4 text-slate-300 dark:text-slate-700" />
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">No tickets assigned</p>
               </div>
             )}
           </div>

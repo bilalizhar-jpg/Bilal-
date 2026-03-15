@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { useTheme } from '../../context/ThemeContext';
@@ -11,15 +11,66 @@ export default function Companies() {
   const isDark = theme === 'dark';
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const { companies } = useCompanyData();
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const { companies, deleteEntity } = useCompanyData();
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenMenuId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const filteredCompanies = companies.filter((c: any) => 
     c.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleDelete = async (id: string) => {
+    setDeleteConfirmId(id);
+    setOpenMenuId(null);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteConfirmId) {
+      await deleteEntity('companies', deleteConfirmId);
+      setDeleteConfirmId(null);
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
+        {deleteConfirmId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="bg-[#1E1E2F] p-6 rounded-xl border border-white/10 max-w-sm w-full mx-4">
+              <h3 className="text-xl font-bold text-white mb-4">Delete Company</h3>
+              <p className="text-[#B0B0C3] mb-6">Are you sure you want to delete this company? This action cannot be undone.</p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setDeleteConfirmId(null)}
+                  className="px-4 py-2 rounded-md border border-white/10 text-white hover:bg-white/5 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 rounded-md bg-red-500 text-white hover:bg-red-600 transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-black text-white uppercase tracking-tight">
@@ -74,9 +125,30 @@ export default function Companies() {
                       </div>
                     </div>
                   </div>
-                  <button className="text-[#B0B0C3] hover:text-white">
-                    <MoreVertical className="w-5 h-5" />
-                  </button>
+                  <div className="relative" ref={openMenuId === company.id ? menuRef : null}>
+                    <button 
+                      onClick={() => setOpenMenuId(openMenuId === company.id ? null : company.id)}
+                      className="text-[#B0B0C3] hover:text-white p-1 rounded-md hover:bg-white/5"
+                    >
+                      <MoreVertical className="w-5 h-5" />
+                    </button>
+                    {openMenuId === company.id && (
+                      <div className="absolute right-0 mt-2 w-48 bg-[#2A2A3D] rounded-md shadow-lg border border-white/10 z-10 overflow-hidden">
+                        <button
+                          onClick={() => navigate(`/crm/companies/edit/${company.id}`)}
+                          className="w-full text-left px-4 py-2 text-sm text-white hover:bg-white/5"
+                        >
+                          Edit Company
+                        </button>
+                        <button
+                          onClick={() => handleDelete(company.id)}
+                          className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-white/5"
+                        >
+                          Delete Company
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-2 text-sm text-[#B0B0C3] mb-4">
@@ -95,11 +167,15 @@ export default function Companies() {
                 </div>
 
                 <div className="flex gap-2 mb-4">
-                  {company.tags?.map((tag: string) => (
+                  {Array.isArray(company.tags) ? company.tags.map((tag: string) => (
                     <span key={tag} className="px-2 py-1 rounded bg-[#00FFCC]/10 text-[#00FFCC] text-xs font-medium">
                       {tag}
                     </span>
-                  ))}
+                  )) : typeof company.tags === 'string' && company.tags ? company.tags.split(',').map((tag: string) => (
+                    <span key={tag.trim()} className="px-2 py-1 rounded bg-[#00FFCC]/10 text-[#00FFCC] text-xs font-medium">
+                      {tag.trim()}
+                    </span>
+                  )) : null}
                 </div>
 
                 <div className="flex justify-between pt-4 border-t border-white/5">

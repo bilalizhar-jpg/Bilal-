@@ -828,6 +828,14 @@
     "/quotations/{quoteId}": {
       "schema": "Quotation",
       "description": "Collection of quotations"
+    },
+    "/callLogs/{logId}": {
+      "schema": "CallLog",
+      "description": "Collection of call logs"
+    },
+    "/bids/{bidId}": {
+      "schema": "Bid",
+      "description": "Collection of bids"
     }
   }
 }

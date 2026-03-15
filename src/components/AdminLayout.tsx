@@ -372,24 +372,19 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <Activity className="w-3 h-3 text-emerald-500" />
               Employer Status: <span className="text-emerald-500 animate-pulse">Authorized</span>
             </div>
-            {/* Heartbeat Line */}
+            {/* ECG Line */}
             <div className="hidden lg:flex items-center gap-1 h-8 w-48 overflow-hidden">
-              {[...Array(20)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="w-1 bg-red-500 rounded-full"
-                  animate={{
-                    height: [10, 25, 10],
-                    opacity: [0.5, 1, 0.5],
-                  }}
-                  transition={{
-                    duration: 0.8,
-                    repeat: Infinity,
-                    delay: i * 0.05,
-                    ease: "easeInOut",
-                  }}
+              <svg className="w-full h-full" viewBox="0 0 100 30" preserveAspectRatio="none">
+                <motion.path
+                  d="M0 15 L10 15 L15 5 L20 25 L25 15 L100 15"
+                  fill="none"
+                  stroke="#10b981"
+                  strokeWidth="2"
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: 1 }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                 />
-              ))}
+              </svg>
             </div>
           </div>
           

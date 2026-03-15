@@ -37,20 +37,13 @@ interface CompanyDataContextType {
   orgChartTemplates: DataEntity[];
   procurementRequests: DataEntity[];
   procurementSettings: DataEntity[];
-  bankAccounts: DataEntity[];
-  bankTransfers: DataEntity[];
-  accountPayments: DataEntity[];
-  vouchers: DataEntity[];
-  ledgerGroups: DataEntity[];
-  ledgers: DataEntity[];
-  accountBills: DataEntity[];
-  accountPeople: DataEntity[];
-  accountInvoices: DataEntity[];
-  journalEntries: DataEntity[];
   companies: DataEntity[];
   products: DataEntity[];
   salesOrders: DataEntity[];
   quotations: DataEntity[];
+  bids: DataEntity[];
+  callLogs: DataEntity[];
+  tickets: DataEntity[];
   loading: boolean;
   addEntity: (collectionName: string, data: any) => Promise<void>;
   updateEntity: (collectionName: string, id: string, data: any) => Promise<void>;
@@ -87,20 +80,13 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
   const [orgChartTemplates, setOrgChartTemplates] = useState<DataEntity[]>([]);
   const [procurementRequests, setProcurementRequests] = useState<DataEntity[]>([]);
   const [procurementSettings, setProcurementSettings] = useState<DataEntity[]>([]);
-  const [bankAccounts, setBankAccounts] = useState<DataEntity[]>([]);
-  const [bankTransfers, setBankTransfers] = useState<DataEntity[]>([]);
-  const [accountPayments, setAccountPayments] = useState<DataEntity[]>([]);
-  const [vouchers, setVouchers] = useState<DataEntity[]>([]);
-  const [ledgerGroups, setLedgerGroups] = useState<DataEntity[]>([]);
-  const [ledgers, setLedgers] = useState<DataEntity[]>([]);
-  const [accountBills, setAccountBills] = useState<DataEntity[]>([]);
-  const [accountPeople, setAccountPeople] = useState<DataEntity[]>([]);
-  const [accountInvoices, setAccountInvoices] = useState<DataEntity[]>([]);
-  const [journalEntries, setJournalEntries] = useState<DataEntity[]>([]);
   const [companies, setCompanies] = useState<DataEntity[]>([]);
   const [products, setProducts] = useState<DataEntity[]>([]);
   const [salesOrders, setSalesOrders] = useState<DataEntity[]>([]);
   const [quotations, setQuotations] = useState<DataEntity[]>([]);
+  const [bids, setBids] = useState<DataEntity[]>([]);
+  const [callLogs, setCallLogs] = useState<DataEntity[]>([]);
+  const [tickets, setTickets] = useState<DataEntity[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -127,20 +113,13 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
       { name: 'orgChartTemplates', setter: setOrgChartTemplates },
       { name: 'procurementRequests', setter: setProcurementRequests },
       { name: 'procurementSettings', setter: setProcurementSettings },
-      { name: 'bankAccounts', setter: setBankAccounts },
-      { name: 'bankTransfers', setter: setBankTransfers },
-      { name: 'accountPayments', setter: setAccountPayments },
-      { name: 'vouchers', setter: setVouchers },
-      { name: 'ledgerGroups', setter: setLedgerGroups },
-      { name: 'ledgers', setter: setLedgers },
-      { name: 'accountBills', setter: setAccountBills },
-      { name: 'accountPeople', setter: setAccountPeople },
-      { name: 'accountInvoices', setter: setAccountInvoices },
-      { name: 'journalEntries', setter: setJournalEntries },
       { name: 'companies', setter: setCompanies },
       { name: 'products', setter: setProducts },
       { name: 'salesOrders', setter: setSalesOrders },
-      { name: 'quotations', setter: setQuotations }
+      { name: 'quotations', setter: setQuotations },
+      { name: 'bids', setter: setBids },
+      { name: 'callLogs', setter: setCallLogs },
+      { name: 'tickets', setter: setTickets }
     ];
 
     const unsubscribes = collections.map(({ name, setter }) => {
@@ -177,9 +156,12 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteEntity = async (collectionName: string, id: string) => {
+    console.log("Attempting to delete entity:", collectionName, id);
     try {
       await deleteDoc(doc(db, collectionName, id));
+      console.log("Entity deleted successfully");
     } catch (error) {
+      console.error("Error deleting entity:", error);
       handleFirestoreError(error, OperationType.DELETE, collectionName);
     }
   };
@@ -213,20 +195,13 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
       orgChartTemplates,
       procurementRequests,
       procurementSettings,
-      bankAccounts,
-      bankTransfers,
-      accountPayments,
-      vouchers,
-      ledgerGroups,
-      ledgers,
-      accountBills,
-      accountPeople,
-      accountInvoices,
-      journalEntries,
       companies,
       products,
       salesOrders,
       quotations,
+      bids,
+      callLogs,
+      tickets,
       loading,
       addEntity,
       updateEntity,

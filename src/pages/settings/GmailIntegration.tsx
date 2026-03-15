@@ -82,7 +82,7 @@ export default function GmailIntegration() {
               const data = await response.json();
               setConnectedEmails(prev => ({ ...prev, gmail: data.emailAddress }));
             } else {
-              // Fallback if API call fails (e.g., due to dummy client ID)
+              // Fallback if API call fails
               setConnectedEmails(prev => ({ ...prev, gmail: 'user@gmail.com' }));
             }
           } catch (error) {
