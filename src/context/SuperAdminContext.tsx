@@ -128,7 +128,7 @@ export const SuperAdminProvider = ({ children }: { children: ReactNode }) => {
         const isActive = status === 'active';
         
         return { ...data, id: doc.id, status, isActive } as Company;
-      });
+      }).filter((c: any) => !c.companyId && c.adminUsername); // Filter out CRM companies that were accidentally added to this collection
       setCompanies(companiesData);
       setLoading(false);
       setError(null);
