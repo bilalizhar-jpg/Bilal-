@@ -111,6 +111,7 @@ export default function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
     { name: 'Dashboard', icon: LayoutDashboard, path: '/super-admin/dashboard' },
     { name: 'Companies', icon: Building2, path: '/super-admin/companies' },
     { name: 'Subscription Plans', icon: CreditCard, path: '/super-admin/subscription-plans' },
+    { name: 'Employer Panel Permissions', icon: Shield, path: '/super-admin/employee-permissions' },
   ];
 
   return (

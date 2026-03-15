@@ -86,6 +86,7 @@ import LetterManagement from './pages/letters/LetterManagement';
 import SuperAdminDashboard from './pages/super-admin/Dashboard';
 import CompanyManagement from './pages/super-admin/CompanyManagement';
 import SubscriptionPlans from './pages/super-admin/SubscriptionPlans';
+import EmployeePermissions from './pages/super-admin/EmployeePermissions';
 import SuperAdminInvoiceGenerator from './pages/super-admin/InvoiceGenerator';
 import { SuperAdminProvider } from './context/SuperAdminContext';
 
@@ -266,6 +267,7 @@ function AppContent() {
             <Route path="/super-admin/dashboard" element={<ProtectedRoute allowedRoles={['superadmin']}><SuperAdminDashboard /></ProtectedRoute>} />
             <Route path="/super-admin/companies" element={<ProtectedRoute allowedRoles={['superadmin']}><CompanyManagement /></ProtectedRoute>} />
             <Route path="/super-admin/subscription-plans" element={<ProtectedRoute allowedRoles={['superadmin']}><SubscriptionPlans /></ProtectedRoute>} />
+            <Route path="/super-admin/employee-permissions" element={<ProtectedRoute allowedRoles={['superadmin']}><EmployeePermissions /></ProtectedRoute>} />
             <Route path="/super-admin/invoice/:companyId" element={<ProtectedRoute allowedRoles={['superadmin']}><SuperAdminInvoiceGenerator /></ProtectedRoute>} />
 
             {/* Employee Portal Routes */}
