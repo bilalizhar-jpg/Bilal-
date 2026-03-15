@@ -110,9 +110,9 @@ export default function AddCompany() {
       tags: formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : []
     };
     if (isEditMode && id) {
-      await updateEntity('companies', id, dataToSave);
+      await updateEntity('crm_companies', id, dataToSave);
     } else {
-      await addEntity('companies', dataToSave);
+      await addEntity('crm_companies', dataToSave);
     }
     navigate('/crm/companies');
   };

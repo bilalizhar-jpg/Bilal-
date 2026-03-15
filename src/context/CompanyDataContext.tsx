@@ -113,7 +113,7 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
       { name: 'orgChartTemplates', setter: setOrgChartTemplates },
       { name: 'procurementRequests', setter: setProcurementRequests },
       { name: 'procurementSettings', setter: setProcurementSettings },
-      { name: 'companies', setter: setCompanies },
+      { name: 'crm_companies', setter: setCompanies },
       { name: 'products', setter: setProducts },
       { name: 'salesOrders', setter: setSalesOrders },
       { name: 'quotations', setter: setQuotations },

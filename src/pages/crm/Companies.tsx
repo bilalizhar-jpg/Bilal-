@@ -40,7 +40,7 @@ export default function Companies() {
 
   const confirmDelete = async () => {
     if (deleteConfirmId) {
-      await deleteEntity('companies', deleteConfirmId);
+      await deleteEntity('crm_companies', deleteConfirmId);
       setDeleteConfirmId(null);
     }
   };
