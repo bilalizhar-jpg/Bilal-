@@ -4,10 +4,12 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Plus, Search, Edit2, Trash2, X, AlertCircle } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useAccounting, Account, AccountType } from '../../context/AccountingContext';
+import { useSettings } from '../../context/SettingsContext';
 
 export default function ChartOfAccounts() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const { formatCurrency } = useSettings();
   const { accounts, loading, addAccount, updateAccount, deleteAccount } = useAccounting();
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -88,10 +90,6 @@ export default function ChartOfAccounts() {
         alert('Failed to delete account');
       }
     }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   };
 
   return (

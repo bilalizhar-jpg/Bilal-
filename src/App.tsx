@@ -94,6 +94,7 @@ import { SuperAdminProvider } from './context/SuperAdminContext';
 import AccountingDashboard from './pages/accounting/Dashboard';
 import ChartOfAccounts from './pages/accounting/ChartOfAccounts';
 import JournalEntries from './pages/accounting/JournalEntries';
+import FiscalYears from './pages/accounting/FiscalYears';
 import Customers from './pages/accounting/Customers';
 import Invoices from './pages/accounting/Invoices';
 import Payments from './pages/accounting/Payments';
@@ -103,6 +104,9 @@ import Bills from './pages/accounting/Bills';
 import BankAccounts from './pages/accounting/BankAccounts';
 import BankTransactions from './pages/accounting/BankTransactions';
 import BankReconciliation from './pages/accounting/BankReconciliation';
+import FinancialSettings from './pages/accounting/settings/FinancialSettings';
+import TaxSettings from './pages/accounting/settings/TaxSettings';
+import NumberSequences from './pages/accounting/settings/NumberSequences';
 
 // Financial Reports
 import GeneralLedger from './pages/accounting/reports/GeneralLedger';
@@ -269,6 +273,7 @@ function AppContent() {
             <Route path="/permissions" element={<ProtectedRoute allowedRoles={['admin']}><Permissions /></ProtectedRoute>} />
             <Route path="/setup-rules" element={<ProtectedRoute allowedRoles={['admin']}><SetupRules /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute allowedRoles={['admin']}><GeneralSettings /></ProtectedRoute>} />
+            <Route path="/settings/audit-logs" element={<ProtectedRoute allowedRoles={['admin']}><AuditLogs /></ProtectedRoute>} />
             <Route path="/settings/gmail-integration" element={<ProtectedRoute allowedRoles={['admin']}><GmailIntegration /></ProtectedRoute>} />
             <Route path="/crm/companies" element={<ProtectedRoute allowedRoles={['admin']}><Companies /></ProtectedRoute>} />
             <Route path="/crm/companies/add" element={<ProtectedRoute allowedRoles={['admin']}><AddCompany /></ProtectedRoute>} />
@@ -278,6 +283,7 @@ function AppContent() {
             <Route path="/crm/products/:id" element={<ProtectedRoute allowedRoles={['admin']}><ProductDetails /></ProtectedRoute>} />
             <Route path="/crm/opportunities" element={<ProtectedRoute allowedRoles={['admin']}><Opportunities /></ProtectedRoute>} />
             <Route path="/crm/opportunities/add" element={<ProtectedRoute allowedRoles={['admin']}><AddOpportunity /></ProtectedRoute>} />
+            <Route path="/crm/opportunities/edit/:id" element={<ProtectedRoute allowedRoles={['admin']}><AddOpportunity /></ProtectedRoute>} />
             <Route path="/crm/sales-target" element={<ProtectedRoute allowedRoles={['admin']}><SalesTarget /></ProtectedRoute>} />
             <Route path="/crm/quotations" element={<ProtectedRoute allowedRoles={['admin']}><Quotations /></ProtectedRoute>} />
             <Route path="/crm/sales-orders" element={<ProtectedRoute allowedRoles={['admin']}><SalesOrders /></ProtectedRoute>} />
@@ -295,6 +301,7 @@ function AppContent() {
             <Route path="/accounting/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><AccountingDashboard /></ProtectedRoute>} />
             <Route path="/accounting/chart-of-accounts" element={<ProtectedRoute allowedRoles={['admin']}><ChartOfAccounts /></ProtectedRoute>} />
             <Route path="/accounting/journal-entries" element={<ProtectedRoute allowedRoles={['admin']}><JournalEntries /></ProtectedRoute>} />
+            <Route path="/accounting/fiscal-years" element={<ProtectedRoute allowedRoles={['admin']}><FiscalYears /></ProtectedRoute>} />
             <Route path="/accounting/customers" element={<ProtectedRoute allowedRoles={['admin']}><Customers /></ProtectedRoute>} />
             <Route path="/accounting/invoices" element={<ProtectedRoute allowedRoles={['admin']}><Invoices /></ProtectedRoute>} />
             <Route path="/accounting/payments" element={<ProtectedRoute allowedRoles={['admin']}><Payments /></ProtectedRoute>} />
@@ -304,6 +311,11 @@ function AppContent() {
             <Route path="/accounting/bank/accounts" element={<ProtectedRoute allowedRoles={['admin']}><BankAccounts /></ProtectedRoute>} />
             <Route path="/accounting/bank/transactions" element={<ProtectedRoute allowedRoles={['admin']}><BankTransactions /></ProtectedRoute>} />
             <Route path="/accounting/bank/reconcile" element={<ProtectedRoute allowedRoles={['admin']}><BankReconciliation /></ProtectedRoute>} />
+            
+            {/* Accounting Settings */}
+            <Route path="/accounting/settings" element={<ProtectedRoute allowedRoles={['admin']}><FinancialSettings /></ProtectedRoute>} />
+            <Route path="/accounting/settings/taxes" element={<ProtectedRoute allowedRoles={['admin']}><TaxSettings /></ProtectedRoute>} />
+            <Route path="/accounting/settings/sequences" element={<ProtectedRoute allowedRoles={['admin']}><NumberSequences /></ProtectedRoute>} />
 
             {/* Financial Reports */}
             <Route path="/accounting/reports/general-ledger" element={<ProtectedRoute allowedRoles={['admin']}><GeneralLedger /></ProtectedRoute>} />
@@ -354,12 +366,15 @@ import { VendorProvider } from './context/VendorContext';
 import { ExpenseProvider } from './context/ExpenseContext';
 import { BillProvider } from './context/BillContext';
 import { BankProvider } from './context/BankContext';
+import { AuditProvider } from './context/AuditContext';
+import AuditLogs from './pages/settings/AuditLogs';
 
 export default function App() {
   return (
     <AuthProvider>
-      <SettingsProvider>
-        <SuperAdminProvider>
+      <AuditProvider>
+        <SettingsProvider>
+          <SuperAdminProvider>
           <EmployeeProvider>
             <TrainingProvider>
               <AttendanceProvider>
@@ -401,6 +416,7 @@ export default function App() {
           </EmployeeProvider>
         </SuperAdminProvider>
       </SettingsProvider>
-    </AuthProvider>
-  );
+    </AuditProvider>
+  </AuthProvider>
+);
 }

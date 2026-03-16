@@ -18,6 +18,7 @@ import { useEmployees } from '../context/EmployeeContext';
 import { useAttendance } from '../context/AttendanceContext';
 import { useLeaves } from '../context/LeaveContext';
 import { useCompanyData } from '../context/CompanyDataContext';
+import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
 import { useSuperAdmin } from '../context/SuperAdminContext';
 import { 
@@ -39,6 +40,7 @@ import {
 export default function Dashboard() {
   const [showLeaveNotification, setShowLeaveNotification] = useState(true);
   const { theme } = useTheme();
+  const { formatCurrency } = useSettings();
   const { user } = useAuth();
   const { companies } = useSuperAdmin();
   const { employees } = useEmployees();
@@ -527,7 +529,7 @@ export default function Dashboard() {
                 </div>
                 <div className="text-center -mt-8">
                   <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Loan Volume</div>
-                  <div className="text-3xl font-black text-white tracking-tighter">${(totalLoanAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                  <div className="text-3xl font-black text-white tracking-tighter">{formatCurrency(totalLoanAmount || 0)}</div>
                 </div>
               </div>
             </div>

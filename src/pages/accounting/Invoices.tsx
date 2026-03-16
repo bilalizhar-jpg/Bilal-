@@ -6,13 +6,15 @@ import { useTheme } from '../../context/ThemeContext';
 import { useInvoice } from '../../context/InvoiceContext';
 import { useCustomer } from '../../context/CustomerContext';
 import { useAccounting } from '../../context/AccountingContext';
+import { useSettings } from '../../context/SettingsContext';
 
 export default function Invoices() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const { formatCurrency, financialSettings } = useSettings();
   const { invoices, loading, addInvoice, updateInvoice, deleteInvoice } = useInvoice();
   const { customers } = useCustomer();
-  const { accounts, addJournalEntry } = useAccounting();
+  const { accounts, addJournalEntry, isPeriodClosed } = useAccounting();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,6 +27,8 @@ export default function Invoices() {
     arAccountId: '',
     revenueAccountId: ''
   });
+
+  const isClosed = isPeriodClosed(formData.date);
 
   const [lines, setLines] = useState([
     { product: '', quantity: 1, price: 0, tax: 0, total: 0 }
@@ -64,7 +68,9 @@ export default function Invoices() {
 
   const handleOpenModal = () => {
     // Auto-select accounts if possible
-    const arAccount = accounts.find(a => a.type === 'Asset' && a.name.toLowerCase().includes('receivable'))?.id || '';
+    // Use financialSettings if available
+    const arAccount = financialSettings?.defaultAccounts?.accountsReceivableId || 
+                      accounts.find(a => a.type === 'Asset' && a.name.toLowerCase().includes('receivable'))?.id || '';
     const revAccount = accounts.find(a => a.type === 'Revenue' && a.name.toLowerCase().includes('sales'))?.id || '';
 
     setFormData({
@@ -111,7 +117,9 @@ export default function Invoices() {
           date: formData.date,
           dueDate: formData.dueDate,
           totalAmount,
-          status: 'Sent'
+          status: 'Sent',
+          arAccountId: formData.arAccountId,
+          revenueAccountId: formData.revenueAccountId
         },
         validLines.map(l => ({
           product: l.product,
@@ -156,10 +164,6 @@ export default function Invoices() {
         alert('Failed to delete invoice');
       }
     }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   };
 
   const formatDate = (dateString: string) => {
@@ -333,6 +337,12 @@ export default function Invoices() {
                 )}
 
                 <form id="invoice-form" onSubmit={handleSubmit} className="space-y-8">
+                  {isClosed && (
+                    <div className={`p-4 rounded-xl flex items-center gap-3 ${isDark ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400' : 'bg-amber-50 border border-amber-200 text-amber-700'}`}>
+                      <AlertCircle className="w-5 h-5 shrink-0" />
+                      <p className="text-sm font-bold uppercase tracking-tight">This date falls within a closed fiscal period. Transactions are locked.</p>
+                    </div>
+                  )}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="md:col-span-1">
                       <label className={`block text-xs font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-[#B0B0C3]' : 'text-slate-500'}`}>
@@ -573,7 +583,7 @@ export default function Invoices() {
                 <button
                   type="submit"
                   form="invoice-form"
-                  disabled={totalAmount <= 0}
+                  disabled={totalAmount <= 0 || isClosed}
                   className={`px-6 py-2 rounded-lg font-bold text-sm uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                     isDark 
                       ? 'bg-[#00FFCC] text-[#1E1E2F] hover:bg-[#00D1FF] shadow-[0_0_8px_rgba(0,255,204,0.4)]' 

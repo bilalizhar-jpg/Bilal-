@@ -15,6 +15,7 @@ import {
 import { useBank, BankTransaction, BankAccount } from '../../context/BankContext';
 import { useAccounting } from '../../context/AccountingContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useSettings } from '../../context/SettingsContext';
 
 export default function BankReconciliation() {
   const location = useLocation();
@@ -23,6 +24,7 @@ export default function BankReconciliation() {
   const { journalEntries, journalLines, accounts } = useAccounting();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const { formatCurrency } = useSettings();
 
   const queryParams = new URLSearchParams(location.search);
   const bankAccountId = queryParams.get('id');
@@ -110,7 +112,7 @@ export default function BankReconciliation() {
                       {new Date(tx.date).toLocaleDateString()}
                     </span>
                     <span className={`text-sm font-bold ${tx.type === 'Credit' ? 'text-emerald-500' : 'text-red-500'}`}>
-                      {tx.type === 'Credit' ? '+' : '-'}{(tx.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      {tx.type === 'Credit' ? '+' : '-'}{formatCurrency(tx.amount || 0)}
                     </span>
                   </div>
                   <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{tx.description}</p>
@@ -135,7 +137,7 @@ export default function BankReconciliation() {
               </h2>
               {selectedBankTx && (
                 <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-indigo-500/10 text-indigo-400`}>
-                  Matching: {(selectedBankTx.amount || 0).toLocaleString()}
+                  Matching: {formatCurrency(selectedBankTx.amount || 0)}
                 </div>
               )}
             </div>
@@ -173,7 +175,7 @@ export default function BankReconciliation() {
                             </span>
                           )}
                           <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                            {(amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            {formatCurrency(amount || 0)}
                           </span>
                         </div>
                       </div>

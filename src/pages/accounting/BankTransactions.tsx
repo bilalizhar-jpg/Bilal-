@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useBank, BankTransaction, BankAccount } from '../../context/BankContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useSettings } from '../../context/SettingsContext';
 
 export default function BankTransactions() {
   const location = useLocation();
@@ -23,6 +24,7 @@ export default function BankTransactions() {
   const { bankAccounts, bankTransactions, addBankTransaction, loading } = useBank();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const { formatCurrency } = useSettings();
 
   const queryParams = new URLSearchParams(location.search);
   const bankAccountId = queryParams.get('id');
@@ -163,14 +165,14 @@ export default function BankTransactions() {
                   <td className="px-6 py-4 text-right">
                     {tx.type === 'Debit' && (
                       <span className="text-sm font-bold text-red-500">
-                        ({(tx.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })})
+                        ({formatCurrency(tx.amount || 0)})
                       </span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-right">
                     {tx.type === 'Credit' && (
                       <span className="text-sm font-bold text-emerald-500">
-                        {(tx.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        {formatCurrency(tx.amount || 0)}
                       </span>
                     )}
                   </td>

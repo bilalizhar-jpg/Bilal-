@@ -3,6 +3,7 @@ import { Menu, Search, Bell, User, Sun, Moon } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import CompanySwitcher from '../CompanySwitcher';
 
 interface AccountingNavbarProps {
   isSidebarOpen: boolean;
@@ -40,6 +41,8 @@ export default function AccountingNavbar({ isSidebarOpen, setIsSidebarOpen }: Ac
       </div>
 
       <div className="flex items-center gap-6">
+        <CompanySwitcher />
+        
         <motion.button 
           whileTap={{ scale: 0.9 }}
           onClick={toggleTheme}

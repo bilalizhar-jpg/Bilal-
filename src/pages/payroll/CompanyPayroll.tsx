@@ -96,7 +96,7 @@ export default function CompanyPayroll() {
       const tableRows = filteredPayrolls.map(p => [
         p.month,
         p.department,
-        p.totalAmount.toLocaleString(),
+        settings.formatCurrency(p.totalAmount),
         p.status,
         p.generatedDate
       ]);
@@ -201,7 +201,7 @@ export default function CompanyPayroll() {
                     <tr key={payroll.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                       <td className="px-4 py-3 text-sm font-medium text-slate-800 dark:text-white">{payroll.month}</td>
                       <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{payroll.department}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 font-mono">{settings.currency.symbol}{payroll.totalAmount.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 font-mono">{settings.formatCurrency(payroll.totalAmount)}</td>
                       <td className="px-4 py-3 text-sm">
                         <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${
                           payroll.status === 'Paid' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'

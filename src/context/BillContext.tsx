@@ -47,17 +47,18 @@ export function BillProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const activeCompanyId = user?.currentCompanyId || user?.companyId;
 
   useEffect(() => {
-    if (!user?.companyId) {
+    if (!activeCompanyId) {
       setBills([]);
       setBillItems([]);
       setLoading(false);
       return;
     }
 
-    const billsQuery = query(collection(db, 'bills'), where('companyId', '==', user.companyId));
-    const itemsQuery = query(collection(db, 'billItems'), where('companyId', '==', user.companyId));
+    const billsQuery = query(collection(db, 'bills'), where('companyId', '==', activeCompanyId));
+    const itemsQuery = query(collection(db, 'billItems'), where('companyId', '==', activeCompanyId));
 
     const unsubscribeBills = onSnapshot(billsQuery, (snapshot) => {
       const billsData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as Bill[];
@@ -75,10 +76,10 @@ export function BillProvider({ children }: { children: React.ReactNode }) {
       unsubscribeBills();
       unsubscribeItems();
     };
-  }, [user?.companyId]);
+  }, [activeCompanyId]);
 
   const addBill = async (billData: Omit<Bill, 'id' | 'companyId' | 'createdAt' | 'updatedAt'>, items: Omit<BillItem, 'id' | 'companyId' | 'billId'>[]) => {
-    if (!user?.companyId) throw new Error('No company ID found');
+    if (!activeCompanyId) throw new Error('No company ID found');
 
     const billId = Math.random().toString(36).substr(2, 9);
     const now = new Date().toISOString();
@@ -87,7 +88,7 @@ export function BillProvider({ children }: { children: React.ReactNode }) {
     const newBill: Bill = {
       ...billData,
       id: billId,
-      companyId: user.companyId,
+      companyId: activeCompanyId,
       createdAt: now,
       updatedAt: now,
     };
@@ -99,7 +100,7 @@ export function BillProvider({ children }: { children: React.ReactNode }) {
       const newItem: BillItem = {
         ...item,
         id: itemId,
-        companyId: user.companyId!,
+        companyId: activeCompanyId,
         billId: billId,
       };
       batch.set(doc(db, 'billItems', itemId), newItem);

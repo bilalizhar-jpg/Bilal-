@@ -6,10 +6,12 @@ import { useTheme } from '../../context/ThemeContext';
 import { useBill } from '../../context/BillContext';
 import { useVendor } from '../../context/VendorContext';
 import { useAccounting } from '../../context/AccountingContext';
+import { useSettings } from '../../context/SettingsContext';
 
 export default function Bills() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const { formatCurrency } = useSettings();
   const { bills, billItems, loading, addBill, deleteBill } = useBill();
   const { vendors } = useVendor();
   const { accounts, addJournalEntry } = useAccounting();
@@ -141,10 +143,6 @@ export default function Bills() {
         alert('Failed to delete bill');
       }
     }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   };
 
   return (

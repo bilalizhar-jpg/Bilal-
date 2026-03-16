@@ -6,10 +6,12 @@ import { useTheme } from '../../context/ThemeContext';
 import { usePayment } from '../../context/PaymentContext';
 import { useCustomer } from '../../context/CustomerContext';
 import { useAccounting } from '../../context/AccountingContext';
+import { useSettings } from '../../context/SettingsContext';
 
 export default function Payments() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const { formatCurrency } = useSettings();
   const { payments, loading, addPayment, deletePayment } = usePayment();
   const { customers } = useCustomer();
   const { accounts, addJournalEntry } = useAccounting();
@@ -115,10 +117,6 @@ export default function Payments() {
         alert('Failed to delete payment');
       }
     }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   };
 
   const formatDate = (dateString: string) => {

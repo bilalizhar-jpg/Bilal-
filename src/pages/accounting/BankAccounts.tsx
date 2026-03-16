@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Building2, 
@@ -11,17 +12,21 @@ import {
   CreditCard,
   ArrowRightLeft,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Home
 } from 'lucide-react';
 import { useBank, BankAccount } from '../../context/BankContext';
 import { useAccounting } from '../../context/AccountingContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useSettings } from '../../context/SettingsContext';
 
 export default function BankAccounts() {
+  const navigate = useNavigate();
   const { bankAccounts, addBankAccount, updateBankAccount, deleteBankAccount, loading } = useBank();
   const { accounts } = useAccounting();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const { formatCurrency } = useSettings();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<BankAccount | null>(null);
@@ -100,24 +105,37 @@ export default function BankAccounts() {
               Manage your company bank accounts and balances
             </p>
           </div>
-          <button
-            onClick={() => {
-              setEditingAccount(null);
-              setFormData({
-                bankName: '',
-                accountName: '',
-                accountNumber: '',
-                currency: 'USD',
-                openingBalance: 0,
-                accountId: ''
-              });
-              setIsModalOpen(true);
-            }}
-            className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20"
-          >
-            <Plus className="w-4 h-4" />
-            Add Bank Account
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/accounting/dashboard')}
+              className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold uppercase text-xs tracking-widest transition-all ${
+                isDark 
+                  ? 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white' 
+                  : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-slate-200'
+              }`}
+            >
+              <Home className="w-4 h-4" />
+              Return to Home
+            </button>
+            <button
+              onClick={() => {
+                setEditingAccount(null);
+                setFormData({
+                  bankName: '',
+                  accountName: '',
+                  accountNumber: '',
+                  currency: 'USD',
+                  openingBalance: 0,
+                  accountId: ''
+                });
+                setIsModalOpen(true);
+              }}
+              className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold uppercase text-xs tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20"
+            >
+              <Plus className="w-4 h-4" />
+              Add Bank Account
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -162,7 +180,7 @@ export default function BankAccounts() {
                     Current Balance
                   </p>
                   <p className={`text-2xl font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                    {acc.currency} {(acc.currentBalance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    {formatCurrency(acc.currentBalance || 0)}
                   </p>
                 </div>
               </div>

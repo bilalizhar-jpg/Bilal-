@@ -7,6 +7,7 @@ import {
   ChevronDown, Calendar, X, Edit, Trash2, Bold, Italic, Underline, Link, List, ListOrdered, Type,
   GripVertical
 } from 'lucide-react';
+import { useSettings } from '../../context/SettingsContext';
 import { useCompanyData } from '../../context/CompanyDataContext';
 import AdminLayout from '../../components/AdminLayout';
 
@@ -21,6 +22,7 @@ interface ProductRow {
 
 export default function SalesOrders() {
   const { theme } = useTheme();
+  const { formatCurrency } = useSettings();
   const { companies, salesOrders, addEntity, loading } = useCompanyData();
   const isDark = theme === 'dark';
   const [searchTerm, setSearchTerm] = useState('');
@@ -389,8 +391,8 @@ export default function SalesOrders() {
                             </td>
                           )}
                           {visibleColumns.orderDate && <td className="py-3 px-4">{order.date}</td>}
-                          {visibleColumns.orderValue && <td className="py-3 px-4">{order.currency} {(order.orderValue || 0).toLocaleString()}</td>}
-                          {visibleColumns.netAmount && <td className="py-3 px-4 font-bold">{order.currency} {(order.netAmount || 0).toLocaleString()}</td>}
+                          {visibleColumns.orderValue && <td className="py-3 px-4">{formatCurrency(order.orderValue || 0)}</td>}
+                          {visibleColumns.netAmount && <td className="py-3 px-4 font-bold">{formatCurrency(order.netAmount || 0)}</td>}
                           {visibleColumns.paymentStatus && (
                             <td className="py-3 px-4">
                               <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${getPaymentStatusColor(order.paymentStatus)}`}>

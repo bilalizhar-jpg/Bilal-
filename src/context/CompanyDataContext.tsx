@@ -123,7 +123,12 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
     ];
 
     const unsubscribes = collections.map(({ name, setter }) => {
-      const q = query(collection(db, name), where('companyId', '==', user.companyId));
+      let q;
+      if (name === 'crm_companies' && user.role === 'superadmin') {
+        q = query(collection(db, name));
+      } else {
+        q = query(collection(db, name), where('companyId', '==', user.companyId));
+      }
       return onSnapshot(q, (snapshot) => {
         const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as DataEntity));
         setter(data);
@@ -134,12 +139,13 @@ export const CompanyDataProvider = ({ children }: { children: ReactNode }) => {
 
     setLoading(false);
     return () => unsubscribes.forEach(unsub => unsub());
-  }, [user?.companyId]);
+  }, [user?.companyId, user?.currentCompanyId]);
 
   const addEntity = async (collectionName: string, data: any) => {
-    if (!user?.companyId) return;
+    const activeCompanyId = user?.currentCompanyId || user?.companyId;
+    if (!activeCompanyId) return;
     const id = data.id || Math.random().toString(36).substr(2, 9);
-    const entityData = { ...data, id, companyId: user.companyId };
+    const entityData = { ...data, id, companyId: activeCompanyId };
     try {
       await setDoc(doc(db, collectionName, id), entityData);
     } catch (error) {

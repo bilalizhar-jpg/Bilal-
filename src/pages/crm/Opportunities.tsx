@@ -126,11 +126,13 @@ const ManageColumnsModal = ({ isOpen, onClose, columns, setColumns }: any) => {
 
 import AdminLayout from '../../components/AdminLayout';
 import { useCompanyData } from '../../context/CompanyDataContext';
+import { useSettings } from '../../context/SettingsContext';
 
 export default function Opportunities() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const navigate = useNavigate();
+  const { formatCurrency } = useSettings();
   const [searchTerm, setSearchTerm] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isColumnsOpen, setIsColumnsOpen] = useState(false);
@@ -149,7 +151,7 @@ export default function Opportunities() {
     { id: 'status', label: 'Status', visible: true },
     { id: 'action', label: 'Action', visible: true },
   ]);
-  const { sales } = useCompanyData();
+  const { sales, deleteEntity } = useCompanyData();
 
   const companies = Array.from(new Set(sales.map((opp: any) => opp.account))).filter(Boolean) as string[];
   const stages = Array.from(new Set(sales.map((opp: any) => opp.stage))).filter(Boolean) as string[];
@@ -252,7 +254,7 @@ export default function Opportunities() {
                       {col.id === 'id' && opp.id}
                       {col.id === 'name' && <span className="font-medium">{opp.name}</span>}
                       {col.id === 'company' && opp.account}
-                      {col.id === 'value' && `$${opp.value}`}
+                      {col.id === 'value' && formatCurrency(opp.value)}
                       {col.id === 'stage' && opp.stage}
                       {col.id === 'probability' && `${opp.probability || 0}%`}
                       {col.id === 'owner' && (opp.owner || 'Unassigned')}
@@ -266,7 +268,22 @@ export default function Opportunities() {
                           {opp.status}
                         </span>
                       )}
-                      {col.id === 'action' && <MoreVertical className="w-4 h-4" />}
+                      {col.id === 'action' && (
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={() => navigate(`/crm/opportunities/edit/${opp.id}`)}
+                            className="p-1 hover:bg-[#00FFCC]/20 text-[#00FFCC] rounded"
+                          >
+                            Edit
+                          </button>
+                          <button 
+                            onClick={() => deleteEntity('sales', opp.id)}
+                            className="p-1 hover:bg-red-500/20 text-red-500 rounded"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
                     </td>
                   ))}
                 </tr>

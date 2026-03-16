@@ -33,9 +33,10 @@ export function VendorProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const activeCompanyId = user?.currentCompanyId || user?.companyId;
 
   useEffect(() => {
-    if (!user?.companyId) {
+    if (!activeCompanyId) {
       setVendors([]);
       setLoading(false);
       return;
@@ -43,7 +44,7 @@ export function VendorProvider({ children }: { children: React.ReactNode }) {
 
     const q = query(
       collection(db, 'vendors'),
-      where('companyId', '==', user.companyId)
+      where('companyId', '==', activeCompanyId)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -63,10 +64,10 @@ export function VendorProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, [user?.companyId]);
+  }, [activeCompanyId]);
 
   const addVendor = async (data: Omit<Vendor, 'id' | 'companyId' | 'createdAt' | 'updatedAt'>) => {
-    if (!user?.companyId) throw new Error('No company ID found');
+    if (!activeCompanyId) throw new Error('No company ID found');
 
     const id = Math.random().toString(36).substr(2, 9);
     const now = new Date().toISOString();
@@ -74,7 +75,7 @@ export function VendorProvider({ children }: { children: React.ReactNode }) {
     const newVendor: Vendor = {
       ...data,
       id,
-      companyId: user.companyId,
+      companyId: activeCompanyId,
       createdAt: now,
       updatedAt: now,
     };
@@ -84,7 +85,7 @@ export function VendorProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateVendor = async (id: string, data: Partial<Vendor>) => {
-    if (!user?.companyId) throw new Error('No company ID found');
+    if (!activeCompanyId) throw new Error('No company ID found');
     
     const updateData = {
       ...data,
@@ -95,7 +96,7 @@ export function VendorProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteVendor = async (id: string) => {
-    if (!user?.companyId) throw new Error('No company ID found');
+    if (!activeCompanyId) throw new Error('No company ID found');
     
     await deleteDoc(doc(db, 'vendors', id));
   };

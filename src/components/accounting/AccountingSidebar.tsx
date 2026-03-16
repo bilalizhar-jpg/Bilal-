@@ -47,7 +47,13 @@ export const ACCOUNTING_MENU_ITEMS = [
       { name: 'Income Statement', path: '/accounting/reports/income-statement' },
       { name: 'Cash Flow', path: '/accounting/reports/cash-flow' },
   ]},
-  { name: 'Settings', icon: Settings, path: '/accounting/settings' }
+  { name: 'Settings', icon: Settings, hasSub: true, subItems: [
+      { name: 'Financial Settings', path: '/accounting/settings' },
+      { name: 'Fiscal Years', path: '/accounting/fiscal-years' },
+      { name: 'Tax Settings', path: '/accounting/settings/taxes' },
+      { name: 'Number Sequences', path: '/accounting/settings/sequences' },
+      { name: 'Audit Logs', path: '/settings/audit-logs' },
+  ]}
 ];
 
 export default function AccountingSidebar({ isSidebarOpen }: AccountingSidebarProps) {

@@ -4,11 +4,13 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Plus, Search, X, AlertCircle, Trash2 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useAccounting } from '../../context/AccountingContext';
+import { useSettings } from '../../context/SettingsContext';
 
 export default function JournalEntries() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const { accounts, journalEntries, journalLines, loading, addJournalEntry } = useAccounting();
+  const { formatCurrency } = useSettings();
+  const { accounts, journalEntries, journalLines, loading, addJournalEntry, isPeriodClosed } = useAccounting();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,6 +21,8 @@ export default function JournalEntries() {
     reference: '',
     description: ''
   });
+
+  const isClosed = isPeriodClosed(formData.date);
 
   const [lines, setLines] = useState([
     { accountId: '', description: '', debit: 0, credit: 0 },
@@ -110,10 +114,6 @@ export default function JournalEntries() {
       console.error('Error saving journal entry:', error);
       setErrorMsg('Failed to save journal entry. Please try again.');
     }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   };
 
   const formatDate = (dateString: string) => {
@@ -251,6 +251,12 @@ export default function JournalEntries() {
                 )}
 
                 <form id="journal-form" onSubmit={handleSubmit} className="space-y-6">
+                  {isClosed && (
+                    <div className={`p-4 rounded-xl flex items-center gap-3 ${isDark ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400' : 'bg-amber-50 border border-amber-200 text-amber-700'}`}>
+                      <AlertCircle className="w-5 h-5 shrink-0" />
+                      <p className="text-sm font-bold uppercase tracking-tight">This date falls within a closed fiscal period. Transactions are locked.</p>
+                    </div>
+                  )}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className={`block text-xs font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-[#B0B0C3]' : 'text-slate-500'}`}>
@@ -446,7 +452,7 @@ export default function JournalEntries() {
                 <button
                   type="submit"
                   form="journal-form"
-                  disabled={!isBalanced}
+                  disabled={!isBalanced || isClosed}
                   className={`px-6 py-2 rounded-lg font-bold text-sm uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                     isDark 
                       ? 'bg-[#00FFCC] text-[#1E1E2F] hover:bg-[#00D1FF] shadow-[0_0_8px_rgba(0,255,204,0.4)]' 

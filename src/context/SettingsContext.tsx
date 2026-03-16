@@ -1,8 +1,13 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { collection, query, where, onSnapshot, doc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from './AuthContext';
-import { handleFirestoreError, OperationType } from '../utils/firestoreErrorHandler';
+import { logAuditAction } from '../services/auditService';
+
+export interface Language {
+  code: string;
+  name: string;
+}
 
 export interface Currency {
   code: string;
@@ -10,241 +15,309 @@ export interface Currency {
   name: string;
 }
 
-export interface Language {
-  code: string;
+export interface FinancialSettings {
+  id: string;
+  companyId: string;
+  currency: {
+    code: string;
+    symbol: string;
+    name: string;
+  };
+  defaultAccounts: {
+    retainedEarningsId?: string;
+    accountsReceivableId?: string;
+    accountsPayableId?: string;
+    salesTaxPayableId?: string;
+    bankAccountId?: string;
+  };
+  updatedAt: string;
+}
+
+export interface TaxSetting {
+  id: string;
+  companyId: string;
   name: string;
+  rate: number;
+  type: 'Sales' | 'Purchase' | 'Both';
+  accountId?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NumberSequence {
+  id: string;
+  companyId: string;
+  module: 'Invoice' | 'Bill' | 'Journal' | 'Payment' | 'Expense';
+  prefix: string;
+  suffix?: string;
+  nextNumber: number;
+  padding: number;
+  updatedAt: string;
 }
 
 interface SettingsContextType {
+  financialSettings: FinancialSettings | null;
+  taxSettings: TaxSetting[];
+  numberSequences: NumberSequence[];
+  loading: boolean;
+  updateFinancialSettings: (data: Partial<FinancialSettings>) => Promise<void>;
+  addTaxSetting: (data: Omit<TaxSetting, 'id' | 'companyId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateTaxSetting: (id: string, data: Partial<TaxSetting>) => Promise<void>;
+  deleteTaxSetting: (id: string) => Promise<void>;
+  updateNumberSequence: (id: string, data: Partial<NumberSequence>) => Promise<void>;
+  getNextNumber: (module: NumberSequence['module']) => string;
+  incrementNumber: (module: NumberSequence['module']) => Promise<void>;
+
+  // Compatibility members
   language: Language;
   setLanguage: (lang: Language) => void;
   languages: Language[];
   addLanguage: (lang: Language) => void;
   updateLanguage: (code: string, lang: Language) => void;
   deleteLanguage: (code: string) => void;
-
   currency: Currency;
   setCurrency: (curr: Currency) => void;
   currencies: Currency[];
   addCurrency: (curr: Currency) => void;
   updateCurrency: (code: string, curr: Currency) => void;
   deleteCurrency: (code: string) => void;
-
   tax: number;
   setTax: (tax: number) => void;
-
   timeZone: string;
   setTimeZone: (tz: string) => void;
-
-  colorPalette: { text: string; background: string };
-  setColorPalette: (palette: { text: string; background: string }) => void;
-
-  timeFormat: '12h' | '24h';
-  setTimeFormat: (format: '12h' | '24h') => void;
-
-  systemInstruction: string;
-  setSystemInstruction: (instruction: string) => void;
+  timeFormat: string;
+  setTimeFormat: (format: string) => void;
+  colorPalette: {
+    primary: string;
+    secondary: string;
+    background: string;
+    text: string;
+  };
+  setColorPalette: (palette: any) => void;
+  formatCurrency: (amount: number) => string;
 }
-
-const defaultLanguages: Language[] = [
-  { code: 'en', name: 'English' },
-  { code: 'es', name: 'Spanish' },
-  { code: 'fr', name: 'French' },
-];
-
-const defaultCurrencies: Currency[] = [
-  { code: 'USD', symbol: '$', name: 'US Dollar' },
-  { code: 'EUR', symbol: '€', name: 'Euro' },
-  { code: 'GBP', symbol: '£', name: 'British Pound' },
-];
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  const [languages, setLanguages] = useState<Language[]>(defaultLanguages);
-  const [language, setLanguageState] = useState<Language>(defaultLanguages[0]);
-  const [currencies, setCurrencies] = useState<Currency[]>(defaultCurrencies);
-  const [currency, setCurrencyState] = useState<Currency>(defaultCurrencies[0]);
-  const [tax, setTaxState] = useState<number>(10);
-  const [timeZone, setTimeZoneState] = useState<string>(Intl.DateTimeFormat().resolvedOptions().timeZone);
-  const [colorPalette, setColorPaletteState] = useState<{ text: string; background: string }>({ text: '#000000', background: '#ffffff' });
-  const [timeFormat, setTimeFormatState] = useState<'12h' | '24h'>('12h');
-  const [systemInstruction, setSystemInstructionState] = useState<string>('You are a helpful assistant.');
+  const [financialSettings, setFinancialSettings] = useState<FinancialSettings | null>(null);
+  const [taxSettings, setTaxSettings] = useState<TaxSetting[]>([]);
+  const [numberSequences, setNumberSequences] = useState<NumberSequence[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const activeCompanyId = user?.currentCompanyId || user?.companyId;
 
-  const safeParse = (item: string | null, fallback: any) => {
-    if (!item) return fallback;
-    try {
-      // Check if it's a JSON string (starts with { or [)
-      if (item.trim().startsWith('{') || item.trim().startsWith('[')) {
-        return JSON.parse(item);
-      }
-      return fallback;
-    } catch (e) {
-      console.error("Error parsing JSON from localStorage:", e);
-      return fallback;
-    }
-  };
+  // Compatibility states
+  const [language, setLanguage] = useState<Language>({ code: 'en', name: 'English' });
+  const [languages, setLanguages] = useState<Language[]>([
+    { code: 'en', name: 'English' },
+    { code: 'es', name: 'Spanish' },
+    { code: 'fr', name: 'French' }
+  ]);
+  const [currency, setCurrency] = useState<Currency>({ code: 'USD', symbol: '$', name: 'US Dollar' });
+  const [currencies, setCurrencies] = useState<Currency[]>([
+    { code: 'USD', symbol: '$', name: 'US Dollar' },
+    { code: 'EUR', symbol: '€', name: 'Euro' },
+    { code: 'GBP', symbol: '£', name: 'British Pound' }
+  ]);
+  const [tax, setTax] = useState(10);
+  const [timeZone, setTimeZone] = useState('UTC');
+  const [timeFormat, setTimeFormat] = useState('12h');
+  const [colorPalette, setColorPalette] = useState({
+    primary: '#6366f1',
+    secondary: '#a855f7',
+    background: '#ffffff',
+    text: '#1e293b'
+  });
+
+  const addLanguage = (lang: Language) => setLanguages([...languages, lang]);
+  const updateLanguage = (code: string, lang: Language) => setLanguages(languages.map(l => l.code === code ? lang : l));
+  const deleteLanguage = (code: string) => setLanguages(languages.filter(l => l.code !== code));
+  
+  const addCurrency = (curr: Currency) => setCurrencies([...currencies, curr]);
+  const updateCurrency = (code: string, curr: Currency) => setCurrencies(currencies.map(c => c.code === code ? curr : c));
+  const deleteCurrency = (code: string) => setCurrencies(currencies.filter(c => c.code !== code));
 
   useEffect(() => {
-    if (!user) {
+    if (!activeCompanyId) {
+      setFinancialSettings(null);
+      setTaxSettings([]);
+      setNumberSequences([]);
       setLoading(false);
       return;
     }
 
-    const settingsId = user.companyId || user.id;
-    const docRef = doc(db, 'settings', settingsId);
-
-    const unsubscribe = onSnapshot(docRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.data();
-        if (data.languages) setLanguages(data.languages);
-        if (data.language) setLanguageState(data.language);
-        if (data.currencies) setCurrencies(data.currencies);
-        if (data.currency) setCurrencyState(data.currency);
-        if (data.tax !== undefined) setTaxState(data.tax);
-        if (data.timeZone) setTimeZoneState(data.timeZone);
-        if (data.colorPalette) setColorPaletteState(data.colorPalette);
-        if (data.timeFormat) setTimeFormatState(data.timeFormat);
-        if (data.systemInstruction) setSystemInstructionState(data.systemInstruction);
+    const unsubFinancial = onSnapshot(doc(db, 'financialSettings', activeCompanyId), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = { ...docSnap.data(), id: docSnap.id } as FinancialSettings;
+        setFinancialSettings(data);
+        if (data.currency) {
+          setCurrency(data.currency);
+        }
       } else {
-        // Migration from localStorage if Firestore document doesn't exist
-        const migrate = async () => {
-          const savedLanguages = localStorage.getItem('settings_languages');
-          const savedLanguage = localStorage.getItem('settings_language');
-          const savedCurrencies = localStorage.getItem('settings_currencies');
-          const savedCurrency = localStorage.getItem('settings_currency');
-          const savedTax = localStorage.getItem('settings_tax');
-          const savedTimeZone = localStorage.getItem('settings_timeZone');
-          const savedColorPalette = localStorage.getItem('settings_colorPalette');
-          const savedTimeFormat = localStorage.getItem('settings_timeFormat');
-          const savedSystemInstruction = localStorage.getItem('settings_systemInstruction');
-
-          const initialSettings = {
-            languages: safeParse(savedLanguages, defaultLanguages),
-            language: safeParse(savedLanguage, defaultLanguages[0]),
-            currencies: safeParse(savedCurrencies, defaultCurrencies),
-            currency: safeParse(savedCurrency, defaultCurrencies[0]),
-            tax: savedTax ? parseFloat(savedTax) : 10,
-            timeZone: savedTimeZone || Intl.DateTimeFormat().resolvedOptions().timeZone,
-            colorPalette: safeParse(savedColorPalette, { text: '#000000', background: '#ffffff' }),
-            timeFormat: (savedTimeFormat as any) || '12h',
-            systemInstruction: savedSystemInstruction || 'You are a helpful assistant.',
-            companyId: user.companyId || null,
-            userId: user.id
-          };
-
-          try {
-            await setDoc(docRef, initialSettings);
-          } catch (error) {
-            console.error("Error migrating settings:", error);
-          }
+        // Initialize default settings if none exist
+        const defaultSettings: FinancialSettings = {
+          id: activeCompanyId,
+          companyId: activeCompanyId,
+          currency: { code: 'USD', symbol: '$', name: 'US Dollar' },
+          defaultAccounts: {},
+          updatedAt: new Date().toISOString()
         };
-        migrate();
+        setDoc(doc(db, 'financialSettings', activeCompanyId), defaultSettings);
+        setCurrency(defaultSettings.currency);
       }
-      setLoading(false);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.GET, 'settings');
+    });
+
+    const qTax = query(collection(db, 'taxSettings'), where('companyId', '==', activeCompanyId));
+    const unsubTax = onSnapshot(qTax, (querySnap) => {
+      setTaxSettings(querySnap.docs.map(d => ({ ...d.data(), id: d.id } as TaxSetting)));
+    });
+
+    const qSeq = query(collection(db, 'numberSequences'), where('companyId', '==', activeCompanyId));
+    const unsubSeq = onSnapshot(qSeq, (querySnap) => {
+      const sequences = querySnap.docs.map(d => ({ ...d.data(), id: d.id } as NumberSequence));
+      setNumberSequences(sequences);
+      
+      // Initialize default sequences if they don't exist
+      const modules: NumberSequence['module'][] = ['Invoice', 'Bill', 'Journal', 'Payment', 'Expense'];
+      modules.forEach(async (mod) => {
+        if (!sequences.find(s => s.module === mod)) {
+          const id = `${activeCompanyId}_${mod.toLowerCase()}`;
+          await setDoc(doc(db, 'numberSequences', id), {
+            id,
+            companyId: activeCompanyId,
+            module: mod,
+            prefix: mod.substring(0, 3).toUpperCase(),
+            nextNumber: 1,
+            padding: 5,
+            updatedAt: new Date().toISOString()
+          });
+        }
+      });
+      
       setLoading(false);
     });
 
-    return () => unsubscribe();
-  }, [user]);
+    return () => {
+      unsubFinancial();
+      unsubTax();
+      unsubSeq();
+    };
+  }, [activeCompanyId]);
 
-  const updateSettings = async (updates: any) => {
-    if (!user) return;
-    const settingsId = user.companyId || user.id;
+  const updateFinancialSettings = async (data: Partial<FinancialSettings>) => {
+    if (!activeCompanyId) return;
     try {
-      await setDoc(doc(db, 'settings', settingsId), updates, { merge: true });
+      await setDoc(doc(db, 'financialSettings', activeCompanyId), {
+        ...data,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+      if (user) {
+        logAuditAction({
+          companyId: activeCompanyId,
+          userId: user.id,
+          userName: user.name,
+          action: 'Update Financial Settings',
+          module: 'Settings',
+          description: 'Updated general financial configurations'
+        });
+      }
     } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, 'settings');
+      console.error('Error updating financial settings:', error);
+      throw error;
     }
   };
 
-  const setLanguage = (lang: Language) => {
-    setLanguageState(lang);
-    updateSettings({ language: lang });
+  const addTaxSetting = async (data: Omit<TaxSetting, 'id' | 'companyId' | 'createdAt' | 'updatedAt'>) => {
+    if (!activeCompanyId) return;
+    const id = Math.random().toString(36).substr(2, 9);
+    const now = new Date().toISOString();
+    await setDoc(doc(db, 'taxSettings', id), {
+      ...data,
+      id,
+      companyId: activeCompanyId,
+      createdAt: now,
+      updatedAt: now
+    });
   };
 
-  const addLanguage = (lang: Language) => {
-    const newLanguages = [...languages, lang];
-    setLanguages(newLanguages);
-    updateSettings({ languages: newLanguages });
+  const updateTaxSetting = async (id: string, data: Partial<TaxSetting>) => {
+    await updateDoc(doc(db, 'taxSettings', id), {
+      ...data,
+      updatedAt: new Date().toISOString()
+    });
   };
 
-  const updateLanguage = (code: string, lang: Language) => {
-    const newLanguages = languages.map(l => l.code === code ? lang : l);
-    setLanguages(newLanguages);
-    updateSettings({ languages: newLanguages });
+  const deleteTaxSetting = async (id: string) => {
+    await deleteDoc(doc(db, 'taxSettings', id));
   };
 
-  const deleteLanguage = (code: string) => {
-    const newLanguages = languages.filter(l => l.code !== code);
-    setLanguages(newLanguages);
-    updateSettings({ languages: newLanguages });
+  const updateNumberSequence = async (id: string, data: Partial<NumberSequence>) => {
+    await updateDoc(doc(db, 'numberSequences', id), {
+      ...data,
+      updatedAt: new Date().toISOString()
+    });
   };
 
-  const setCurrency = (curr: Currency) => {
-    setCurrencyState(curr);
-    updateSettings({ currency: curr });
+  const getNextNumber = (module: NumberSequence['module']) => {
+    const seq = numberSequences.find(s => s.module === module);
+    if (!seq) return '';
+    const numStr = seq.nextNumber.toString().padStart(seq.padding, '0');
+    return `${seq.prefix}${numStr}${seq.suffix || ''}`;
   };
 
-  const addCurrency = (curr: Currency) => {
-    const newCurrencies = [...currencies, curr];
-    setCurrencies(newCurrencies);
-    updateSettings({ currencies: newCurrencies });
+  const incrementNumber = async (module: NumberSequence['module']) => {
+    const seq = numberSequences.find(s => s.module === module);
+    if (!seq) return;
+    await updateDoc(doc(db, 'numberSequences', seq.id), {
+      nextNumber: seq.nextNumber + 1,
+      updatedAt: new Date().toISOString()
+    });
   };
 
-  const updateCurrency = (code: string, curr: Currency) => {
-    const newCurrencies = currencies.map(c => c.code === code ? curr : c);
-    setCurrencies(newCurrencies);
-    updateSettings({ currencies: newCurrencies });
-  };
-
-  const deleteCurrency = (code: string) => {
-    const newCurrencies = currencies.filter(c => c.code !== code);
-    setCurrencies(newCurrencies);
-    updateSettings({ currencies: newCurrencies });
-  };
-
-  const setTax = (newTax: number) => {
-    setTaxState(newTax);
-    updateSettings({ tax: newTax });
-  };
-
-  const setTimeZone = (tz: string) => {
-    setTimeZoneState(tz);
-    updateSettings({ timeZone: tz });
-  };
-
-  const setColorPalette = (palette: { text: string; background: string }) => {
-    setColorPaletteState(palette);
-    updateSettings({ colorPalette: palette });
-  };
-
-  const setTimeFormat = (format: '12h' | '24h') => {
-    setTimeFormatState(format);
-    updateSettings({ timeFormat: format });
-  };
-
-  const setSystemInstruction = (instruction: string) => {
-    setSystemInstructionState(instruction);
-    updateSettings({ systemInstruction: instruction });
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency.code || 'USD'
+    }).format(amount);
   };
 
   return (
-    <SettingsContext.Provider
-      value={{
-        language, setLanguage, languages, addLanguage, updateLanguage, deleteLanguage,
-        currency, setCurrency, currencies, addCurrency, updateCurrency, deleteCurrency,
-        tax, setTax,
-        timeZone, setTimeZone,
-        colorPalette, setColorPalette,
-        timeFormat, setTimeFormat,
-        systemInstruction, setSystemInstruction
-      }}
-    >
+    <SettingsContext.Provider value={{
+      financialSettings,
+      taxSettings,
+      numberSequences,
+      loading,
+      updateFinancialSettings,
+      addTaxSetting,
+      updateTaxSetting,
+      deleteTaxSetting,
+      updateNumberSequence,
+      getNextNumber,
+      incrementNumber,
+      language,
+      setLanguage,
+      languages,
+      addLanguage,
+      updateLanguage,
+      deleteLanguage,
+      currency,
+      setCurrency,
+      currencies,
+      addCurrency,
+      updateCurrency,
+      deleteCurrency,
+      tax,
+      setTax,
+      timeZone,
+      setTimeZone,
+      timeFormat,
+      setTimeFormat,
+      colorPalette,
+      setColorPalette,
+      formatCurrency
+    }}>
       {children}
     </SettingsContext.Provider>
   );

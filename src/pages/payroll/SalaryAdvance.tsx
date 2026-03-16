@@ -195,8 +195,8 @@ export default function SalaryAdvance() {
                   <tr className={`${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} border-b border-slate-100 dark:border-slate-800`}>
                     <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Sl</th>
                     <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Employee name</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Amount ({settings.currency.symbol})</th>
-                    <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Release amount ({settings.currency.symbol})</th>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Amount</th>
+                    <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Release amount</th>
                     <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Salary month</th>
                     <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Approved</th>
                     <th className="px-4 py-3 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">Status</th>
@@ -208,8 +208,8 @@ export default function SalaryAdvance() {
                     <tr key={record.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                       <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{idx + 1}</td>
                       <td className="px-4 py-3 text-sm font-medium text-slate-800 dark:text-white">{record.employeeName}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{record.amount.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{record.releaseAmount}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{settings.formatCurrency(record.amount)}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{settings.formatCurrency(record.releaseAmount)}</td>
                       <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{record.salaryMonth}</td>
                       <td className="px-4 py-3 text-sm text-center">
                         {record.approved ? (

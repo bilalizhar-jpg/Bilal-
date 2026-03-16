@@ -904,6 +904,68 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "companyId", "bankAccountId", "type", "amount", "date", "isReconciled", "createdAt", "updatedAt"]
+    },
+    "FinancialSettings": {
+      "title": "Financial Settings",
+      "description": "General financial configuration for a company",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "currency": {
+          "type": "object",
+          "properties": {
+            "code": { "type": "string" },
+            "symbol": { "type": "string" },
+            "name": { "type": "string" }
+          }
+        },
+        "defaultAccounts": {
+          "type": "object",
+          "properties": {
+            "retainedEarningsId": { "type": "string" },
+            "accountsReceivableId": { "type": "string" },
+            "accountsPayableId": { "type": "string" },
+            "salesTaxPayableId": { "type": "string" },
+            "bankAccountId": { "type": "string" }
+          }
+        },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "companyId", "currency", "defaultAccounts"]
+    },
+    "TaxSetting": {
+      "title": "Tax Setting",
+      "description": "A tax rate configuration",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "name": { "type": "string" },
+        "rate": { "type": "number" },
+        "type": { "type": "string", "enum": ["Sales", "Purchase", "Both"] },
+        "accountId": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "companyId", "name", "rate", "type", "isActive"]
+    },
+    "NumberSequence": {
+      "title": "Number Sequence",
+      "description": "Configuration for sequential numbering of documents",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "module": { "type": "string", "enum": ["Invoice", "Bill", "Journal", "Payment", "Expense"] },
+        "prefix": { "type": "string" },
+        "suffix": { "type": "string" },
+        "nextNumber": { "type": "number" },
+        "padding": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "companyId", "module", "prefix", "nextNumber", "padding"]
     }
   },
   "firestore": {
@@ -1122,6 +1184,18 @@
     "/bids/{bidId}": {
       "schema": "Bid",
       "description": "Collection of bids"
+    },
+    "/financialSettings/{settingId}": {
+      "schema": "FinancialSettings",
+      "description": "General financial configuration for companies"
+    },
+    "/taxSettings/{taxId}": {
+      "schema": "TaxSetting",
+      "description": "Tax rate configurations for companies"
+    },
+    "/numberSequences/{sequenceId}": {
+      "schema": "NumberSequence",
+      "description": "Numbering sequences for company documents"
     }
   }
 }

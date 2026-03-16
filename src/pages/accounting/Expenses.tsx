@@ -6,10 +6,12 @@ import { useTheme } from '../../context/ThemeContext';
 import { useExpense } from '../../context/ExpenseContext';
 import { useVendor } from '../../context/VendorContext';
 import { useAccounting } from '../../context/AccountingContext';
+import { useSettings } from '../../context/SettingsContext';
 
 export default function Expenses() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const { formatCurrency } = useSettings();
   const { expenses, loading, addExpense, deleteExpense } = useExpense();
   const { vendors } = useVendor();
   const { accounts, addJournalEntry } = useAccounting();
@@ -124,10 +126,6 @@ export default function Expenses() {
         alert('Failed to delete expense');
       }
     }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   };
 
   return (

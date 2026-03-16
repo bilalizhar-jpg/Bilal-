@@ -32,9 +32,10 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const activeCompanyId = user?.currentCompanyId || user?.companyId;
 
   useEffect(() => {
-    if (!user?.companyId) {
+    if (!activeCompanyId) {
       setPayments([]);
       setLoading(false);
       return;
@@ -42,7 +43,7 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
 
     const q = query(
       collection(db, 'payments'),
-      where('companyId', '==', user.companyId)
+      where('companyId', '==', activeCompanyId)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -63,10 +64,10 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, [user?.companyId]);
+  }, [activeCompanyId]);
 
   const addPayment = async (data: Omit<Payment, 'id' | 'companyId' | 'createdAt' | 'updatedAt'>) => {
-    if (!user?.companyId) throw new Error('No company ID found');
+    if (!activeCompanyId) throw new Error('No company ID found');
 
     const id = Math.random().toString(36).substr(2, 9);
     const now = new Date().toISOString();
@@ -74,7 +75,7 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
     const newPayment: Payment = {
       ...data,
       id,
-      companyId: user.companyId,
+      companyId: activeCompanyId,
       createdAt: now,
       updatedAt: now,
     };
@@ -84,7 +85,7 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updatePayment = async (id: string, data: Partial<Payment>) => {
-    if (!user?.companyId) throw new Error('No company ID found');
+    if (!activeCompanyId) throw new Error('No company ID found');
     
     const updateData = {
       ...data,
@@ -95,7 +96,7 @@ export function PaymentProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deletePayment = async (id: string) => {
-    if (!user?.companyId) throw new Error('No company ID found');
+    if (!activeCompanyId) throw new Error('No company ID found');
     
     await deleteDoc(doc(db, 'payments', id));
   };

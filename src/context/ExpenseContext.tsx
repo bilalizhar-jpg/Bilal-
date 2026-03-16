@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { collection, query, where, onSnapshot, doc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from './AuthContext';
+import { logAuditAction } from '../services/auditService';
 
 export interface Expense {
   id: string;
@@ -36,9 +37,10 @@ export function ExpenseProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const activeCompanyId = user?.currentCompanyId || user?.companyId;
 
   useEffect(() => {
-    if (!user?.companyId) {
+    if (!activeCompanyId) {
       setExpenses([]);
       setLoading(false);
       return;
@@ -46,7 +48,7 @@ export function ExpenseProvider({ children }: { children: React.ReactNode }) {
 
     const q = query(
       collection(db, 'expenses'),
-      where('companyId', '==', user.companyId)
+      where('companyId', '==', activeCompanyId)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -66,10 +68,10 @@ export function ExpenseProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, [user?.companyId]);
+  }, [activeCompanyId]);
 
   const addExpense = async (data: Omit<Expense, 'id' | 'companyId' | 'createdAt' | 'updatedAt'>) => {
-    if (!user?.companyId) throw new Error('No company ID found');
+    if (!activeCompanyId) throw new Error('No company ID found');
 
     const id = Math.random().toString(36).substr(2, 9);
     const now = new Date().toISOString();
@@ -77,17 +79,28 @@ export function ExpenseProvider({ children }: { children: React.ReactNode }) {
     const newExpense: Expense = {
       ...data,
       id,
-      companyId: user.companyId,
+      companyId: activeCompanyId,
       createdAt: now,
       updatedAt: now,
     };
 
     await setDoc(doc(db, 'expenses', id), newExpense);
+
+    logAuditAction({
+      companyId: activeCompanyId,
+      userId: user.id,
+      userName: user.name,
+      action: 'Create Expense',
+      module: 'Expenses',
+      recordId: id,
+      description: `Created expense: ${data.description} for amount: ${data.amount}`
+    });
+
     return id;
   };
 
   const updateExpense = async (id: string, data: Partial<Expense>) => {
-    if (!user?.companyId) throw new Error('No company ID found');
+    if (!activeCompanyId) throw new Error('No company ID found');
     
     const updateData = {
       ...data,
@@ -95,12 +108,32 @@ export function ExpenseProvider({ children }: { children: React.ReactNode }) {
     };
 
     await updateDoc(doc(db, 'expenses', id), updateData);
+
+    logAuditAction({
+      companyId: activeCompanyId,
+      userId: user.id,
+      userName: user.name,
+      action: 'Update Expense',
+      module: 'Expenses',
+      recordId: id,
+      description: `Updated expense ID: ${id}`
+    });
   };
 
   const deleteExpense = async (id: string) => {
-    if (!user?.companyId) throw new Error('No company ID found');
+    if (!activeCompanyId) throw new Error('No company ID found');
     
     await deleteDoc(doc(db, 'expenses', id));
+
+    logAuditAction({
+      companyId: activeCompanyId,
+      userId: user.id,
+      userName: user.name,
+      action: 'Delete Expense',
+      module: 'Expenses',
+      recordId: id,
+      description: `Deleted expense ID: ${id}`
+    });
   };
 
   return (

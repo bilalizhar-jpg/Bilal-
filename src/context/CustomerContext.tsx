@@ -31,9 +31,10 @@ export function CustomerProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const activeCompanyId = user?.currentCompanyId || user?.companyId;
 
   useEffect(() => {
-    if (!user?.companyId) {
+    if (!activeCompanyId) {
       setCustomers([]);
       setLoading(false);
       return;
@@ -41,7 +42,7 @@ export function CustomerProvider({ children }: { children: React.ReactNode }) {
 
     const q = query(
       collection(db, 'customers'),
-      where('companyId', '==', user.companyId)
+      where('companyId', '==', activeCompanyId)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -62,10 +63,10 @@ export function CustomerProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, [user?.companyId]);
+  }, [activeCompanyId]);
 
   const addCustomer = async (data: Omit<Customer, 'id' | 'companyId' | 'createdAt' | 'updatedAt'>) => {
-    if (!user?.companyId) throw new Error('No company ID found');
+    if (!activeCompanyId) throw new Error('No company ID found');
 
     const id = Math.random().toString(36).substr(2, 9);
     const now = new Date().toISOString();
@@ -73,7 +74,7 @@ export function CustomerProvider({ children }: { children: React.ReactNode }) {
     const newCustomer: Customer = {
       ...data,
       id,
-      companyId: user.companyId,
+      companyId: activeCompanyId,
       createdAt: now,
       updatedAt: now,
     };
@@ -82,7 +83,7 @@ export function CustomerProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateCustomer = async (id: string, data: Partial<Customer>) => {
-    if (!user?.companyId) throw new Error('No company ID found');
+    if (!activeCompanyId) throw new Error('No company ID found');
     
     const updateData = {
       ...data,
@@ -93,7 +94,7 @@ export function CustomerProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteCustomer = async (id: string) => {
-    if (!user?.companyId) throw new Error('No company ID found');
+    if (!activeCompanyId) throw new Error('No company ID found');
     
     await deleteDoc(doc(db, 'customers', id));
   };

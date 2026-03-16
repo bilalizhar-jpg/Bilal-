@@ -4,6 +4,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { Search, Plus, Filter, MoreVertical, ArrowUpDown, RefreshCw, Download, Columns, X, ChevronDown, ChevronRight } from 'lucide-react';
 import AdminLayout from '../../components/AdminLayout';
 import { useCompanyData } from '../../context/CompanyDataContext';
+import { useSettings } from '../../context/SettingsContext';
 
 const FilterModal = ({ isOpen, onClose, onApply, categories, statuses }: any) => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -112,6 +113,7 @@ export default function Products() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const navigate = useNavigate();
+  const { formatCurrency } = useSettings();
   const [searchTerm, setSearchTerm] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isColumnsOpen, setIsColumnsOpen] = useState(false);
@@ -127,7 +129,7 @@ export default function Products() {
     { id: 'status', label: 'Status', visible: true },
     { id: 'action', label: 'Action', visible: true },
   ]);
-  const { products } = useCompanyData();
+  const { products, deleteEntity } = useCompanyData();
 
   const categories = Array.from(new Set(products.map((p: any) => p.category))).filter(Boolean) as string[];
   const statuses = Array.from(new Set(products.map((p: any) => p.status))).filter(Boolean) as string[];
@@ -221,14 +223,29 @@ export default function Products() {
                       {col.id === 'name' && <span className="font-medium">{product.name}</span>}
                       {col.id === 'category' && product.category}
                       {col.id === 'sku' && product.sku}
-                      {col.id === 'unitPrice' && `$${product.unitPrice}`}
+                      {col.id === 'unitPrice' && formatCurrency(product.unitPrice)}
                       {col.id === 'tax' && `${product.tax}%`}
                       {col.id === 'status' && (
                         <span className={`px-2 py-1 rounded-full text-xs font-black uppercase tracking-wider ${product.status === 'Active' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
                           {product.status}
                         </span>
                       )}
-                      {col.id === 'action' && <MoreVertical className="w-4 h-4" />}
+                      {col.id === 'action' && (
+                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                          <button 
+                            onClick={() => navigate(`/crm/products/edit/${product.id}`)}
+                            className="p-1 hover:bg-[#00FFCC]/20 text-[#00FFCC] rounded"
+                          >
+                            Edit
+                          </button>
+                          <button 
+                            onClick={() => deleteEntity('products', product.id)}
+                            className="p-1 hover:bg-red-500/20 text-red-500 rounded"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
                     </td>
                   ))}
                 </tr>

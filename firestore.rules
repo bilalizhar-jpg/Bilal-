@@ -99,6 +99,10 @@ service cloud.firestore {
     match /callLogs/{document=**} { allow read: if true; allow write: if true; }
     match /bids/{document=**} { allow read: if true; allow write: if true; }
     match /accounting_accounts/{document=**} { allow read: if true; allow write: if true; }
+    match /financialSettings/{document=**} { allow read: if true; allow write: if true; }
+    match /taxSettings/{document=**} { allow read: if true; allow write: if true; }
+    match /numberSequences/{document=**} { allow read: if true; allow write: if true; }
+    match /auditLogs/{document=**} { allow read: if true; allow write: if true; }
     match /tickets/{ticketId} {
       allow read, write: if true;
     }

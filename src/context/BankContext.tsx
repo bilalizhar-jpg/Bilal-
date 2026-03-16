@@ -54,10 +54,11 @@ export function BankProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const activeCompanyId = user?.currentCompanyId || user?.companyId;
   const { addJournalEntry, accounts } = useAccounting();
 
   useEffect(() => {
-    if (!user?.companyId) {
+    if (!activeCompanyId) {
       setBankAccounts([]);
       setBankTransactions([]);
       setLoading(false);
@@ -66,12 +67,12 @@ export function BankProvider({ children }: { children: React.ReactNode }) {
 
     const qAccounts = query(
       collection(db, 'bankAccounts'),
-      where('companyId', '==', user.companyId)
+      where('companyId', '==', activeCompanyId)
     );
 
     const qTransactions = query(
       collection(db, 'transactions'),
-      where('companyId', '==', user.companyId)
+      where('companyId', '==', activeCompanyId)
     );
 
     const unsubscribeAccounts = onSnapshot(qAccounts, (snapshot) => {
@@ -90,10 +91,10 @@ export function BankProvider({ children }: { children: React.ReactNode }) {
       unsubscribeAccounts();
       unsubscribeTransactions();
     };
-  }, [user?.companyId]);
+  }, [activeCompanyId]);
 
   const addBankAccount = async (data: Omit<BankAccount, 'id' | 'companyId' | 'currentBalance' | 'createdAt' | 'updatedAt'>) => {
-    if (!user?.companyId) throw new Error('No company ID found');
+    if (!activeCompanyId) throw new Error('No company ID found');
 
     const id = Math.random().toString(36).substr(2, 9);
     const now = new Date().toISOString();
@@ -101,7 +102,7 @@ export function BankProvider({ children }: { children: React.ReactNode }) {
     const newAccount: BankAccount = {
       ...data,
       id,
-      companyId: user.companyId,
+      companyId: activeCompanyId,
       currentBalance: data.openingBalance,
       createdAt: now,
       updatedAt: now,
@@ -111,17 +112,17 @@ export function BankProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateBankAccount = async (id: string, data: Partial<BankAccount>) => {
-    if (!user?.companyId) throw new Error('No company ID found');
+    if (!activeCompanyId) throw new Error('No company ID found');
     await updateDoc(doc(db, 'bankAccounts', id), { ...data, updatedAt: new Date().toISOString() });
   };
 
   const deleteBankAccount = async (id: string) => {
-    if (!user?.companyId) throw new Error('No company ID found');
+    if (!activeCompanyId) throw new Error('No company ID found');
     await deleteDoc(doc(db, 'bankAccounts', id));
   };
 
   const addBankTransaction = async (data: Omit<BankTransaction, 'id' | 'companyId' | 'isReconciled' | 'createdAt' | 'updatedAt'>) => {
-    if (!user?.companyId) throw new Error('No company ID found');
+    if (!activeCompanyId) throw new Error('No company ID found');
 
     const id = Math.random().toString(36).substr(2, 9);
     const now = new Date().toISOString();
@@ -129,7 +130,7 @@ export function BankProvider({ children }: { children: React.ReactNode }) {
     const newTransaction: BankTransaction = {
       ...data,
       id,
-      companyId: user.companyId,
+      companyId: activeCompanyId,
       isReconciled: false,
       createdAt: now,
       updatedAt: now,
@@ -152,7 +153,7 @@ export function BankProvider({ children }: { children: React.ReactNode }) {
   };
 
   const reconcileTransaction = async (transactionId: string, journalEntryId: string) => {
-    if (!user?.companyId) throw new Error('No company ID found');
+    if (!activeCompanyId) throw new Error('No company ID found');
     await updateDoc(doc(db, 'transactions', transactionId), {
       linkedJournalEntryId: journalEntryId,
       isReconciled: true,
@@ -161,7 +162,7 @@ export function BankProvider({ children }: { children: React.ReactNode }) {
   };
 
   const unreconcileTransaction = async (transactionId: string) => {
-    if (!user?.companyId) throw new Error('No company ID found');
+    if (!activeCompanyId) throw new Error('No company ID found');
     await updateDoc(doc(db, 'transactions', transactionId), {
       linkedJournalEntryId: null,
       isReconciled: false,

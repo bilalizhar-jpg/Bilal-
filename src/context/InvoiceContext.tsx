@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { collection, query, where, onSnapshot, doc, setDoc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from './AuthContext';
+import { logAuditAction } from '../services/auditService';
 
 export interface Invoice {
   id: string;
@@ -12,6 +13,8 @@ export interface Invoice {
   totalAmount: number;
   status: 'Draft' | 'Sent' | 'Paid' | 'Cancelled';
   journalEntryId?: string;
+  arAccountId?: string;
+  revenueAccountId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -45,9 +48,10 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const activeCompanyId = user?.currentCompanyId || user?.companyId;
 
   useEffect(() => {
-    if (!user?.companyId) {
+    if (!activeCompanyId) {
       setInvoices([]);
       setInvoiceItems([]);
       setLoading(false);
@@ -56,12 +60,12 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
 
     const qInvoices = query(
       collection(db, 'invoices'),
-      where('companyId', '==', user.companyId)
+      where('companyId', '==', activeCompanyId)
     );
 
     const qItems = query(
       collection(db, 'invoiceItems'),
-      where('companyId', '==', user.companyId)
+      where('companyId', '==', activeCompanyId)
     );
 
     const unsubscribeInvoices = onSnapshot(qInvoices, (snapshot) => {
@@ -95,13 +99,13 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
       unsubscribeInvoices();
       unsubscribeItems();
     };
-  }, [user?.companyId]);
+  }, [activeCompanyId]);
 
   const addInvoice = async (
     invoiceData: Omit<Invoice, 'id' | 'companyId' | 'createdAt' | 'updatedAt'>,
     itemsData: Omit<InvoiceItem, 'id' | 'companyId' | 'invoiceId'>[]
   ) => {
-    if (!user?.companyId) throw new Error('No company ID found');
+    if (!activeCompanyId) throw new Error('No company ID found');
 
     const batch = writeBatch(db);
     const invoiceId = Math.random().toString(36).substr(2, 9);
@@ -110,7 +114,7 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
     const newInvoice: Invoice = {
       ...invoiceData,
       id: invoiceId,
-      companyId: user.companyId,
+      companyId: activeCompanyId,
       createdAt: now,
       updatedAt: now,
     };
@@ -122,18 +126,29 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
       const newItem: InvoiceItem = {
         ...item,
         id: itemId,
-        companyId: user.companyId,
+        companyId: activeCompanyId,
         invoiceId: invoiceId
       };
       batch.set(doc(db, 'invoiceItems', itemId), newItem);
     });
 
     await batch.commit();
+    
+    logAuditAction({
+      companyId: activeCompanyId,
+      userId: user.id,
+      userName: user.name,
+      action: 'Create Invoice',
+      module: 'Invoices',
+      recordId: invoiceId,
+      description: `Created invoice for customer ID: ${invoiceData.customerId} with total: ${invoiceData.totalAmount}`
+    });
+
     return invoiceId;
   };
 
   const updateInvoice = async (id: string, data: Partial<Invoice>) => {
-    if (!user?.companyId) throw new Error('No company ID found');
+    if (!activeCompanyId) throw new Error('No company ID found');
     
     const updateData = {
       ...data,
@@ -144,10 +159,20 @@ export function InvoiceProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteInvoice = async (id: string) => {
-    if (!user?.companyId) throw new Error('No company ID found');
+    if (!activeCompanyId) throw new Error('No company ID found');
     
     // In a real system, you might want to delete associated items and reverse journal entries
     await deleteDoc(doc(db, 'invoices', id));
+
+    logAuditAction({
+      companyId: activeCompanyId,
+      userId: user.id,
+      userName: user.name,
+      action: 'Delete Invoice',
+      module: 'Invoices',
+      recordId: id,
+      description: `Deleted invoice ID: ${id}`
+    });
   };
 
   return (

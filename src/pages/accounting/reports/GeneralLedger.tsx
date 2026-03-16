@@ -14,10 +14,12 @@ import {
 import AccountingLayout from '../../../components/accounting/AccountingLayout';
 import { useTheme } from '../../../context/ThemeContext';
 import { useAccounting } from '../../../context/AccountingContext';
+import { useSettings } from '../../../context/SettingsContext';
 
 export default function GeneralLedger() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const { formatCurrency } = useSettings();
   const { accounts, journalEntries, journalLines, loading } = useAccounting();
   
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
@@ -104,14 +106,6 @@ export default function GeneralLedger() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { 
-      style: 'currency', 
-      currency: 'USD',
-      minimumFractionDigits: 2 
-    }).format(amount || 0);
-  };
 
   return (
     <AccountingLayout>

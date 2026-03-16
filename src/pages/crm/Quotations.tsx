@@ -8,8 +8,12 @@ import {
   ChevronDown, Calendar, X, Edit, Trash2, Bold, Italic, Underline, Link, List, ListOrdered, Type,
   GripVertical
 } from 'lucide-react';
+import { useSettings } from '../../context/SettingsContext';
 import { useCompanyData } from '../../context/CompanyDataContext';
+import { useAuth } from '../../context/AuthContext';
 import AdminLayout from '../../components/AdminLayout';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface ProductRow {
   id: string;
@@ -22,10 +26,66 @@ interface ProductRow {
 
 export default function Quotations() {
   const { theme } = useTheme();
-  const { companies, quotations, addEntity, loading } = useCompanyData();
+  const { formatCurrency } = useSettings();
+  const { user } = useAuth();
+  const { companies, quotations, addEntity, updateEntity, deleteEntity, loading, products } = useCompanyData();
   const isDark = theme === 'dark';
+  
+  const generatePDF = (quote: any) => {
+    const doc = new jsPDF();
+    const customerCompany = companies.find(c => c.id === quote.customerId);
+    const currentCompany = companies.find(c => c.id === (user?.currentCompanyId || user?.companyId));
+    
+    // Company Logo and Name
+    doc.setFontSize(18);
+    doc.text(currentCompany?.name || 'My Company', 150, 20);
+    if (currentCompany?.logo) {
+      doc.addImage(currentCompany.logo, 'PNG', 150, 25, 40, 20);
+    }
+
+    doc.setFontSize(18);
+    doc.text(`Quotation: ${quote.quoteId}`, 14, 20);
+    doc.setFontSize(12);
+    doc.text(`Customer: ${customerCompany?.name || 'N/A'}`, 14, 30);
+    doc.text(`Date: ${quote.date}`, 14, 37);
+    doc.text(`Valid Till: ${quote.validTill}`, 14, 44);
+    doc.text(`Description: ${quote.description || 'N/A'}`, 14, 51);
+    
+    const tableColumn = ["Product", "Quantity", "Price", "Discount", "Amount"];
+    const tableRows = quote.products.map((p: any) => {
+      const product = products.find(prod => prod.id === p.productId);
+      return [
+        product?.name || 'Unknown',
+        p.quantity,
+        formatCurrency(p.price),
+        `${p.discount}%`,
+        formatCurrency(p.amount)
+      ];
+    });
+    
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 60,
+    });
+    
+    const finalY = (doc as any).lastAutoTable.finalY;
+    doc.text(`Total Amount: ${formatCurrency(quote.amount)}`, 14, finalY + 10);
+    doc.text(`Notes: ${quote.notes || 'N/A'}`, 14, finalY + 20);
+    doc.text(`Terms: ${quote.terms || 'N/A'}`, 14, finalY + 30);
+    
+    if (quote.customFields) {
+      quote.customFields.forEach((field: any, index: number) => {
+        doc.text(`${field.label}: ${field.value}`, 14, finalY + 40 + (index * 7));
+      });
+    }
+    
+    doc.save(`Quotation_${quote.quoteId}.pdf`);
+  };
+
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingQuoteId, setEditingQuoteId] = useState<string | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isManageColumnsOpen, setIsManageColumnsOpen] = useState(false);
 
@@ -83,14 +143,20 @@ export default function Quotations() {
   const updateProductRow = (id: string, field: keyof ProductRow, value: any) => {
     setProductRows(productRows.map(row => {
       if (row.id === id) {
-        const updatedRow = { ...row, [field]: value };
-        // Calculate amount
-        if (field === 'quantity' || field === 'price' || field === 'discount') {
-          const q = field === 'quantity' ? Number(value) : row.quantity;
-          const p = field === 'price' ? Number(value) : row.price;
-          const d = field === 'discount' ? Number(value) : row.discount;
-          updatedRow.amount = q * p * (1 - d / 100);
+        let updatedRow = { ...row, [field]: value };
+        
+        // Update price when product changes
+        if (field === 'productId') {
+          const product = products.find(p => p.id === value);
+          updatedRow.price = product ? Number(product.sellingPrice) : 0;
         }
+
+        // Calculate amount
+        const q = updatedRow.quantity;
+        const p = updatedRow.price;
+        const d = updatedRow.discount;
+        updatedRow.amount = q * p * (1 - d / 100);
+        
         return updatedRow;
       }
       return row;
@@ -111,8 +177,8 @@ export default function Quotations() {
       return;
     }
 
-    const newQuote = {
-      quoteId: `#QOT${(quotations.length + 1).toString().padStart(4, '0')}`,
+    const quoteData = {
+      quoteId: editingQuoteId ? quotations.find(q => q.id === editingQuoteId)?.quoteId : `#QOT${(quotations.length + 1).toString().padStart(4, '0')}`,
       customerId: customer,
       date,
       validTill,
@@ -130,13 +196,19 @@ export default function Quotations() {
       notes,
       terms,
       customFields,
-      createdAt: new Date().toISOString()
+      createdAt: editingQuoteId ? quotations.find(q => q.id === editingQuoteId)?.createdAt : new Date().toISOString()
     };
 
     try {
-      await addEntity('quotations', newQuote);
-      alert('Quotation saved successfully!');
+      if (editingQuoteId) {
+        await updateEntity('quotations', editingQuoteId, quoteData);
+        alert('Quotation updated successfully!');
+      } else {
+        await addEntity('quotations', quoteData);
+        alert('Quotation saved successfully!');
+      }
       setIsModalOpen(false);
+      setEditingQuoteId(null);
       // Reset form
       setCustomer('');
       setAmount('');
@@ -380,16 +452,47 @@ export default function Quotations() {
                           )}
                           {visibleColumns.quoteDate && <td className="py-4 px-4 text-[#B0B0C3]">{quote.date}</td>}
                           {visibleColumns.validTill && <td className="py-4 px-4 text-[#B0B0C3]">{quote.validTill}</td>}
-                          {visibleColumns.totalAmount && <td className="py-4 px-4 font-medium">{quote.currency} {(quote.amount || 0).toLocaleString()}</td>}
+                          {visibleColumns.totalAmount && <td className="py-4 px-4 font-medium">{formatCurrency(quote.amount || 0)}</td>}
                           {visibleColumns.discount && <td className="py-4 px-4 font-medium text-[#00FFCC]">0%</td>}
-                          {visibleColumns.finalAmount && <td className="py-4 px-4 font-bold text-white">{quote.currency} {(quote.amount || 0).toLocaleString()}</td>}
+                          {visibleColumns.finalAmount && <td className="py-4 px-4 font-bold text-white">{formatCurrency(quote.amount || 0)}</td>}
                           {visibleColumns.action && (
                             <td className="py-4 px-4 text-center">
                               <div className="flex items-center justify-center gap-4 text-slate-400">
-                                <button className="flex items-center gap-1 hover:text-[#00FFCC] transition-colors">
+                                <button onClick={() => {
+                                  // Populate modal with quote data for editing
+                                  setCustomer(quote.customerId);
+                                  setAmount(quote.amount.toString());
+                                  setCurrency(quote.currency);
+                                  setDate(quote.date);
+                                  setValidTill(quote.validTill);
+                                  setDescription(quote.description);
+                                  setProductRows(quote.products.map((p: any) => ({
+                                    id: Math.random().toString(36).substr(2, 9),
+                                    productId: p.productId,
+                                    quantity: p.quantity,
+                                    price: p.price,
+                                    discount: p.discount,
+                                    amount: p.amount
+                                  })));
+                                  setNotes(quote.notes);
+                                  setTerms(quote.terms);
+                                  setCustomFields(quote.customFields);
+                                  setEditingQuoteId(quote.id);
+                                  setIsModalOpen(true);
+                                }} className="flex items-center gap-1 hover:text-[#00FFCC] transition-colors">
                                   <Edit className="w-3.5 h-3.5" /> Edit
                                 </button>
-                                <button className="flex items-center gap-1 hover:text-red-500 transition-colors">
+                                <button onClick={async () => {
+                                  if (window.confirm('Are you sure you want to delete this quotation?')) {
+                                    try {
+                                      await deleteEntity('quotations', quote.id);
+                                      alert('Quotation deleted successfully!');
+                                    } catch (error) {
+                                      console.error('Error deleting quotation:', error);
+                                      alert('Failed to delete quotation.');
+                                    }
+                                  }
+                                }} className="flex items-center gap-1 hover:text-red-500 transition-colors">
                                   <Trash2 className="w-3.5 h-3.5" /> Delete
                                 </button>
                               </div>
@@ -594,8 +697,9 @@ export default function Quotations() {
                                   className={`w-full px-3 py-2 text-xs rounded border appearance-none focus:outline-none focus:ring-1 focus:ring-[#00FFCC]/50 ${isDark ? 'bg-[#1E1E2F] border-white/10 text-white' : 'bg-white border-slate-200'}`}
                                 >
                                   <option value="">SELECT</option>
-                                  <option value="p1">PRODUCT A</option>
-                                  <option value="p2">PRODUCT B</option>
+                                  {products.map(p => (
+                                    <option key={p.id} value={p.id}>{p.name}</option>
+                                  ))}
                                 </select>
                                 <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none" />
                               </div>
@@ -612,7 +716,7 @@ export default function Quotations() {
                               <input 
                                 type="number"
                                 value={row.price || ''}
-                                onChange={(e) => updateProductRow(row.id, 'price', e.target.value)}
+                                readOnly
                                 className={`w-full px-3 py-2 text-xs rounded border focus:outline-none focus:ring-1 focus:ring-[#00FFCC]/50 ${isDark ? 'bg-[#1E1E2F] border-white/10 text-white' : 'bg-white border-slate-200'}`}
                               />
                             </td>
@@ -623,10 +727,9 @@ export default function Quotations() {
                                   onChange={(e) => updateProductRow(row.id, 'discount', e.target.value)}
                                   className={`w-full px-3 py-2 text-xs rounded border appearance-none focus:outline-none focus:ring-1 focus:ring-[#00FFCC]/50 ${isDark ? 'bg-[#1E1E2F] border-white/10 text-white' : 'bg-white border-slate-200'}`}
                                 >
-                                  <option value="0">0 %</option>
-                                  <option value="5">5 %</option>
-                                  <option value="10">10 %</option>
-                                  <option value="20">20 %</option>
+                                  {Array.from({ length: 21 }, (_, i) => i * 5).map(d => (
+                                    <option key={d} value={d}>{d} %</option>
+                                  ))}
                                 </select>
                                 <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none" />
                               </div>
@@ -664,15 +767,15 @@ export default function Quotations() {
                 <div className={`p-6 rounded-xl space-y-3 ${isDark ? 'bg-[#2A2A3D]' : 'bg-slate-50/50'}`}>
                   <div className="flex justify-between items-center text-sm">
                     <span className="font-bold text-[#B0B0C3] uppercase tracking-wider">Subtotal</span>
-                    <span className="font-bold text-white">${(subtotal || 0).toLocaleString()}</span>
+                    <span className="font-bold text-white">{formatCurrency(subtotal || 0)}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="font-bold text-[#B0B0C3] uppercase tracking-wider">Tax</span>
-                    <span className="font-bold text-white">${(tax || 0).toLocaleString()}</span>
+                    <span className="font-bold text-white">{formatCurrency(tax || 0)}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm pt-3 border-t border-white/10">
                     <span className="font-bold text-white text-base uppercase tracking-wider">Total</span>
-                    <span className="font-bold text-[#00FFCC] text-base">${(total || 0).toLocaleString()}</span>
+                    <span className="font-bold text-[#00FFCC] text-base">{formatCurrency(total || 0)}</span>
                   </div>
                 </div>
 
@@ -760,6 +863,22 @@ export default function Quotations() {
                     className="px-6 py-2 bg-[#2A2A3D] text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-[#3A3A5A] transition-all"
                   >
                     Save
+                  </button>
+                  <button 
+                    onClick={() => {
+                      const tempQuote = {
+                        quoteId: editingQuoteId ? quotations.find(q => q.id === editingQuoteId)?.quoteId : 'NEW',
+                        customerId: customer,
+                        date,
+                        validTill,
+                        amount: Number(amount),
+                        products: productRows
+                      };
+                      generatePDF(tempQuote);
+                    }}
+                    className="px-6 py-2 bg-slate-600 text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-slate-700 transition-all"
+                  >
+                    Download PDF
                   </button>
                   <button 
                     onClick={handleSaveAndSend}

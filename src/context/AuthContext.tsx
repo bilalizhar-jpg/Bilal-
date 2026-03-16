@@ -4,6 +4,7 @@ import { onAuthStateChanged, signInAnonymously, signOut, GoogleAuthProvider, sig
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Employee } from './EmployeeContext';
+import { logAuditAction } from '../services/auditService';
 
 interface User {
   id: string;
@@ -11,7 +12,8 @@ interface User {
   email?: string;
   role: 'admin' | 'employee' | 'superadmin';
   employeeId?: string; // For employees
-  companyId?: string; // For admins
+  companyId?: string; // For admins (primary company)
+  currentCompanyId?: string; // Currently active company
   avatar?: string;
 }
 
@@ -23,6 +25,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   isFirebaseReady: boolean;
   impersonateCompany: (companyId: string | null) => void;
+  switchCompany: (companyId: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -66,9 +69,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = (userData: User) => {
     setUser(userData);
+    logAuditAction({
+      companyId: userData.companyId || 'system',
+      userId: userData.id,
+      userName: userData.name,
+      action: 'Login',
+      module: 'Auth',
+      description: `User ${userData.name} logged in`
+    });
   };
 
   const logout = async () => {
+    if (user) {
+      logAuditAction({
+        companyId: user.companyId || 'system',
+        userId: user.id,
+        userName: user.name,
+        action: 'Logout',
+        module: 'Auth',
+        description: `User ${user.name} logged out`
+      });
+    }
     setUser(null);
     await signOut(auth);
   };
@@ -114,8 +135,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const impersonateCompany = (companyId: string | null) => {
     if (user?.role === 'superadmin') {
-      setUser(prev => prev ? { ...prev, companyId: companyId || undefined } : null);
+      setUser(prev => prev ? { ...prev, companyId: companyId || undefined, currentCompanyId: companyId || undefined } : null);
     }
+  };
+
+  const switchCompany = (companyId: string) => {
+    setUser(prev => prev ? { ...prev, currentCompanyId: companyId } : null);
   };
 
   return (
@@ -126,7 +151,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       isAuthenticated: !!user,
       signInWithGoogle,
       isFirebaseReady,
-      impersonateCompany
+      impersonateCompany,
+      switchCompany
     }}>
       {children}
     </AuthContext.Provider>
