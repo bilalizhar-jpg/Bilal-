@@ -329,11 +329,11 @@ export default function LoanManagement() {
                       <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100 font-medium">{loan.employeeName}</td>
                       <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">{loan.permittedBy}</td>
                       <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100 font-mono">{loan.loanNo}</td>
-                      <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">${loan.amount.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">${(loan.amount || 0).toLocaleString()}</td>
                       <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">{loan.interestRate}%</td>
                       <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">{loan.installmentPeriod}</td>
                       <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">{loan.installmentCleared}</td>
-                      <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100 font-bold text-indigo-600">${loan.repaymentAmount.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100 font-bold text-indigo-600">${(loan.repaymentAmount || 0).toLocaleString()}</td>
                       <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">{loan.approvedDate}</td>
                       <td className="px-4 py-3 text-xs text-slate-600 border-r border-slate-100">{loan.repaymentFrom}</td>
                       <td className="px-4 py-3 text-xs border-r border-slate-100">

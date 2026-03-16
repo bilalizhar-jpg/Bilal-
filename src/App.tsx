@@ -90,6 +90,27 @@ import EmployeePermissions from './pages/super-admin/EmployeePermissions';
 import SuperAdminInvoiceGenerator from './pages/super-admin/InvoiceGenerator';
 import { SuperAdminProvider } from './context/SuperAdminContext';
 
+// Accounting Imports
+import AccountingDashboard from './pages/accounting/Dashboard';
+import ChartOfAccounts from './pages/accounting/ChartOfAccounts';
+import JournalEntries from './pages/accounting/JournalEntries';
+import Customers from './pages/accounting/Customers';
+import Invoices from './pages/accounting/Invoices';
+import Payments from './pages/accounting/Payments';
+import Vendors from './pages/accounting/Vendors';
+import Expenses from './pages/accounting/Expenses';
+import Bills from './pages/accounting/Bills';
+import BankAccounts from './pages/accounting/BankAccounts';
+import BankTransactions from './pages/accounting/BankTransactions';
+import BankReconciliation from './pages/accounting/BankReconciliation';
+
+// Financial Reports
+import GeneralLedger from './pages/accounting/reports/GeneralLedger';
+import TrialBalance from './pages/accounting/reports/TrialBalance';
+import IncomeStatement from './pages/accounting/reports/IncomeStatement';
+import BalanceSheet from './pages/accounting/reports/BalanceSheet';
+import CashFlow from './pages/accounting/reports/CashFlow';
+
 // Employee Portal Imports
 import EmployeeDashboard from './pages/employee-portal/Dashboard';
 import EmployeeAttendance from './pages/employee-portal/Attendance';
@@ -270,6 +291,27 @@ function AppContent() {
             <Route path="/super-admin/employee-permissions" element={<ProtectedRoute allowedRoles={['superadmin']}><EmployeePermissions /></ProtectedRoute>} />
             <Route path="/super-admin/invoice/:companyId" element={<ProtectedRoute allowedRoles={['superadmin']}><SuperAdminInvoiceGenerator /></ProtectedRoute>} />
 
+            {/* Accounting Routes */}
+            <Route path="/accounting/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><AccountingDashboard /></ProtectedRoute>} />
+            <Route path="/accounting/chart-of-accounts" element={<ProtectedRoute allowedRoles={['admin']}><ChartOfAccounts /></ProtectedRoute>} />
+            <Route path="/accounting/journal-entries" element={<ProtectedRoute allowedRoles={['admin']}><JournalEntries /></ProtectedRoute>} />
+            <Route path="/accounting/customers" element={<ProtectedRoute allowedRoles={['admin']}><Customers /></ProtectedRoute>} />
+            <Route path="/accounting/invoices" element={<ProtectedRoute allowedRoles={['admin']}><Invoices /></ProtectedRoute>} />
+            <Route path="/accounting/payments" element={<ProtectedRoute allowedRoles={['admin']}><Payments /></ProtectedRoute>} />
+            <Route path="/accounting/vendors" element={<ProtectedRoute allowedRoles={['admin']}><Vendors /></ProtectedRoute>} />
+            <Route path="/accounting/expenses" element={<ProtectedRoute allowedRoles={['admin']}><Expenses /></ProtectedRoute>} />
+            <Route path="/accounting/bills" element={<ProtectedRoute allowedRoles={['admin']}><Bills /></ProtectedRoute>} />
+            <Route path="/accounting/bank/accounts" element={<ProtectedRoute allowedRoles={['admin']}><BankAccounts /></ProtectedRoute>} />
+            <Route path="/accounting/bank/transactions" element={<ProtectedRoute allowedRoles={['admin']}><BankTransactions /></ProtectedRoute>} />
+            <Route path="/accounting/bank/reconcile" element={<ProtectedRoute allowedRoles={['admin']}><BankReconciliation /></ProtectedRoute>} />
+
+            {/* Financial Reports */}
+            <Route path="/accounting/reports/general-ledger" element={<ProtectedRoute allowedRoles={['admin']}><GeneralLedger /></ProtectedRoute>} />
+            <Route path="/accounting/reports/trial-balance" element={<ProtectedRoute allowedRoles={['admin']}><TrialBalance /></ProtectedRoute>} />
+            <Route path="/accounting/reports/income-statement" element={<ProtectedRoute allowedRoles={['admin']}><IncomeStatement /></ProtectedRoute>} />
+            <Route path="/accounting/reports/balance-sheet" element={<ProtectedRoute allowedRoles={['admin']}><BalanceSheet /></ProtectedRoute>} />
+            <Route path="/accounting/reports/cash-flow" element={<ProtectedRoute allowedRoles={['admin']}><CashFlow /></ProtectedRoute>} />
+
             {/* Employee Portal Routes */}
             <Route path="/employee-portal/dashboard" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeDashboard /></ProtectedRoute>} />
             <Route path="/employee-portal/attendance" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeAttendance /></ProtectedRoute>} />
@@ -304,6 +346,14 @@ import { ChatProvider } from './context/ChatContext';
 import { MarketingProvider } from './context/MarketingContext';
 import { TrainingProvider } from './context/TrainingContext';
 import { SettingsProvider } from './context/SettingsContext';
+import { AccountingProvider } from './context/AccountingContext';
+import { CustomerProvider } from './context/CustomerContext';
+import { InvoiceProvider } from './context/InvoiceContext';
+import { PaymentProvider } from './context/PaymentContext';
+import { VendorProvider } from './context/VendorContext';
+import { ExpenseProvider } from './context/ExpenseContext';
+import { BillProvider } from './context/BillContext';
+import { BankProvider } from './context/BankContext';
 
 export default function App() {
   return (
@@ -320,9 +370,25 @@ export default function App() {
                         <CompanyDataProvider>
                           <ChatProvider>
                             <MarketingProvider>
-                              <Router>
-                                <AppContent />
-                              </Router>
+                              <AccountingProvider>
+                                <CustomerProvider>
+                                  <InvoiceProvider>
+                                    <PaymentProvider>
+                                      <VendorProvider>
+                                        <ExpenseProvider>
+                                          <BillProvider>
+                                            <BankProvider>
+                                              <Router>
+                                                <AppContent />
+                                              </Router>
+                                            </BankProvider>
+                                          </BillProvider>
+                                        </ExpenseProvider>
+                                      </VendorProvider>
+                                    </PaymentProvider>
+                                  </InvoiceProvider>
+                                </CustomerProvider>
+                              </AccountingProvider>
                             </MarketingProvider>
                           </ChatProvider>
                         </CompanyDataProvider>

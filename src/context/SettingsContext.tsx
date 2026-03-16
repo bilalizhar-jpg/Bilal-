@@ -76,7 +76,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const safeParse = (item: string | null, fallback: any) => {
     if (!item) return fallback;
     try {
-      return JSON.parse(item);
+      // Check if it's a JSON string (starts with { or [)
+      if (item.trim().startsWith('{') || item.trim().startsWith('[')) {
+        return JSON.parse(item);
+      }
+      return fallback;
     } catch (e) {
       console.error("Error parsing JSON from localStorage:", e);
       return fallback;
@@ -107,15 +111,15 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       } else {
         // Migration from localStorage if Firestore document doesn't exist
         const migrate = async () => {
-          const savedLanguages = localStorage.getItem('languages');
-          const savedLanguage = localStorage.getItem('language');
-          const savedCurrencies = localStorage.getItem('currencies');
-          const savedCurrency = localStorage.getItem('currency');
-          const savedTax = localStorage.getItem('tax');
-          const savedTimeZone = localStorage.getItem('timeZone');
-          const savedColorPalette = localStorage.getItem('colorPalette');
-          const savedTimeFormat = localStorage.getItem('timeFormat');
-          const savedSystemInstruction = localStorage.getItem('systemInstruction');
+          const savedLanguages = localStorage.getItem('settings_languages');
+          const savedLanguage = localStorage.getItem('settings_language');
+          const savedCurrencies = localStorage.getItem('settings_currencies');
+          const savedCurrency = localStorage.getItem('settings_currency');
+          const savedTax = localStorage.getItem('settings_tax');
+          const savedTimeZone = localStorage.getItem('settings_timeZone');
+          const savedColorPalette = localStorage.getItem('settings_colorPalette');
+          const savedTimeFormat = localStorage.getItem('settings_timeFormat');
+          const savedSystemInstruction = localStorage.getItem('settings_systemInstruction');
 
           const initialSettings = {
             languages: safeParse(savedLanguages, defaultLanguages),

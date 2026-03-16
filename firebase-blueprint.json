@@ -670,9 +670,295 @@
         "customFields": { "type": "array" }
       },
       "required": ["id", "companyId", "quoteId", "customerId"]
+    },
+    "AccountingAccount": {
+      "title": "Accounting Account",
+      "description": "Chart of Accounts entry",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["Asset", "Liability", "Equity", "Revenue", "Expense"] },
+        "parentAccountId": { "type": "string" },
+        "openingBalance": { "type": "number" },
+        "currentBalance": { "type": "number" },
+        "description": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "companyId", "code", "name", "type", "openingBalance", "currentBalance", "isActive", "createdAt", "updatedAt"]
+    },
+    "JournalEntry": {
+      "title": "Journal Entry",
+      "description": "A double-entry accounting journal entry",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "reference": { "type": "string" },
+        "description": { "type": "string" },
+        "totalDebit": { "type": "number" },
+        "totalCredit": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["id", "companyId", "date", "reference", "description", "totalDebit", "totalCredit", "createdAt", "createdBy"]
+    },
+    "JournalLine": {
+      "title": "Journal Line",
+      "description": "A single line item in a journal entry",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "journalEntryId": { "type": "string" },
+        "accountId": { "type": "string" },
+        "description": { "type": "string" },
+        "debit": { "type": "number" },
+        "credit": { "type": "number" }
+      },
+      "required": ["id", "companyId", "journalEntryId", "accountId", "debit", "credit"]
+    },
+    "Customer": {
+      "title": "Customer",
+      "description": "A customer record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "address": { "type": "string" },
+        "taxNumber": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "companyId", "name", "createdAt", "updatedAt"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "A sales invoice",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "customerId": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "dueDate": { "type": "string", "format": "date" },
+        "totalAmount": { "type": "number" },
+        "status": { "type": "string" },
+        "journalEntryId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "companyId", "customerId", "date", "dueDate", "totalAmount", "status", "createdAt", "updatedAt"]
+    },
+    "InvoiceItem": {
+      "title": "Invoice Item",
+      "description": "A line item on a sales invoice",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "invoiceId": { "type": "string" },
+        "product": { "type": "string" },
+        "quantity": { "type": "number" },
+        "price": { "type": "number" },
+        "tax": { "type": "number" },
+        "total": { "type": "number" }
+      },
+      "required": ["id", "companyId", "invoiceId", "product", "quantity", "price", "tax", "total"]
+    },
+    "Payment": {
+      "title": "Payment",
+      "description": "A customer payment",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "customerId": { "type": "string" },
+        "amount": { "type": "number" },
+        "paymentMethod": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "reference": { "type": "string" },
+        "journalEntryId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "companyId", "customerId", "amount", "paymentMethod", "date", "createdAt", "updatedAt"]
+    },
+    "Vendor": {
+      "title": "Vendor",
+      "description": "A supplier or vendor",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "name": { "type": "string" },
+        "companyName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "address": { "type": "string" },
+        "taxNumber": { "type": "string" },
+        "paymentTerms": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "companyId", "name", "createdAt", "updatedAt"]
+    },
+    "Bill": {
+      "title": "Purchase Bill",
+      "description": "A bill from a vendor",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "vendorId": { "type": "string" },
+        "billNumber": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "dueDate": { "type": "string", "format": "date" },
+        "totalAmount": { "type": "number" },
+        "taxAmount": { "type": "number" },
+        "status": { "type": "string", "enum": ["draft", "open", "paid", "overdue"] },
+        "journalEntryId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "companyId", "vendorId", "date", "dueDate", "totalAmount", "status", "createdAt", "updatedAt"]
+    },
+    "BillItem": {
+      "title": "Bill Item",
+      "description": "A line item in a purchase bill",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "billId": { "type": "string" },
+        "item": { "type": "string" },
+        "quantity": { "type": "number" },
+        "price": { "type": "number" },
+        "tax": { "type": "number" },
+        "total": { "type": "number" }
+      },
+      "required": ["id", "companyId", "billId", "item", "quantity", "price", "tax", "total"]
+    },
+    "Expense": {
+      "title": "Expense",
+      "description": "A company expense",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "vendorId": { "type": "string" },
+        "accountId": { "type": "string" },
+        "amount": { "type": "number" },
+        "date": { "type": "string", "format": "date" },
+        "reference": { "type": "string" },
+        "description": { "type": "string" },
+        "journalEntryId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "companyId", "accountId", "amount", "date", "createdAt", "updatedAt"]
+    },
+    "BankAccount": {
+      "title": "Bank Account",
+      "description": "A company bank account",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "bankName": { "type": "string" },
+        "accountName": { "type": "string" },
+        "accountNumber": { "type": "string" },
+        "currency": { "type": "string" },
+        "openingBalance": { "type": "number" },
+        "currentBalance": { "type": "number" },
+        "accountId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "companyId", "bankName", "accountName", "accountNumber", "currentBalance", "accountId", "createdAt", "updatedAt"]
+    },
+    "Transaction": {
+      "title": "Bank Transaction",
+      "description": "A transaction in a bank account",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "bankAccountId": { "type": "string" },
+        "type": { "type": "string", "enum": ["Debit", "Credit"] },
+        "amount": { "type": "number" },
+        "date": { "type": "string", "format": "date" },
+        "description": { "type": "string" },
+        "reference": { "type": "string" },
+        "isReconciled": { "type": "boolean" },
+        "linkedJournalEntryId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "companyId", "bankAccountId", "type", "amount", "date", "isReconciled", "createdAt", "updatedAt"]
     }
   },
   "firestore": {
+    "/accounting_accounts/{accountId}": {
+      "schema": "AccountingAccount",
+      "description": "Chart of Accounts for companies"
+    },
+    "/journalEntries/{entryId}": {
+      "schema": "JournalEntry",
+      "description": "Journal entries for double-entry accounting"
+    },
+    "/journalLines/{lineId}": {
+      "schema": "JournalLine",
+      "description": "Line items for journal entries"
+    },
+    "/customers/{customerId}": {
+      "schema": "Customer",
+      "description": "Customer records"
+    },
+    "/invoices/{invoiceId}": {
+      "schema": "Invoice",
+      "description": "Sales invoices"
+    },
+    "/invoiceItems/{itemId}": {
+      "schema": "InvoiceItem",
+      "description": "Line items for sales invoices"
+    },
+    "/payments/{paymentId}": {
+      "schema": "Payment",
+      "description": "Customer payments"
+    },
+    "/vendors/{vendorId}": {
+      "schema": "Vendor",
+      "description": "Vendor records"
+    },
+    "/expenses/{expenseId}": {
+      "schema": "Expense",
+      "description": "Company expenses"
+    },
+    "/bills/{billId}": {
+      "schema": "Bill",
+      "description": "Purchase bills"
+    },
+    "/billItems/{billItemId}": {
+      "schema": "BillItem",
+      "description": "Line items for purchase bills"
+    },
+    "/bankAccounts/{bankAccountId}": {
+      "schema": "BankAccount",
+      "description": "Company bank accounts"
+    },
+    "/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Bank account transactions"
+    },
     "/users/{userId}": {
       "schema": "User",
       "description": "Collection of system users"

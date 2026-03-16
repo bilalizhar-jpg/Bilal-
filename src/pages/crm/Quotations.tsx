@@ -380,9 +380,9 @@ export default function Quotations() {
                           )}
                           {visibleColumns.quoteDate && <td className="py-4 px-4 text-[#B0B0C3]">{quote.date}</td>}
                           {visibleColumns.validTill && <td className="py-4 px-4 text-[#B0B0C3]">{quote.validTill}</td>}
-                          {visibleColumns.totalAmount && <td className="py-4 px-4 font-medium">{quote.currency} {quote.amount?.toLocaleString()}</td>}
+                          {visibleColumns.totalAmount && <td className="py-4 px-4 font-medium">{quote.currency} {(quote.amount || 0).toLocaleString()}</td>}
                           {visibleColumns.discount && <td className="py-4 px-4 font-medium text-[#00FFCC]">0%</td>}
-                          {visibleColumns.finalAmount && <td className="py-4 px-4 font-bold text-white">{quote.currency} {quote.amount?.toLocaleString()}</td>}
+                          {visibleColumns.finalAmount && <td className="py-4 px-4 font-bold text-white">{quote.currency} {(quote.amount || 0).toLocaleString()}</td>}
                           {visibleColumns.action && (
                             <td className="py-4 px-4 text-center">
                               <div className="flex items-center justify-center gap-4 text-slate-400">
@@ -664,15 +664,15 @@ export default function Quotations() {
                 <div className={`p-6 rounded-xl space-y-3 ${isDark ? 'bg-[#2A2A3D]' : 'bg-slate-50/50'}`}>
                   <div className="flex justify-between items-center text-sm">
                     <span className="font-bold text-[#B0B0C3] uppercase tracking-wider">Subtotal</span>
-                    <span className="font-bold text-white">${subtotal.toLocaleString()}</span>
+                    <span className="font-bold text-white">${(subtotal || 0).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="font-bold text-[#B0B0C3] uppercase tracking-wider">Tax</span>
-                    <span className="font-bold text-white">${tax.toLocaleString()}</span>
+                    <span className="font-bold text-white">${(tax || 0).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm pt-3 border-t border-white/10">
                     <span className="font-bold text-white text-base uppercase tracking-wider">Total</span>
-                    <span className="font-bold text-[#00FFCC] text-base">${total.toLocaleString()}</span>
+                    <span className="font-bold text-[#00FFCC] text-base">${(total || 0).toLocaleString()}</span>
                   </div>
                 </div>
 

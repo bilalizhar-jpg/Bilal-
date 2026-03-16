@@ -138,7 +138,7 @@ export default function SendCampaign() {
               >
                 <option value="" disabled>Choose a list...</option>
                 {lists.map(list => (
-                  <option key={list.id} value={list.name}>{list.name} ({list.count.toLocaleString()} contacts)</option>
+                  <option key={list.id} value={list.name}>{list.name} ({(list.count || 0).toLocaleString()} contacts)</option>
                 ))}
               </select>
             </div>
@@ -215,7 +215,7 @@ export default function SendCampaign() {
               <div className="flex justify-between text-sm">
                 <span className="text-slate-500 dark:text-slate-400">Recipients:</span>
                 <span className="font-medium text-slate-900 dark:text-white">
-                  {formData.list ? lists.find(l => l.name === formData.list)?.count.toLocaleString() : '0'}
+                  {formData.list ? (lists.find(l => l.name === formData.list)?.count || 0).toLocaleString() : '0'}
                 </span>
               </div>
               <div className="flex justify-between text-sm">

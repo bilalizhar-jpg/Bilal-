@@ -66,7 +66,7 @@ export default function RewardPoints() {
               </div>
               <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>Total Points Distributed</h3>
             </div>
-            <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{totalPoints.toLocaleString()}</p>
+            <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{(totalPoints || 0).toLocaleString()}</p>
             <p className="text-xs text-slate-500 mt-2 flex items-center gap-1">
               <TrendingUp className="w-3 h-3 text-emerald-500" />
               Lifetime Total

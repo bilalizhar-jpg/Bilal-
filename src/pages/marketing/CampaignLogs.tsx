@@ -113,7 +113,7 @@ export default function CampaignLogs() {
             </div>
             <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Sent</span>
           </div>
-          <p className="text-3xl font-bold text-slate-900 dark:text-white">{stats.sent.toLocaleString()}</p>
+          <p className="text-3xl font-bold text-slate-900 dark:text-white">{(stats.sent || 0).toLocaleString()}</p>
           <div className="mt-2 flex items-center text-sm">
             <span className="text-emerald-600 dark:text-emerald-400 font-medium">{calculatePercentage(stats.delivered, stats.sent)}%</span>
             <span className="text-slate-500 dark:text-slate-400 ml-2">Delivery Rate</span>
@@ -127,7 +127,7 @@ export default function CampaignLogs() {
             </div>
             <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Opens</span>
           </div>
-          <p className="text-3xl font-bold text-slate-900 dark:text-white">{stats.opened.toLocaleString()}</p>
+          <p className="text-3xl font-bold text-slate-900 dark:text-white">{(stats.opened || 0).toLocaleString()}</p>
           <div className="mt-2 flex items-center text-sm">
             <span className="text-emerald-600 dark:text-emerald-400 font-medium">{calculatePercentage(stats.opened, stats.delivered)}%</span>
             <span className="text-slate-500 dark:text-slate-400 ml-2">Open Rate</span>
@@ -141,7 +141,7 @@ export default function CampaignLogs() {
             </div>
             <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Clicks</span>
           </div>
-          <p className="text-3xl font-bold text-slate-900 dark:text-white">{stats.clicked.toLocaleString()}</p>
+          <p className="text-3xl font-bold text-slate-900 dark:text-white">{(stats.clicked || 0).toLocaleString()}</p>
           <div className="mt-2 flex items-center text-sm">
             <span className="text-emerald-600 dark:text-emerald-400 font-medium">{calculatePercentage(stats.clicked, stats.opened)}%</span>
             <span className="text-slate-500 dark:text-slate-400 ml-2">Click-to-Open Rate</span>

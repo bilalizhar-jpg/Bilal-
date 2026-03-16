@@ -81,12 +81,24 @@ service cloud.firestore {
     match /salesOrders/{document=**} { allow read: if true; allow write: if true; }
     match /quotations/{document=**} { allow read: if true; allow write: if true; }
     match /journalEntries/{document=**} { allow read: if true; allow write: if true; }
+    match /journalLines/{document=**} { allow read: if true; allow write: if true; }
+    match /customers/{document=**} { allow read: if true; allow write: if true; }
+    match /invoices/{document=**} { allow read: if true; allow write: if true; }
+    match /invoiceItems/{document=**} { allow read: if true; allow write: if true; }
+    match /payments/{document=**} { allow read: if true; allow write: if true; }
+    match /vendors/{document=**} { allow read: if true; allow write: if true; }
+    match /expenses/{document=**} { allow read: if true; allow write: if true; }
+    match /bills/{document=**} { allow read: if true; allow write: if true; }
+    match /billItems/{document=**} { allow read: if true; allow write: if true; }
+    match /bankAccounts/{document=**} { allow read: if true; allow write: if true; }
+    match /transactions/{document=**} { allow read: if true; allow write: if true; }
     match /accountInvoices/{document=**} { allow read: if true; allow write: if true; }
     match /taxes/{document=**} { allow read: if true; allow write: if true; }
     match /creditNotes/{document=**} { allow read: if true; allow write: if true; }
     match /products/{document=**} { allow read: if true; allow write: if true; }
     match /callLogs/{document=**} { allow read: if true; allow write: if true; }
     match /bids/{document=**} { allow read: if true; allow write: if true; }
+    match /accounting_accounts/{document=**} { allow read: if true; allow write: if true; }
     match /tickets/{ticketId} {
       allow read, write: if true;
     }

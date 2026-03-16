@@ -527,7 +527,7 @@ export default function Dashboard() {
                 </div>
                 <div className="text-center -mt-8">
                   <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Loan Volume</div>
-                  <div className="text-3xl font-black text-white tracking-tighter">${totalLoanAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                  <div className="text-3xl font-black text-white tracking-tighter">${(totalLoanAmount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
                 </div>
               </div>
             </div>

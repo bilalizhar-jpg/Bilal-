@@ -446,7 +446,7 @@ export default function ProjectManagement() {
                           <td className="px-4 py-3 text-sm">
                             <div className="flex items-center gap-1 font-bold text-emerald-600">
                               <Calculator className="w-3 h-3" />
-                              {sale.commissionAmount.toLocaleString()}
+                              {(sale.commissionAmount || 0).toLocaleString()}
                             </div>
                           </td>
                           <td className="px-4 py-3 text-sm text-center">

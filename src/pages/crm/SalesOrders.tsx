@@ -389,8 +389,8 @@ export default function SalesOrders() {
                             </td>
                           )}
                           {visibleColumns.orderDate && <td className="py-3 px-4">{order.date}</td>}
-                          {visibleColumns.orderValue && <td className="py-3 px-4">{order.currency} {order.orderValue?.toLocaleString()}</td>}
-                          {visibleColumns.netAmount && <td className="py-3 px-4 font-bold">{order.currency} {order.netAmount?.toLocaleString()}</td>}
+                          {visibleColumns.orderValue && <td className="py-3 px-4">{order.currency} {(order.orderValue || 0).toLocaleString()}</td>}
+                          {visibleColumns.netAmount && <td className="py-3 px-4 font-bold">{order.currency} {(order.netAmount || 0).toLocaleString()}</td>}
                           {visibleColumns.paymentStatus && (
                             <td className="py-3 px-4">
                               <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${getPaymentStatusColor(order.paymentStatus)}`}>

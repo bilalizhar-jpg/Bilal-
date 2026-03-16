@@ -209,7 +209,7 @@ export default function EmailLists() {
                         <td className="px-6 py-4 font-medium text-slate-900 dark:text-white underline cursor-pointer">{list.name}</td>
                         <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{list.id}</td>
                         <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{list.folder}</td>
-                        <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{list.count.toLocaleString()}</td>
+                        <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{(list.count || 0).toLocaleString()}</td>
                         <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{list.date}</td>
                         <td className="px-6 py-4 text-right">
                           <button className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors">

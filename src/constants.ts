@@ -132,7 +132,7 @@ export const ADMIN_MENU_ITEMS = [
   { 
     name: 'Accounting', 
     icon: FileText, 
-    path: '#'
+    path: '/accounting/dashboard'
   },
   { 
     name: 'CRM', 
