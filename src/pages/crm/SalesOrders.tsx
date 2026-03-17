@@ -5,10 +5,13 @@ import {
   Search, Plus, Filter, ArrowUpDown, 
   Download, RefreshCw, Columns, ChevronLeft, ChevronRight,
   ChevronDown, Calendar, X, Edit, Trash2, Bold, Italic, Underline, Link, List, ListOrdered, Type,
-  GripVertical
+  GripVertical, CreditCard, CheckCircle
 } from 'lucide-react';
 import { useSettings } from '../../context/SettingsContext';
 import { useCompanyData } from '../../context/CompanyDataContext';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { useAuth } from '../../context/AuthContext';
 import AdminLayout from '../../components/AdminLayout';
 
 interface ProductRow {
@@ -23,12 +26,25 @@ interface ProductRow {
 export default function SalesOrders() {
   const { theme } = useTheme();
   const { formatCurrency } = useSettings();
-  const { companies, salesOrders, addEntity, loading } = useCompanyData();
+  const { user } = useAuth();
+  const { companies, salesOrders, addEntity, updateEntity, deleteEntity, loading, products } = useCompanyData();
   const isDark = theme === 'dark';
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isManageColumnsOpen, setIsManageColumnsOpen] = useState(false);
+
+  const [statusModal, setStatusModal] = useState<{
+    isOpen: boolean;
+    type: 'payment' | 'order' | null;
+    orderId: string | null;
+    currentValue: string;
+  }>({
+    isOpen: false,
+    type: null,
+    orderId: null,
+    currentValue: ''
+  });
 
   // Column Visibility State
   const [visibleColumns, setVisibleColumns] = useState({
@@ -82,11 +98,19 @@ export default function SalesOrders() {
   const updateProductRow = (id: string, field: keyof ProductRow, value: any) => {
     setProductRows(productRows.map(row => {
       if (row.id === id) {
-        const updatedRow = { ...row, [field]: value };
+        let updatedRow = { ...row, [field]: value };
+        
+        if (field === 'productId') {
+          const product = products.find(p => p.id === value);
+          if (product) {
+            updatedRow.price = Number(product.sellingPrice || product.price || 0);
+          }
+        }
+
         if (field === 'quantity' || field === 'price' || field === 'discount') {
-          const q = field === 'quantity' ? Number(value) : row.quantity;
-          const p = field === 'price' ? Number(value) : row.price;
-          const d = field === 'discount' ? Number(value) : row.discount;
+          const q = field === 'quantity' ? Number(value) : updatedRow.quantity;
+          const p = field === 'price' ? Number(value) : updatedRow.price;
+          const d = field === 'discount' ? Number(value) : updatedRow.discount;
           updatedRow.amount = q * p * (1 - d / 100);
         }
         return updatedRow;
@@ -111,6 +135,57 @@ export default function SalesOrders() {
     const updated = [...customFields];
     updated[index][field] = value;
     setCustomFields(updated);
+  };
+
+  const generatePDF = (order: any) => {
+    const doc = new jsPDF();
+    const customerCompany = companies.find(c => c.id === order.customerId);
+    const currentCompany = companies.find(c => c.id === (user?.currentCompanyId || user?.companyId));
+    
+    // Company Logo and Name
+    doc.setFontSize(18);
+    doc.text(currentCompany?.name || 'My Company', 150, 20);
+    if (currentCompany?.logo) {
+      doc.addImage(currentCompany.logo, 'PNG', 150, 25, 40, 20);
+    }
+
+    doc.setFontSize(18);
+    doc.text(`Sales Order: ${order.orderId}`, 14, 20);
+    doc.setFontSize(12);
+    doc.text(`Customer: ${customerCompany?.name || 'N/A'}`, 14, 30);
+    doc.text(`Date: ${order.date}`, 14, 37);
+    doc.text(`Description: ${order.description || 'N/A'}`, 14, 44);
+    
+    const tableColumn = ["Product", "Quantity", "Price", "Discount", "Amount"];
+    const tableRows = order.products.map((p: any) => {
+      const product = products.find(prod => prod.id === p.productId);
+      return [
+        product?.name || 'Unknown',
+        p.quantity,
+        formatCurrency(p.price),
+        `${p.discount}%`,
+        formatCurrency(p.amount)
+      ];
+    });
+    
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 60,
+    });
+    
+    const finalY = (doc as any).lastAutoTable.finalY;
+    doc.text(`Total Amount: ${formatCurrency(order.netAmount)}`, 14, finalY + 10);
+    doc.text(`Notes: ${order.notes || 'N/A'}`, 14, finalY + 20);
+    doc.text(`Terms: ${order.terms || 'N/A'}`, 14, finalY + 30);
+    
+    if (order.customFields) {
+      order.customFields.forEach((field: any, index: number) => {
+        doc.text(`${field.label}: ${field.value}`, 14, finalY + 40 + (index * 7));
+      });
+    }
+    
+    doc.save(`SalesOrder_${order.orderId}.pdf`);
   };
 
   const handleSave = async () => {
@@ -144,6 +219,7 @@ export default function SalesOrders() {
 
     try {
       await addEntity('salesOrders', newOrder);
+      generatePDF(newOrder);
       alert('Sales Order saved successfully!');
       setIsModalOpen(false);
       // Reset form
@@ -184,6 +260,28 @@ export default function SalesOrders() {
     // Simulate sending email
     console.log(`Sending Sales Order to: ${email}`);
     alert(`Sales Order saved and sent to ${selectedCompany.name} (${email})`);
+  };
+
+  const handleUpdateStatus = async (newValue: string) => {
+    if (!statusModal.orderId || !statusModal.type) return;
+
+    try {
+      const field = statusModal.type === 'payment' ? 'paymentStatus' : 'orderStatus';
+      await updateEntity('salesOrders', statusModal.orderId, { [field]: newValue });
+      setStatusModal({ ...statusModal, isOpen: false, type: null, orderId: null, currentValue: '' });
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
+  };
+
+  const handleDeleteOrder = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this sales order?')) {
+      try {
+        await deleteEntity('salesOrders', id);
+      } catch (error) {
+        console.error('Error deleting sales order:', error);
+      }
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -410,8 +508,22 @@ export default function SalesOrders() {
                           {visibleColumns.action && (
                             <td className="py-3 px-4">
                               <div className="flex items-center justify-center gap-2">
+                                <button 
+                                  onClick={() => setStatusModal({ isOpen: true, type: 'payment', orderId: order.id, currentValue: order.paymentStatus })}
+                                  className="p-1 text-[#B0B0C3] hover:text-[#00FFCC] transition-colors" 
+                                  title="Update Payment Status"
+                                >
+                                  <CreditCard className="w-3.5 h-3.5" />
+                                </button>
+                                <button 
+                                  onClick={() => setStatusModal({ isOpen: true, type: 'order', orderId: order.id, currentValue: order.orderStatus })}
+                                  className="p-1 text-[#B0B0C3] hover:text-[#00FFCC] transition-colors" 
+                                  title="Update Order Status"
+                                >
+                                  <CheckCircle className="w-3.5 h-3.5" />
+                                </button>
                                 <button className="p-1 text-[#B0B0C3] hover:text-[#00FFCC] transition-colors"><Edit className="w-3.5 h-3.5" /></button>
-                                <button className="p-1 text-[#B0B0C3] hover:text-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                                <button onClick={() => handleDeleteOrder(order.id)} className="p-1 text-[#B0B0C3] hover:text-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                               </div>
                             </td>
                           )}
@@ -545,6 +657,29 @@ export default function SalesOrders() {
                       className={`w-full px-3 py-2 text-xs rounded-lg border focus:outline-none focus:ring-2 focus:ring-red-500/20 transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
                     />
                   </div>
+
+                  {/* Sender Company Details */}
+                  <div className="space-y-1.5 flex flex-col items-end justify-center">
+                    {(() => {
+                      const currentCompany = companies.find(c => c.id === (user?.currentCompanyId || user?.companyId));
+                      if (!currentCompany) return null;
+                      return (
+                        <div className={`p-3 rounded-lg border text-right space-y-2 w-full h-full flex flex-col items-end justify-center ${isDark ? 'bg-slate-800/30 border-slate-700' : 'bg-slate-50/50 border-slate-100'}`}>
+                          {currentCompany.logo && (
+                            <img 
+                              src={currentCompany.logo} 
+                              alt="Company Logo" 
+                              className="h-10 object-contain"
+                              referrerPolicy="no-referrer"
+                            />
+                          )}
+                          <div className="text-[11px] font-black uppercase tracking-wider text-red-500">
+                            {currentCompany.name}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
                 </div>
 
                 {/* Description with Toolbar */}
@@ -606,8 +741,9 @@ export default function SalesOrders() {
                                 className={`w-full px-2 py-1.5 text-[11px] rounded border focus:outline-none ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}
                               >
                                 <option value="">Select Product</option>
-                                <option value="p1">Product A</option>
-                                <option value="p2">Product B</option>
+                                {products.map(product => (
+                                  <option key={product.id} value={product.id}>{product.name}</option>
+                                ))}
                               </select>
                             </td>
                             <td className="p-2">
@@ -627,12 +763,15 @@ export default function SalesOrders() {
                               />
                             </td>
                             <td className="p-2">
-                              <input 
-                                type="number"
+                              <select 
                                 value={row.discount}
-                                onChange={(e) => updateProductRow(row.id, 'discount', e.target.value)}
+                                onChange={(e) => updateProductRow(row.id, 'discount', Number(e.target.value))}
                                 className={`w-full px-2 py-1.5 text-[11px] rounded border focus:outline-none ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}
-                              />
+                              >
+                                {Array.from({ length: 21 }, (_, i) => i * 5).map(d => (
+                                  <option key={d} value={d}>{d}%</option>
+                                ))}
+                              </select>
                             </td>
                             <td className="p-2 font-medium">${row.amount.toFixed(2)}</td>
                             <td className="p-2">
@@ -876,6 +1015,77 @@ export default function SalesOrders() {
               </div>
             </motion.div>
           </>
+        )}
+      </AnimatePresence>
+
+      {/* Status Update Modal */}
+      <AnimatePresence>
+        {statusModal.isOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setStatusModal({ ...statusModal, isOpen: false })}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className={`relative w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden ${isDark ? 'bg-slate-900 border border-slate-800' : 'bg-white'}`}
+            >
+              <div className="p-6 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className={`text-lg font-bold uppercase tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    Update {statusModal.type === 'payment' ? 'Payment' : 'Order'} Status
+                  </h3>
+                  <button 
+                    onClick={() => setStatusModal({ ...statusModal, isOpen: false })}
+                    className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <X className="w-5 h-5 text-slate-400" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3">
+                  {statusModal.type === 'payment' ? (
+                    ['Pending', 'Received'].map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => handleUpdateStatus(status)}
+                        className={`w-full py-3 px-4 rounded-xl text-sm font-bold transition-all border-2 ${
+                          statusModal.currentValue === status
+                            ? 'bg-red-500 border-red-500 text-white shadow-lg shadow-red-500/20'
+                            : isDark 
+                              ? 'bg-slate-800 border-slate-700 text-slate-300 hover:border-red-500/50' 
+                              : 'bg-slate-50 border-slate-100 text-slate-600 hover:border-red-500/50'
+                        }`}
+                      >
+                        {status}
+                      </button>
+                    ))
+                  ) : (
+                    ['InProgress', 'Done', 'Pending'].map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => handleUpdateStatus(status)}
+                        className={`w-full py-3 px-4 rounded-xl text-sm font-bold transition-all border-2 ${
+                          statusModal.currentValue === status
+                            ? 'bg-red-500 border-red-500 text-white shadow-lg shadow-red-500/20'
+                            : isDark 
+                              ? 'bg-slate-800 border-slate-700 text-slate-300 hover:border-red-500/50' 
+                              : 'bg-slate-50 border-slate-100 text-slate-600 hover:border-red-500/50'
+                        }`}
+                      >
+                        {status}
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </AdminLayout>

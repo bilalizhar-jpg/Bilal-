@@ -62,6 +62,7 @@ import Permissions from './pages/settings/Permissions';
 import SetupRules from './pages/settings/SetupRules';
 import GeneralSettings from './pages/settings/GeneralSettings';
 import GmailIntegration from './pages/settings/GmailIntegration';
+import WhatsAppIntegration from './pages/settings/WhatsAppIntegration';
 import OAuthCallback from './pages/OAuthCallback';
 import Companies from './pages/crm/Companies';
 import AddCompany from './pages/crm/AddCompany';
@@ -275,6 +276,7 @@ function AppContent() {
             <Route path="/settings" element={<ProtectedRoute allowedRoles={['admin']}><GeneralSettings /></ProtectedRoute>} />
             <Route path="/settings/audit-logs" element={<ProtectedRoute allowedRoles={['admin']}><AuditLogs /></ProtectedRoute>} />
             <Route path="/settings/gmail-integration" element={<ProtectedRoute allowedRoles={['admin']}><GmailIntegration /></ProtectedRoute>} />
+            <Route path="/settings/whatsapp-integration" element={<ProtectedRoute allowedRoles={['admin']}><WhatsAppIntegration /></ProtectedRoute>} />
             <Route path="/crm/companies" element={<ProtectedRoute allowedRoles={['admin']}><Companies /></ProtectedRoute>} />
             <Route path="/crm/companies/add" element={<ProtectedRoute allowedRoles={['admin']}><AddCompany /></ProtectedRoute>} />
             <Route path="/crm/companies/edit/:id" element={<ProtectedRoute allowedRoles={['admin']}><AddCompany /></ProtectedRoute>} />

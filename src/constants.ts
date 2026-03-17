@@ -153,6 +153,7 @@ export const ADMIN_MENU_ITEMS = [
   { name: 'Settings', icon: Settings, hasSub: true, subItems: [
       { name: 'General Settings', path: '/settings' },
       { name: 'Gmail Integration', path: '/settings/gmail-integration' },
+      { name: 'WhatsApp Integration', path: '/settings/whatsapp-integration' },
       { name: 'Setup Rules', path: '/setup-rules' },
       { name: 'Roles & Permissions', path: '/role-management' },
       { name: 'Menu Permissions', path: '/permissions' }
