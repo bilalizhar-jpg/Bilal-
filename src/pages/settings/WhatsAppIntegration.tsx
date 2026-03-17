@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
@@ -54,6 +55,7 @@ export default function WhatsAppIntegration() {
       } else {
         console.error('Failed to fetch status:', err.message);
       }
+      setStatus('disconnected');
     }
   }, [companyId]);
 
@@ -268,6 +270,29 @@ export default function WhatsAppIntegration() {
                         Send Message
                       </button>
                     </form>
+                  </div>
+                </div>
+
+                {/* WhatsApp Rules Subheading */}
+                <div className="pt-4">
+                  <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                    WhatsApp Rules
+                  </h2>
+                  <div className={`p-6 rounded-xl border ${isDark ? 'bg-[#1E1E2F] border-white/10' : 'bg-white border-slate-200'}`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className={`font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>Automated Alerts & Rules</h4>
+                        <p className={`text-sm ${isDark ? 'text-[#B0B0C3]' : 'text-slate-500'}`}>
+                          Configure automated attendance alerts and other business rules for WhatsApp.
+                        </p>
+                      </div>
+                      <Link 
+                        to="/setup-rules" 
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg transition-colors"
+                      >
+                        Configure Rules
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -63,7 +63,6 @@ import SetupRules from './pages/settings/SetupRules';
 import GeneralSettings from './pages/settings/GeneralSettings';
 import GmailIntegration from './pages/settings/GmailIntegration';
 import WhatsAppIntegration from './pages/settings/WhatsAppIntegration';
-import AttendanceAlertSettings from './pages/settings/AttendanceAlertSettings';
 import OAuthCallback from './pages/OAuthCallback';
 import Companies from './pages/crm/Companies';
 import AddCompany from './pages/crm/AddCompany';
@@ -78,9 +77,6 @@ import SalesOrders from './pages/crm/SalesOrders';
 import CallLogs from './pages/crm/CallLogs';
 import Ticketing from './pages/crm/Ticketing';
 import TicketingHistoryReport from './pages/crm/TicketingHistoryReport';
-
-// Legacy Accounts Imports
-
 import TimeTracker from './pages/TimeTracker';
 import OrgChart from './pages/OrgChart';
 import CompanyPolicies from './pages/CompanyPolicies';
@@ -91,8 +87,6 @@ import SubscriptionPlans from './pages/super-admin/SubscriptionPlans';
 import EmployeePermissions from './pages/super-admin/EmployeePermissions';
 import SuperAdminInvoiceGenerator from './pages/super-admin/InvoiceGenerator';
 import { SuperAdminProvider } from './context/SuperAdminContext';
-
-// Accounting Imports
 import AccountingDashboard from './pages/accounting/Dashboard';
 import ChartOfAccounts from './pages/accounting/ChartOfAccounts';
 import JournalEntries from './pages/accounting/JournalEntries';
@@ -109,15 +103,11 @@ import BankReconciliation from './pages/accounting/BankReconciliation';
 import FinancialSettings from './pages/accounting/settings/FinancialSettings';
 import TaxSettings from './pages/accounting/settings/TaxSettings';
 import NumberSequences from './pages/accounting/settings/NumberSequences';
-
-// Financial Reports
 import GeneralLedger from './pages/accounting/reports/GeneralLedger';
 import TrialBalance from './pages/accounting/reports/TrialBalance';
 import IncomeStatement from './pages/accounting/reports/IncomeStatement';
 import BalanceSheet from './pages/accounting/reports/BalanceSheet';
 import CashFlow from './pages/accounting/reports/CashFlow';
-
-// Employee Portal Imports
 import EmployeeDashboard from './pages/employee-portal/Dashboard';
 import EmployeeAttendance from './pages/employee-portal/Attendance';
 import EmployeeLeaves from './pages/employee-portal/Leaves';
@@ -131,12 +121,32 @@ import EmployeeMarketing from './pages/employee-portal/Marketing';
 import EmployeeMessages from './pages/employee-portal/Messages';
 import EmployeeTraining from './pages/employee-portal/EmployeeTraining';
 import EmployeeCompanyPolicies from './pages/employee-portal/CompanyPolicies';
-
 import { AnimatePresence, motion } from 'motion/react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { db } from './firebase';
 import { doc, getDocFromServer } from 'firebase/firestore';
+import { EmployeeProvider } from './context/EmployeeContext';
+import { AttendanceProvider } from './context/AttendanceContext';
+import { TimeTrackingProvider } from './context/TimeTrackingContext';
+import { LeaveProvider } from './context/LeaveContext';
+import { PolicyProvider } from './context/PolicyContext';
+import { LetterProvider } from './context/LetterContext';
+import { CompanyDataProvider } from './context/CompanyDataContext';
+import { ChatProvider } from './context/ChatContext';
+import { MarketingProvider } from './context/MarketingContext';
+import { TrainingProvider } from './context/TrainingContext';
+import { SettingsProvider } from './context/SettingsContext';
+import { AccountingProvider } from './context/AccountingContext';
+import { CustomerProvider } from './context/CustomerContext';
+import { InvoiceProvider } from './context/InvoiceContext';
+import { PaymentProvider } from './context/PaymentContext';
+import { VendorProvider } from './context/VendorContext';
+import { ExpenseProvider } from './context/ExpenseContext';
+import { BillProvider } from './context/BillContext';
+import { BankProvider } from './context/BankContext';
+import { AuditProvider } from './context/AuditContext';
+import AuditLogs from './pages/settings/AuditLogs';
 
 async function testConnection() {
   try {
@@ -278,7 +288,6 @@ function AppContent() {
             <Route path="/settings/audit-logs" element={<ProtectedRoute allowedRoles={['admin']}><AuditLogs /></ProtectedRoute>} />
             <Route path="/settings/gmail-integration" element={<ProtectedRoute allowedRoles={['admin']}><GmailIntegration /></ProtectedRoute>} />
             <Route path="/settings/whatsapp-integration" element={<ProtectedRoute allowedRoles={['admin']}><WhatsAppIntegration /></ProtectedRoute>} />
-            <Route path="/settings/attendance-alerts" element={<ProtectedRoute allowedRoles={['admin']}><AttendanceAlertSettings /></ProtectedRoute>} />
             <Route path="/crm/companies" element={<ProtectedRoute allowedRoles={['admin']}><Companies /></ProtectedRoute>} />
             <Route path="/crm/companies/add" element={<ProtectedRoute allowedRoles={['admin']}><AddCompany /></ProtectedRoute>} />
             <Route path="/crm/companies/edit/:id" element={<ProtectedRoute allowedRoles={['admin']}><AddCompany /></ProtectedRoute>} />
@@ -343,6 +352,7 @@ function AppContent() {
             <Route path="/employee-portal/training" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeTraining /></ProtectedRoute>} />
             <Route path="/employee-portal/policies" element={<ProtectedRoute allowedRoles={['employee']}><EmployeeCompanyPolicies /></ProtectedRoute>} />
 
+            <Route path="/contact" element={<LandingPage />} />
             <Route path="*" element={<ProtectedRoute allowedRoles={['admin']}><Dashboard /></ProtectedRoute>} />
           </Routes>
         </div>
@@ -351,27 +361,6 @@ function AppContent() {
   );
 }
 
-import { EmployeeProvider } from './context/EmployeeContext';
-import { AttendanceProvider } from './context/AttendanceContext';
-import { TimeTrackingProvider } from './context/TimeTrackingContext';
-import { LeaveProvider } from './context/LeaveContext';
-import { PolicyProvider } from './context/PolicyContext';
-import { LetterProvider } from './context/LetterContext';
-import { CompanyDataProvider } from './context/CompanyDataContext';
-import { ChatProvider } from './context/ChatContext';
-import { MarketingProvider } from './context/MarketingContext';
-import { TrainingProvider } from './context/TrainingContext';
-import { SettingsProvider } from './context/SettingsContext';
-import { AccountingProvider } from './context/AccountingContext';
-import { CustomerProvider } from './context/CustomerContext';
-import { InvoiceProvider } from './context/InvoiceContext';
-import { PaymentProvider } from './context/PaymentContext';
-import { VendorProvider } from './context/VendorContext';
-import { ExpenseProvider } from './context/ExpenseContext';
-import { BillProvider } from './context/BillContext';
-import { BankProvider } from './context/BankContext';
-import { AuditProvider } from './context/AuditContext';
-import AuditLogs from './pages/settings/AuditLogs';
 
 export default function App() {
   return (

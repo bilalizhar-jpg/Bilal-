@@ -1,8 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { useSettings, Language, Currency } from '../../context/SettingsContext';
 import { useTheme } from '../../context/ThemeContext';
-import { Plus, Trash2, Edit2, Save, X } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { 
+  Plus, 
+  Trash2, 
+  Edit2, 
+  Save, 
+  X, 
+  Bell, 
+  Clock, 
+  MessageSquare, 
+  AlertCircle, 
+  CheckCircle2, 
+  RefreshCw,
+  ToggleLeft,
+  ToggleRight
+} from 'lucide-react';
+import { motion } from 'motion/react';
+
+interface AlertSettings {
+  company_id: string;
+  office_time: string;
+  grace_time: string;
+  trigger_time: string;
+  message_template: string;
+  is_active: boolean;
+}
+
+interface IdleAlertSettings {
+  company_id: string;
+  idle_minutes: number;
+  message_template: string;
+  is_active: boolean;
+}
+
+interface WelcomeMessageSettings {
+  company_id: string;
+  is_active: boolean;
+  message_template: string;
+}
 
 export default function SetupRules() {
   const {
@@ -13,6 +51,7 @@ export default function SetupRules() {
   } = useSettings();
 
   const { theme, toggleTheme, colorPalette, setColorPalette, palettes, portalDesign, setPortalDesign } = useTheme();
+  const { user } = useAuth();
 
   const [editingLang, setEditingLang] = useState<string | null>(null);
   const [editLangData, setEditLangData] = useState<Language>({ code: '', name: '' });
@@ -23,6 +62,176 @@ export default function SetupRules() {
   const [editCurrData, setEditCurrData] = useState<Currency>({ code: '', symbol: '', name: '' });
   const [newCurr, setNewCurr] = useState<Currency>({ code: '', symbol: '', name: '' });
   const [showAddCurr, setShowAddCurr] = useState(false);
+
+  // Attendance Alert Settings
+  const [alertSettings, setAlertSettings] = useState<AlertSettings>({
+    company_id: user?.companyId || '',
+    office_time: '09:00 AM',
+    grace_time: '09:15 AM',
+    trigger_time: '09:16 AM',
+    message_template: 'Dear {{employee_name}}, you have not marked your attendance. Please mark it immediately.',
+    is_active: false
+  });
+
+  // Idle Alert Settings
+  const [idleSettings, setIdleSettings] = useState<IdleAlertSettings>({
+    company_id: user?.companyId || '',
+    idle_minutes: 5,
+    message_template: 'Dear {{employee_name}}, you have been inactive for {{idle_minutes}} minutes. Please resume your tasks.',
+    is_active: false
+  });
+
+  // Welcome Message Settings
+  const [welcomeSettings, setWelcomeSettings] = useState<WelcomeMessageSettings>({
+    company_id: user?.companyId || '',
+    is_active: false,
+    message_template: "Dear {{employee_name}},\n\nWelcome to our company! 🎉\nWe’re excited to have you join our winning team.\n\nYour login details are:\nUsername: {{username}}\nPassword: {{password}}\n\nPlease log in and update your password.\n\nLet’s achieve great things together!"
+  });
+
+  const [loadingAlerts, setLoadingAlerts] = useState(true);
+  const [savingAlerts, setSavingAlerts] = useState(false);
+  const [alertMessage, setAlertMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+  useEffect(() => {
+    console.log(`[SetupRules] useEffect triggered. companyId: ${user?.companyId}, user exists: ${!!user}`);
+    if (user?.companyId) {
+      fetchAllAlertSettings();
+    } else if (user) {
+      setLoadingAlerts(false);
+    }
+  }, [user?.companyId, user]);
+
+  const fetchAllAlertSettings = async () => {
+    console.log(`[SetupRules] Fetching all alert settings for company: ${user?.companyId}`);
+    try {
+      const [attendanceRes, idleRes, welcomeRes] = await Promise.all([
+        fetch(`/api/attendance-alerts/${user?.companyId}`),
+        fetch(`/api/idle-alerts/${user?.companyId}`),
+        fetch(`/api/welcome-messages/${user?.companyId}`)
+      ]);
+
+      if (attendanceRes.ok) {
+        const data = await attendanceRes.json();
+        console.log(`[SetupRules] Attendance settings fetched:`, data);
+        setAlertSettings({
+          ...data,
+          is_active: data.is_active === 1
+        });
+      }
+
+      if (idleRes.ok) {
+        const data = await idleRes.json();
+        console.log(`[SetupRules] Idle settings fetched:`, data);
+        setIdleSettings({
+          ...data,
+          is_active: data.is_active === 1
+        });
+      }
+
+      if (welcomeRes.ok) {
+        const data = await welcomeRes.json();
+        console.log(`[SetupRules] Welcome settings fetched:`, data);
+        setWelcomeSettings({
+          ...data,
+          is_active: data.is_active === 1
+        });
+      }
+    } catch (error) {
+      console.error('[SetupRules] Error fetching alert settings:', error);
+    } finally {
+      setLoadingAlerts(false);
+    }
+  };
+
+  const handleToggleWelcome = async () => {
+    const newStatus = !welcomeSettings.is_active;
+    console.log(`[WelcomeMessage] Toggling status to: ${newStatus}`);
+    
+    // Optimistically update UI
+    setWelcomeSettings(prev => ({ ...prev, is_active: newStatus }));
+
+    if (!user?.companyId) {
+      console.error('[WelcomeMessage] No company ID found');
+      return;
+    }
+
+    try {
+      console.log(`[WelcomeMessage] Sending API request to save status...`);
+      const response = await fetch(`/api/welcome-messages/${user.companyId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...welcomeSettings,
+          is_active: newStatus,
+          company_id: user.companyId
+        })
+      });
+
+      const data = await response.json();
+      console.log(`[WelcomeMessage] API Response:`, data);
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update setting');
+      }
+
+      // Ensure state is synced with what backend returned
+      if (data.settings) {
+        setWelcomeSettings({
+          ...data.settings,
+          is_active: data.settings.is_active === 1
+        });
+        console.log(`[WelcomeMessage] State synced with DB:`, data.settings.is_active === 1);
+      }
+    } catch (error) {
+      console.error('[WelcomeMessage] Error saving toggle:', error);
+      // Revert UI on error
+      setWelcomeSettings(prev => ({ ...prev, is_active: !newStatus }));
+      setAlertMessage({ type: 'error', text: 'Failed to update toggle. Please try again.' });
+    }
+  };
+
+  const handleSaveAlerts = async () => {
+    setSavingAlerts(true);
+    setAlertMessage(null);
+    try {
+      const [attendanceRes, idleRes, welcomeRes] = await Promise.all([
+        fetch('/api/attendance-alerts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...alertSettings,
+            company_id: user?.companyId
+          })
+        }),
+        fetch(`/api/idle-alerts/${user?.companyId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...idleSettings,
+            company_id: user?.companyId
+          })
+        }),
+        fetch(`/api/welcome-messages/${user?.companyId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...welcomeSettings,
+            company_id: user?.companyId
+          })
+        })
+      ]);
+
+      if (attendanceRes.ok && idleRes.ok && welcomeRes.ok) {
+        setAlertMessage({ type: 'success', text: 'All alert rules saved successfully!' });
+      } else {
+        throw new Error('Failed to save settings');
+      }
+    } catch (error) {
+      setAlertMessage({ type: 'error', text: 'Error saving settings. Please try again.' });
+    } finally {
+      setSavingAlerts(false);
+    }
+  };
 
   const handleSaveLang = () => {
     if (editingLang) {
@@ -58,8 +267,8 @@ export default function SetupRules() {
     <AdminLayout>
       <div className="p-6 max-w-6xl mx-auto space-y-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Setup Rules</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">Configure global application settings.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Rules</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Configure global application settings and business rules.</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -386,6 +595,244 @@ export default function SetupRules() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* WhatsApp Rules Section */}
+        <div id="whatsapp-rules" className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+              <Bell className="w-6 h-6 text-emerald-500" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">WhatsApp Rules</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Configure automated WhatsApp alerts and business rules.</p>
+            </div>
+          </div>
+
+          {loadingAlerts ? (
+            <div className="flex items-center justify-center py-12">
+              <RefreshCw className="w-8 h-8 animate-spin text-indigo-500" />
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {/* Attendance Alert Settings */}
+              <div className="border-t border-gray-100 dark:border-gray-700 pt-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-indigo-500" />
+                    <h3 className="text-lg font-bold dark:text-white">Attendance Alerts</h3>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      {alertSettings.is_active ? 'Active' : 'Disabled'}
+                    </span>
+                    <button 
+                      onClick={() => setAlertSettings({ ...alertSettings, is_active: !alertSettings.is_active })}
+                      className="transition-colors"
+                    >
+                      {alertSettings.is_active ? (
+                        <ToggleRight className="w-8 h-8 text-emerald-500" />
+                      ) : (
+                        <ToggleLeft className="w-8 h-8 text-gray-300 dark:text-white/20" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Office Time</label>
+                    <input
+                      type="text"
+                      value={alertSettings.office_time}
+                      onChange={(e) => setAlertSettings({ ...alertSettings, office_time: e.target.value })}
+                      placeholder="09:00 AM"
+                      className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Grace Time</label>
+                    <input
+                      type="text"
+                      value={alertSettings.grace_time}
+                      onChange={(e) => setAlertSettings({ ...alertSettings, grace_time: e.target.value })}
+                      placeholder="09:15 AM"
+                      className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Trigger Time</label>
+                    <input
+                      type="text"
+                      value={alertSettings.trigger_time}
+                      onChange={(e) => setAlertSettings({ ...alertSettings, trigger_time: e.target.value })}
+                      placeholder="09:16 AM"
+                      className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Message Template</label>
+                    <textarea
+                      value={alertSettings.message_template}
+                      onChange={(e) => setAlertSettings({ ...alertSettings, message_template: e.target.value })}
+                      rows={3}
+                      className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none"
+                    />
+                    <p className="text-[10px] text-gray-400 mt-2">
+                      Available variables: <code className="bg-gray-100 dark:bg-gray-900 px-1 rounded">{"{{employee_name}}"}</code>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handleSaveAlerts}
+                      disabled={savingAlerts}
+                      className="flex items-center gap-2 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white text-sm font-bold rounded-lg shadow-sm transition-all"
+                    >
+                      {savingAlerts ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      Save Alert Rules
+                    </button>
+                    {alertMessage && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className={`flex items-center gap-2 text-xs font-medium ${
+                          alertMessage.type === 'success' ? 'text-emerald-600' : 'text-red-600'
+                        }`}
+                      >
+                        {alertMessage.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                        {alertMessage.text}
+                      </motion.div>
+                    )}
+                  </div>
+                  <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-100 dark:border-amber-900/30 flex items-start gap-3 max-w-md">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <p className="text-[10px] text-amber-800 dark:text-amber-200 leading-relaxed">
+                      <strong>Logic:</strong> If an employee has not checked in by <strong>{alertSettings.grace_time}</strong>, 
+                      an automated alert will be sent at <strong>{alertSettings.trigger_time}</strong>.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Idle Detection Alert Settings */}
+              <div className="border-t border-gray-100 dark:border-gray-700 pt-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5 text-amber-500" />
+                    <h3 className="text-lg font-bold dark:text-white">Idle Detection Alerts</h3>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      {idleSettings.is_active ? 'Active' : 'Disabled'}
+                    </span>
+                    <button 
+                      onClick={() => setIdleSettings({ ...idleSettings, is_active: !idleSettings.is_active })}
+                      className="transition-colors"
+                    >
+                      {idleSettings.is_active ? (
+                        <ToggleRight className="w-8 h-8 text-emerald-500" />
+                      ) : (
+                        <ToggleLeft className="w-8 h-8 text-gray-300 dark:text-white/20" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Idle Threshold (Minutes)</label>
+                    <select
+                      value={idleSettings.idle_minutes}
+                      onChange={(e) => setIdleSettings({ ...idleSettings, idle_minutes: parseInt(e.target.value) })}
+                      className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                    >
+                      <option value={5}>5 Minutes</option>
+                      <option value={10}>10 Minutes</option>
+                      <option value={15}>15 Minutes</option>
+                      <option value={30}>30 Minutes</option>
+                      <option value={60}>60 Minutes</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Message Template</label>
+                    <textarea
+                      value={idleSettings.message_template}
+                      onChange={(e) => setIdleSettings({ ...idleSettings, message_template: e.target.value })}
+                      rows={3}
+                      className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none"
+                    />
+                    <p className="text-[10px] text-gray-400 mt-2">
+                      Available variables: <code className="bg-gray-100 dark:bg-gray-900 px-1 rounded">{"{{employee_name}}"}</code>, <code className="bg-gray-100 dark:bg-gray-900 px-1 rounded">{"{{idle_minutes}}"}</code>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-900/30 flex items-start gap-3 max-w-md">
+                  <MessageSquare className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-blue-800 dark:text-blue-200 leading-relaxed">
+                    <strong>Logic:</strong> If an employee is inactive for more than <strong>{idleSettings.idle_minutes} minutes</strong>, 
+                    a WhatsApp alert will be sent automatically. Alerts are sent once per idle session.
+                  </p>
+                </div>
+              </div>
+
+              {/* Employee Welcome Message Settings */}
+              <div className="border-t border-gray-100 dark:border-gray-700 pt-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <Plus className="w-5 h-5 text-emerald-500" />
+                    <h3 className="text-lg font-bold dark:text-white">New Employee Welcome Message</h3>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      {welcomeSettings.is_active ? 'Active' : 'Disabled'}
+                    </span>
+                    <button 
+                      onClick={handleToggleWelcome}
+                      className="transition-colors"
+                    >
+                      {welcomeSettings.is_active ? (
+                        <ToggleRight className="w-8 h-8 text-emerald-500" />
+                      ) : (
+                        <ToggleLeft className="w-8 h-8 text-gray-300 dark:text-white/20" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Welcome Message Template</label>
+                    <textarea
+                      value={welcomeSettings.message_template}
+                      onChange={(e) => setWelcomeSettings({ ...welcomeSettings, message_template: e.target.value })}
+                      rows={8}
+                      className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none font-mono text-sm"
+                    />
+                    <p className="text-[10px] text-gray-400 mt-2">
+                      Available variables: <code className="bg-gray-100 dark:bg-gray-900 px-1 rounded">{"{{employee_name}}"}</code>, <code className="bg-gray-100 dark:bg-gray-900 px-1 rounded">{"{{username}}"}</code>, <code className="bg-gray-100 dark:bg-gray-900 px-1 rounded">{"{{password}}"}</code>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-100 dark:border-emerald-900/30 flex items-start gap-3 max-w-md">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-emerald-800 dark:text-emerald-200 leading-relaxed">
+                    <strong>Logic:</strong> When a new employee is created, an automated WhatsApp welcome message will be sent with their login credentials.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </AdminLayout>

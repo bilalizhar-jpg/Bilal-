@@ -45,6 +45,32 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(employee_id, date)
   );
+
+  CREATE TABLE IF NOT EXISTS idle_alert_settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    company_id TEXT UNIQUE,
+    idle_minutes INTEGER DEFAULT 5,
+    message_template TEXT,
+    is_active INTEGER DEFAULT 0,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS idle_alert_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    company_id TEXT,
+    employee_id TEXT,
+    last_alert_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    idle_session_start DATETIME,
+    status TEXT DEFAULT 'sent'
+  );
+
+  CREATE TABLE IF NOT EXISTS employee_welcome_settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    company_id TEXT UNIQUE,
+    is_active INTEGER DEFAULT 0,
+    message_template TEXT,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
 
 export default db;

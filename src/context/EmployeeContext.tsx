@@ -114,6 +114,14 @@ export const EmployeeProvider = ({ children }: { children: ReactNode }) => {
     
     try {
       await setDoc(doc(db, 'employees', id), newEmployee);
+      
+      // Trigger welcome message
+      fetch(`/api/welcome-messages/${user.companyId}/trigger`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ employee: newEmployee })
+      }).catch(err => console.error('Error triggering welcome message:', err));
+
     } catch (error) {
       console.error("Error adding employee:", error);
     }
@@ -122,6 +130,7 @@ export const EmployeeProvider = ({ children }: { children: ReactNode }) => {
   const addEmployees = async (newEmployees: Omit<Employee, 'companyId'>[]) => {
     if (!user?.companyId) return;
     const batch = writeBatch(db);
+    const addedEmployees: Employee[] = [];
     
     newEmployees.forEach(emp => {
       const { username, password } = generateCredentials(emp.name, emp.employeeId);
@@ -133,12 +142,23 @@ export const EmployeeProvider = ({ children }: { children: ReactNode }) => {
         username: emp.username || username,
         password: emp.password || password
       };
+      addedEmployees.push(employeeData);
       const ref = doc(db, 'employees', id);
       batch.set(ref, employeeData);
     });
 
     try {
       await batch.commit();
+      
+      // Trigger welcome messages for all new employees
+      addedEmployees.forEach(emp => {
+        fetch(`/api/welcome-messages/${user.companyId}/trigger`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ employee: emp })
+        }).catch(err => console.error('Error triggering welcome message:', err));
+      });
+
     } catch (error) {
       console.error("Error adding multiple employees:", error);
     }

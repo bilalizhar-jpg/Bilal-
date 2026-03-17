@@ -4,9 +4,12 @@ import path from 'path';
 import cors from 'cors';
 import whatsappRoutes from './server/routes/whatsappRoutes';
 import attendanceAlertRoutes from './server/routes/attendanceAlertRoutes';
+import idleAlertRoutes from './server/routes/idleAlertRoutes';
+import welcomeMessageRoutes from './server/routes/welcomeMessageRoutes';
 import db from './server/database/db';
 import { WhatsAppService } from './server/services/whatsappService';
 import { AttendanceAlertService } from './server/services/attendanceAlertService';
+import { IdleAlertService } from './server/services/idleAlertService';
 
 async function startServer() {
   const app = express();
@@ -18,6 +21,8 @@ async function startServer() {
   // API Routes
   app.use('/api/whatsapp', whatsappRoutes);
   app.use('/api/attendance-alerts', attendanceAlertRoutes);
+  app.use('/api/idle-alerts', idleAlertRoutes);
+  app.use('/api/welcome-messages', welcomeMessageRoutes);
 
   // Health check
   app.get('/api/health', (req, res) => {
@@ -31,8 +36,9 @@ async function startServer() {
     res.json({ message: 'API is working' });
   });
 
-  // Initialize Attendance Alert Cron
+  // Initialize Services
   AttendanceAlertService.init();
+  IdleAlertService.init();
 
   // Auto-reconnect existing sessions on startup
   try {
