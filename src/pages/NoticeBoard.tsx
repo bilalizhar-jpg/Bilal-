@@ -11,6 +11,8 @@ import {
 import AdminLayout from '../components/AdminLayout';
 import { useCompanyData } from '../context/CompanyDataContext';
 import { useChat } from '../context/ChatContext';
+import { useWhatsApp } from '../hooks/useWhatsApp';
+import { useEmployees } from '../context/EmployeeContext';
 
 interface Notice {
   id: string;
@@ -24,6 +26,8 @@ interface Notice {
 export default function NoticeBoard() {
   const { notices, addEntity, updateEntity, deleteEntity } = useCompanyData();
   const { invitations } = useChat();
+  const { sendWhatsAppMessage } = useWhatsApp();
+  const { employees } = useEmployees();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNotice, setEditingNotice] = useState<Notice | null>(null);
@@ -42,6 +46,17 @@ export default function NoticeBoard() {
       await updateEntity('notices', editingNotice.id, formData);
     } else {
       await addEntity('notices', formData);
+      
+      // Send WhatsApp notification to all active employees
+      const activeEmployees = employees.filter(emp => emp.status === 'Active' && emp.mobile);
+      if (activeEmployees.length > 0) {
+        const message = `ERP Notice: ${formData.type}\n\n${formData.description}\n\nBy: ${formData.by}`;
+        activeEmployees.forEach(emp => {
+          if (emp.mobile) {
+            sendWhatsAppMessage(emp.mobile, message);
+          }
+        });
+      }
     }
     setIsModalOpen(false);
     setEditingNotice(null);

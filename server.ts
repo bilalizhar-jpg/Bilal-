@@ -3,8 +3,10 @@ import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import cors from 'cors';
 import whatsappRoutes from './server/routes/whatsappRoutes';
+import attendanceAlertRoutes from './server/routes/attendanceAlertRoutes';
 import db from './server/database/db';
 import { WhatsAppService } from './server/services/whatsappService';
+import { AttendanceAlertService } from './server/services/attendanceAlertService';
 
 async function startServer() {
   const app = express();
@@ -15,17 +17,34 @@ async function startServer() {
 
   // API Routes
   app.use('/api/whatsapp', whatsappRoutes);
+  app.use('/api/attendance-alerts', attendanceAlertRoutes);
 
   // Health check
   app.get('/api/health', (req, res) => {
+    console.log('[API] Health check requested');
     res.json({ status: 'ok', database: 'connected' });
   });
 
+  // Test route
+  app.get('/api/test', (req, res) => {
+    console.log('[API] Test route requested');
+    res.json({ message: 'API is working' });
+  });
+
+  // Initialize Attendance Alert Cron
+  AttendanceAlertService.init();
+
   // Auto-reconnect existing sessions on startup
-  const activeAccounts = db.prepare("SELECT company_id FROM whatsapp_accounts WHERE status = 'connected'").all() as any[];
-  for (const account of activeAccounts) {
-    console.log(`Auto-reconnecting WhatsApp for company: ${account.company_id}`);
-    WhatsAppService.connect(account.company_id, () => {}, () => {});
+  try {
+    const activeAccounts = db.prepare("SELECT company_id FROM whatsapp_accounts WHERE status = 'connected'").all() as any[];
+    for (const account of activeAccounts) {
+      console.log(`Auto-reconnecting WhatsApp for company: ${account.company_id}`);
+      WhatsAppService.connect(account.company_id, () => {}, () => {}).catch(err => {
+        console.error(`Failed to auto-reconnect for ${account.company_id}:`, err);
+      });
+    }
+  } catch (err) {
+    console.error('Failed to initialize auto-reconnection:', err);
   }
 
   // Vite middleware for development

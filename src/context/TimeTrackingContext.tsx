@@ -17,7 +17,7 @@ export interface TrackingData {
   employeeName: string;
   companyId?: string;
   date: string;
-  status: 'Online' | 'Idle' | 'Offline';
+  status: 'Online' | 'Idle' | 'Offline' | 'On Break';
   workingTime: number; // in seconds
   idleTime: number; // in seconds
   mouseMoves: number;
@@ -86,7 +86,7 @@ export const TimeTrackingProvider = ({ children }: { children: ReactNode }) => {
       employeeId,
       date: todayDate,
       companyId: user?.companyId,
-      lastActive: data.status === 'Online' ? Date.now() : (current?.lastActive || Date.now())
+      lastActive: data.lastActive || (data.status === 'Online' ? Date.now() : (current?.lastActive || Date.now()))
     } as TrackingData;
 
     // Update ref and state
@@ -171,14 +171,20 @@ export const TimeTrackingProvider = ({ children }: { children: ReactNode }) => {
         const next = { ...current };
         if (next.status === 'Online') {
           next.workingTime += 1;
-          // Auto-idle detection: if no activity for 5 minutes
-          if (Date.now() - next.lastActive > 5 * 60 * 1000) {
+          // Auto-idle detection: if no activity for 2 minutes
+          if (Date.now() - next.lastActive > 2 * 60 * 1000) {
+            console.log(`[TimeTracking] Auto-idle detected for ${user.id}. Last active: ${new Date(next.lastActive).toLocaleTimeString()}`);
             next.status = 'Idle';
           }
-        } else if (next.status === 'Idle') {
+        } else if (next.status === 'Idle' || next.status === 'On Break') {
           next.idleTime += 1;
+          if (next.idleTime % 60 === 0) {
+             console.log(`[TimeTracking] ${user.id} is ${next.status}. Idle time: ${Math.floor(next.idleTime / 60)}m`);
+          }
         }
 
+        // Update ref to keep it in sync with state for the syncInterval
+        trackingDataRef.current[docId] = next;
         return { ...prev, [docId]: next };
       });
     }, 1000);

@@ -206,7 +206,7 @@ export default function EmployeeAttendance() {
     } else if (action === 'break_start') {
       newState = 'on_break';
       actionStr = 'Started Break';
-      updateTracking(empId, { status: 'Idle' });
+      updateTracking(empId, { status: 'On Break' });
     } else if (action === 'break_end') {
       newState = 'checked_in';
       actionStr = 'Ended Break';

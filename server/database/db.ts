@@ -24,6 +24,27 @@ db.exec(`
     retry_count INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+ 
+  CREATE TABLE IF NOT EXISTS attendance_alert_settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    company_id TEXT UNIQUE,
+    office_time TEXT,
+    grace_time TEXT,
+    trigger_time TEXT,
+    message_template TEXT,
+    is_active INTEGER DEFAULT 0,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS attendance_alert_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    company_id TEXT,
+    employee_id TEXT,
+    date TEXT,
+    status TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(employee_id, date)
+  );
 `);
 
 export default db;

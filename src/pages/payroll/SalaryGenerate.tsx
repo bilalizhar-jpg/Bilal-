@@ -17,6 +17,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useSettings } from '../../context/SettingsContext';
 import { useEmployees } from '../../context/EmployeeContext';
 import { useCompanyData } from '../../context/CompanyDataContext';
+import { useWhatsApp } from '../../hooks/useWhatsApp';
 import { motion, AnimatePresence } from 'motion/react';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
@@ -34,6 +35,7 @@ interface GeneratedSalary {
 
 export default function SalaryGenerate() {
   const { payrollBatches, addEntity, updateEntity, deleteEntity, salaryRecords } = useCompanyData();
+  const { sendWhatsAppMessage } = useWhatsApp();
   const { employees } = useEmployees();
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
   const [generatedList, setGeneratedList] = useState<GeneratedSalary[]>([]);
@@ -119,6 +121,18 @@ export default function SalaryGenerate() {
         status: 'Approved',
         approvedDate: new Date().toISOString().split('T')[0],
         approvedBy: 'Admin'
+      });
+
+      // Send WhatsApp notification to all employees in this batch
+      const batch = payrollBatches.find(b => b.id === id);
+      const batchRecords = salaryRecords.filter(r => r.batchId === id);
+      
+      batchRecords.forEach(record => {
+        const employee = employees.find(e => e.id === record.employeeId);
+        if (employee?.mobile) {
+          const message = `ERP Notification: Your salary for ${batch?.salaryName || 'the month'} has been APPROVED and processed. Net Salary: ${record.netSalary}.`;
+          sendWhatsAppMessage(employee.mobile, message);
+        }
       });
     } catch (error) {
       console.error("Error approving salary", error);

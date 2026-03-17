@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import AdminLayout from '../components/AdminLayout';
 import { useTheme } from '../context/ThemeContext';
+import { useWhatsApp } from '../hooks/useWhatsApp';
 import { useEmployees } from '../context/EmployeeContext';
 import { useLeaves, LeaveRequest } from '../context/LeaveContext';
 import jsPDF from 'jspdf';
@@ -64,6 +65,7 @@ type TabType = 'weekly' | 'holiday' | 'type' | 'approval' | 'report';
 
 export default function LeaveManagement() {
   const { theme } = useTheme();
+  const { sendWhatsAppMessage } = useWhatsApp();
   const { employees } = useEmployees();
   const { 
     leaveRequests, 
@@ -138,10 +140,22 @@ export default function LeaveManagement() {
 
   const handleApprove = (id: string) => {
     updateLeaveStatus(id, 'Approved');
+    const request = leaveRequests.find(r => r.id === id);
+    const employee = employees.find(e => e.id === request?.employeeId || e.name === request?.employeeName);
+    if (employee?.mobile && request) {
+      const message = `ERP Notification: Your leave request for ${request.days} day(s) starting from ${request.startDate} has been APPROVED.`;
+      sendWhatsAppMessage(employee.mobile, message);
+    }
   };
 
   const handleReject = (id: string) => {
     updateLeaveStatus(id, 'Rejected');
+    const request = leaveRequests.find(r => r.id === id);
+    const employee = employees.find(e => e.id === request?.employeeId || e.name === request?.employeeName);
+    if (employee?.mobile && request) {
+      const message = `ERP Notification: Your leave request for ${request.days} day(s) starting from ${request.startDate} has been REJECTED.`;
+      sendWhatsAppMessage(employee.mobile, message);
+    }
   };
 
   const handleRevert = (id: string) => {

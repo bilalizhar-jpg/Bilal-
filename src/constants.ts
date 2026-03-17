@@ -154,6 +154,7 @@ export const ADMIN_MENU_ITEMS = [
       { name: 'General Settings', path: '/settings' },
       { name: 'Gmail Integration', path: '/settings/gmail-integration' },
       { name: 'WhatsApp Integration', path: '/settings/whatsapp-integration' },
+      { name: 'Attendance Alerts', path: '/settings/attendance-alerts' },
       { name: 'Setup Rules', path: '/setup-rules' },
       { name: 'Roles & Permissions', path: '/role-management' },
       { name: 'Menu Permissions', path: '/permissions' }

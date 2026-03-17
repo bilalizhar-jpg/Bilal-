@@ -21,6 +21,25 @@ export default function WhatsAppIntegration() {
   const fetchStatus = useCallback(async () => {
     try {
       const response = await fetch(`/api/whatsapp/status?company_id=${companyId}`);
+      
+      if (response.status === 429) {
+        console.warn('Status API rate limit exceeded. Retrying later...');
+        return;
+      }
+
+      if (!response.ok) {
+        const text = await response.text();
+        console.error(`Status API error (${response.status}):`, text.substring(0, 100));
+        setStatus('disconnected');
+        return;
+      }
+
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('Received non-JSON response from status API. Server might be restarting.');
+        return;
+      }
+
       const data = await response.json();
       setStatus(data.status);
       if (data.qr) {
@@ -28,14 +47,19 @@ export default function WhatsAppIntegration() {
       } else {
         setQrCode(null);
       }
-    } catch (err) {
-      console.error('Failed to fetch status:', err);
+    } catch (err: any) {
+      if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+        // This is expected when the server is restarting or network is down
+        console.debug('WhatsApp status fetch failed (server likely restarting)');
+      } else {
+        console.error('Failed to fetch status:', err.message);
+      }
     }
   }, [companyId]);
 
   useEffect(() => {
     fetchStatus();
-    const interval = setInterval(fetchStatus, 3000); // Polling every 3 seconds for better responsiveness
+    const interval = setInterval(fetchStatus, 10000); // Polling every 10 seconds to avoid rate limits
     return () => clearInterval(interval);
   }, [fetchStatus]);
 
@@ -193,56 +217,58 @@ export default function WhatsAppIntegration() {
 
             {/* Test Message Form */}
             {status === 'connected' && (
-              <div className={`rounded-xl border ${isDark ? 'bg-[#1E1E2F] border-white/10' : 'bg-white border-slate-200'} overflow-hidden`}>
-                <div className="p-6 border-b border-inherit">
-                  <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>Send Test Message</h3>
-                  <form onSubmit={handleSendTest} className="space-y-4">
-                    <div>
-                      <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-[#B0B0C3]' : 'text-slate-700'}`}>
-                        Recipient Number (with country code)
-                      </label>
-                      <input
-                        type="text"
-                        value={testMessage.number}
-                        onChange={(e) => setTestMessage({ ...testMessage, number: e.target.value })}
-                        placeholder="e.g. 923001234567"
-                        className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${
-                          isDark 
-                            ? 'bg-[#161625] border-white/10 text-white placeholder:text-white/20' 
-                            : 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400'
-                        }`}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-[#B0B0C3]' : 'text-slate-700'}`}>
-                        Message
-                      </label>
-                      <textarea
-                        value={testMessage.text}
-                        onChange={(e) => setTestMessage({ ...testMessage, text: e.target.value })}
-                        rows={3}
-                        className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${
-                          isDark 
-                            ? 'bg-[#161625] border-white/10 text-white' 
-                            : 'bg-white border-slate-200 text-slate-900'
-                        }`}
-                        required
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      disabled={isSending}
-                      className="flex items-center gap-2 px-6 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-800 text-white text-sm font-bold rounded-lg shadow-sm transition-colors"
-                    >
-                      {isSending ? (
-                        <RefreshCw className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Send className="w-4 h-4" />
-                      )}
-                      Send Message
-                    </button>
-                  </form>
+              <div className="space-y-6">
+                <div className={`rounded-xl border ${isDark ? 'bg-[#1E1E2F] border-white/10' : 'bg-white border-slate-200'} overflow-hidden`}>
+                  <div className="p-6 border-b border-inherit">
+                    <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>Send Test Message</h3>
+                    <form onSubmit={handleSendTest} className="space-y-4">
+                      <div>
+                        <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-[#B0B0C3]' : 'text-slate-700'}`}>
+                          Recipient Number (with country code)
+                        </label>
+                        <input
+                          type="text"
+                          value={testMessage.number}
+                          onChange={(e) => setTestMessage({ ...testMessage, number: e.target.value })}
+                          placeholder="e.g. 923001234567"
+                          className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${
+                            isDark 
+                              ? 'bg-[#161625] border-white/10 text-white placeholder:text-white/20' 
+                              : 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400'
+                          }`}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-[#B0B0C3]' : 'text-slate-700'}`}>
+                          Message
+                        </label>
+                        <textarea
+                          value={testMessage.text}
+                          onChange={(e) => setTestMessage({ ...testMessage, text: e.target.value })}
+                          rows={3}
+                          className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${
+                            isDark 
+                              ? 'bg-[#161625] border-white/10 text-white' 
+                              : 'bg-white border-slate-200 text-slate-900'
+                          }`}
+                          required
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={isSending}
+                        className="flex items-center gap-2 px-6 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-800 text-white text-sm font-bold rounded-lg shadow-sm transition-colors"
+                      >
+                        {isSending ? (
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Send className="w-4 h-4" />
+                        )}
+                        Send Message
+                      </button>
+                    </form>
+                  </div>
                 </div>
               </div>
             )}

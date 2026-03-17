@@ -16,6 +16,8 @@ import QRCode from 'qrcode';
 const logger = pino({ level: 'silent' });
 const sessions = new Map<string, any>();
 const qrCodes = new Map<string, string>();
+const messageQueues = new Map<string, { toNumber: string; message: string; messageId: number | bigint }[]>();
+const processingQueues = new Map<string, boolean>();
 
 export class WhatsAppService {
   static async getSessionPath(companyId: string) {
@@ -29,7 +31,7 @@ export class WhatsAppService {
       const socket = sessions.get(companyId);
       if (socket.user) {
         onConnected();
-        return;
+        return socket;
       }
     }
 
@@ -99,7 +101,6 @@ export class WhatsAppService {
     const socket = sessions.get(companyId);
     if (socket) {
       try {
-        // Try to end the session gracefully
         await socket.end(undefined);
       } catch (e) {
         console.error('Socket end error:', e);
@@ -119,53 +120,68 @@ export class WhatsAppService {
   }
 
   static async sendMessage(companyId: string, toNumber: string, message: string) {
-    let socket = sessions.get(companyId);
-    
-    // If socket doesn't exist or isn't connected, try to reconnect if session exists
-    if (!socket || !socket.user) {
-      console.log(`Socket not ready for ${companyId}, attempting quick reconnect...`);
-      socket = await this.connect(companyId, () => {}, () => {});
-      
-      // Wait a bit for connection to open
-      let retries = 0;
-      while (!socket.user && retries < 10) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        retries++;
-      }
-    }
-
-    if (!socket || !socket.user) {
-      throw new Error('WhatsApp not connected. Please scan the QR code again.');
-    }
-
-    // Format number: remove non-digits, ensure it doesn't have @s.whatsapp.net already
-    let cleanNumber = toNumber.replace(/\D/g, '');
-    if (!cleanNumber) throw new Error('Invalid phone number');
-    
-    const formattedNumber = cleanNumber + '@s.whatsapp.net';
-    
-    // Log message to DB
+    // Log message to DB first
     const stmt = db.prepare('INSERT INTO whatsapp_messages (company_id, to_number, message, status) VALUES (?, ?, ?, ?)');
     const info = stmt.run(companyId, toNumber, message, 'pending');
     const messageId = info.lastInsertRowid;
 
-    try {
-      // Delay system (1-3 sec for test/immediate feel, but keeping some delay)
-      const delay = Math.floor(Math.random() * 2000) + 1000;
-      await new Promise(resolve => setTimeout(resolve, delay));
-
-      console.log(`Sending message to ${formattedNumber}...`);
-      await socket.sendMessage(formattedNumber, { text: message });
-      
-      db.prepare('UPDATE whatsapp_messages SET status = ?, response_log = ? WHERE id = ?')
-        .run('sent', 'Success', messageId);
-      
-      return { success: true, messageId };
-    } catch (error: any) {
-      console.error('Send message error:', error);
-      db.prepare('UPDATE whatsapp_messages SET status = ?, response_log = ? WHERE id = ?')
-        .run('failed', error.message, messageId);
-      throw error;
+    // Add to queue
+    if (!messageQueues.has(companyId)) {
+      messageQueues.set(companyId, []);
     }
+    messageQueues.get(companyId)!.push({ toNumber, message, messageId });
+
+    // Start processing if not already
+    this.processQueue(companyId);
+
+    return { success: true, messageId, status: 'queued' };
+  }
+
+  private static async processQueue(companyId: string) {
+    if (processingQueues.get(companyId)) return;
+    processingQueues.set(companyId, true);
+
+    while (messageQueues.get(companyId) && messageQueues.get(companyId)!.length > 0) {
+      const item = messageQueues.get(companyId)!.shift()!;
+      const { toNumber, message, messageId } = item;
+
+      try {
+        let socket = sessions.get(companyId);
+        
+        if (!socket || !socket.user) {
+          console.log(`[Queue] Reconnecting for ${companyId}...`);
+          socket = await this.connect(companyId, () => {}, () => {});
+          let retries = 0;
+          while (!socket.user && retries < 15) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            retries++;
+          }
+        }
+
+        if (!socket || !socket.user) {
+          throw new Error('WhatsApp not connected');
+        }
+
+        let cleanNumber = toNumber.replace(/\D/g, '');
+        if (!cleanNumber) throw new Error('Invalid phone number');
+        const formattedNumber = cleanNumber + '@s.whatsapp.net';
+
+        // Anti-ban delay between messages in queue (2-5 seconds)
+        const delay = Math.floor(Math.random() * 3000) + 2000;
+        await new Promise(resolve => setTimeout(resolve, delay));
+
+        console.log(`[Queue] Sending to ${formattedNumber}...`);
+        await socket.sendMessage(formattedNumber, { text: message });
+        
+        db.prepare('UPDATE whatsapp_messages SET status = ?, response_log = ? WHERE id = ?')
+          .run('sent', 'Success', messageId);
+      } catch (error: any) {
+        console.error(`[Queue] Failed for ${toNumber}:`, error.message);
+        db.prepare('UPDATE whatsapp_messages SET status = ?, response_log = ? WHERE id = ?')
+          .run('failed', error.message, messageId);
+      }
+    }
+
+    processingQueues.set(companyId, false);
   }
 }

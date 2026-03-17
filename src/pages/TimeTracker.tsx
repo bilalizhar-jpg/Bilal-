@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Clock, 
   Monitor, 
@@ -29,9 +29,10 @@ import { useEmployees } from '../context/EmployeeContext';
 import { useAttendance } from '../context/AttendanceContext';
 import { useTimeTracking, TrackingData } from '../context/TimeTrackingContext';
 import { useAuth } from '../context/AuthContext';
+import { useWhatsApp } from '../hooks/useWhatsApp';
 import { motion, AnimatePresence } from 'motion/react';
 import * as XLSX from 'xlsx';
-import { collection, query, where, onSnapshot, getDocs } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, getDocs, doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 // Helper to format seconds to HH:MM:SS
@@ -48,7 +49,7 @@ interface TrackedEmployee {
   name: string;
   department: string;
   avatar: string;
-  status: 'Online' | 'Idle' | 'Offline';
+  status: 'Online' | 'Idle' | 'Offline' | 'On Break';
   lastActive: string;
   currentTask: string;
   workingTime: string; // HH:MM:SS
@@ -79,6 +80,7 @@ interface TimeLog {
 export default function TimeTracker() {
   const { theme } = useTheme();
   const { user } = useAuth();
+  const { sendWhatsAppMessage } = useWhatsApp();
   const { employees: contextEmployees, updateEmployee } = useEmployees();
   const { trackingData: realTimeTrackingData } = useTimeTracking();
   const { attendanceRecords } = useAttendance();
@@ -118,10 +120,36 @@ export default function TimeTracker() {
   const [autoEmailAlerts, setAutoEmailAlerts] = useState(false);
   const [headEmail, setHeadEmail] = useState('');
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
-  const [alertTimestamps, setAlertTimestamps] = useState<Record<string, { whatsapp?: number, email?: number }>>({});
+  const alertTimestampsRef = useRef<Record<string, { whatsapp?: number, email?: number }>>({});
 
   // Tracked Employees State
   const [employees, setEmployees] = useState<TrackedEmployee[]>([]);
+
+  // Load Settings from Firestore
+  useEffect(() => {
+    if (!user?.companyId) return;
+    const unsub = onSnapshot(doc(db, 'settings', `${user.companyId}_timeTracking`), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setIdleThresholdMinutes(data.idleThresholdMinutes || 5);
+        setEmailIdleThresholdMinutes(data.emailIdleThresholdMinutes || 5);
+        setAutoWhatsAppAlerts(data.autoWhatsAppAlerts || false);
+        setAutoEmailAlerts(data.autoEmailAlerts || false);
+        setHeadEmail(data.headEmail || '');
+      }
+    });
+    return () => unsub();
+  }, [user?.companyId]);
+
+  // Save Settings to Firestore
+  const saveSettings = async (updates: any) => {
+    if (!user?.companyId) return;
+    try {
+      await setDoc(doc(db, 'settings', `${user.companyId}_timeTracking`), updates, { merge: true });
+    } catch (error) {
+      console.error('Error saving time tracking settings:', error);
+    }
+  };
 
   // Sync with context employees and tracking data
   useEffect(() => {
@@ -272,44 +300,52 @@ export default function TimeTracker() {
 
   // Check for Idle Alert
   useEffect(() => {
-    if (autoWhatsAppAlerts || autoEmailAlerts) {
+    if (!autoWhatsAppAlerts && !autoEmailAlerts) return;
+
+    const checkAlerts = () => {
       employees.forEach(emp => {
         if (emp.status === 'Idle') {
           const [h, m] = emp.idleTime.split(':').map(Number);
           const totalIdleMinutes = h * 60 + m;
           const now = Date.now();
-          const timestamps = alertTimestamps[emp.id] || {};
+          const timestamps = alertTimestampsRef.current[emp.id] || {};
           let updated = false;
-          const newTimestamps = { ...timestamps };
 
+          // WhatsApp Alert
           if (autoWhatsAppAlerts && emp.phoneNumber && totalIdleMinutes >= idleThresholdMinutes) {
-             if (!timestamps.whatsapp || (now - timestamps.whatsapp > 10 * 60 * 1000)) {
-                setAlertMessage(`WhatsApp Alert sent to ${emp.name}: "You have been idle for ${totalIdleMinutes} minutes."`);
-                newTimestamps.whatsapp = now;
-                updated = true;
-                setTimeout(() => setAlertMessage(null), 5000);
-             }
+            const lastSent = timestamps.whatsapp || 0;
+            if (now - lastSent > 10 * 60 * 1000) { // 10 minutes throttle
+              const message = `ERP Alert: Hello ${emp.name}, you have been idle for ${totalIdleMinutes} minutes. Please resume your tasks.`;
+              console.log(`[Alert] Triggering WhatsApp for ${emp.name} (${emp.phoneNumber})`);
+              sendWhatsAppMessage(emp.phoneNumber, message);
+              setAlertMessage(`WhatsApp Alert sent to ${emp.name}: "${message}"`);
+              timestamps.whatsapp = now;
+              updated = true;
+              setTimeout(() => setAlertMessage(null), 5000);
+            }
           }
 
+          // Email Alert
           if (autoEmailAlerts && emp.email && totalIdleMinutes >= emailIdleThresholdMinutes) {
-             if (!timestamps.email || (now - timestamps.email > 10 * 60 * 1000)) {
-                setAlertMessage(`Email Alert sent to ${emp.email} (CC: ${headEmail || 'Head'}): "You have been idle for ${totalIdleMinutes} minutes."`);
-                newTimestamps.email = now;
-                updated = true;
-                setTimeout(() => setAlertMessage(null), 5000);
-             }
+            const lastSent = timestamps.email || 0;
+            if (now - lastSent > 10 * 60 * 1000) { // 10 minutes throttle
+              console.log(`[Alert] Triggering Email for ${emp.name} (${emp.email})`);
+              setAlertMessage(`Email Alert sent to ${emp.email} (CC: ${headEmail || 'Head'}): "You have been idle for ${totalIdleMinutes} minutes."`);
+              timestamps.email = now;
+              updated = true;
+              setTimeout(() => setAlertMessage(null), 5000);
+            }
           }
 
           if (updated) {
-            setAlertTimestamps(prev => ({
-              ...prev,
-              [emp.id]: newTimestamps
-            }));
+            alertTimestampsRef.current[emp.id] = timestamps;
           }
         }
       });
-    }
-  }, [employees, autoWhatsAppAlerts, autoEmailAlerts, idleThresholdMinutes, emailIdleThresholdMinutes, headEmail, alertTimestamps]);
+    };
+
+    checkAlerts();
+  }, [employees, autoWhatsAppAlerts, autoEmailAlerts, idleThresholdMinutes, emailIdleThresholdMinutes, headEmail]);
 
   const handleExportExcel = () => {
     const ws = XLSX.utils.json_to_sheet(logs);
@@ -454,7 +490,8 @@ export default function TimeTracker() {
                         <img src={employee.avatar} alt={employee.name} className="w-10 h-10 rounded-full object-cover" referrerPolicy="no-referrer" />
                         <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-slate-900 ${
                           employee.status === 'Online' ? 'bg-emerald-500' : 
-                          employee.status === 'Idle' ? 'bg-amber-500' : 'bg-slate-400'
+                          employee.status === 'Idle' ? 'bg-amber-500' : 
+                          employee.status === 'On Break' ? 'bg-blue-500' : 'bg-slate-400'
                         }`}></div>
                       </div>
                       <div>
@@ -464,7 +501,8 @@ export default function TimeTracker() {
                     </div>
                     <div className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
                       employee.status === 'Online' ? 'bg-emerald-100 text-emerald-700' : 
-                      employee.status === 'Idle' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'
+                      employee.status === 'Idle' ? 'bg-amber-100 text-amber-700' : 
+                      employee.status === 'On Break' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'
                     }`}>
                       {employee.status}
                     </div>
@@ -654,7 +692,10 @@ export default function TimeTracker() {
                       <input 
                         type="checkbox" 
                         checked={autoWhatsAppAlerts}
-                        onChange={(e) => setAutoWhatsAppAlerts(e.target.checked)}
+                        onChange={(e) => {
+                          setAutoWhatsAppAlerts(e.target.checked);
+                          saveSettings({ autoWhatsAppAlerts: e.target.checked });
+                        }}
                         className="sr-only peer" 
                       />
                       <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-600"></div>
@@ -669,7 +710,11 @@ export default function TimeTracker() {
                           type="number" 
                           min="1"
                           value={idleThresholdMinutes}
-                          onChange={(e) => setIdleThresholdMinutes(parseInt(e.target.value) || 1)}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value) || 1;
+                            setIdleThresholdMinutes(val);
+                            saveSettings({ idleThresholdMinutes: val });
+                          }}
                           className={`w-24 px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
                         />
                         <span className="text-sm text-slate-500">minutes</span>
@@ -699,7 +744,10 @@ export default function TimeTracker() {
                       <input 
                         type="checkbox" 
                         checked={autoEmailAlerts}
-                        onChange={(e) => setAutoEmailAlerts(e.target.checked)}
+                        onChange={(e) => {
+                          setAutoEmailAlerts(e.target.checked);
+                          saveSettings({ autoEmailAlerts: e.target.checked });
+                        }}
                         className="sr-only peer" 
                       />
                       <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
@@ -714,7 +762,11 @@ export default function TimeTracker() {
                           type="number" 
                           min="1"
                           value={emailIdleThresholdMinutes}
-                          onChange={(e) => setEmailIdleThresholdMinutes(parseInt(e.target.value) || 1)}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value) || 1;
+                            setEmailIdleThresholdMinutes(val);
+                            saveSettings({ emailIdleThresholdMinutes: val });
+                          }}
                           className={`w-24 px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
                         />
                         <span className="text-sm text-slate-500">minutes</span>
@@ -726,7 +778,10 @@ export default function TimeTracker() {
                       <input 
                         type="email" 
                         value={headEmail}
-                        onChange={(e) => setHeadEmail(e.target.value)}
+                        onChange={(e) => {
+                          setHeadEmail(e.target.value);
+                          saveSettings({ headEmail: e.target.value });
+                        }}
                         placeholder="head@company.com"
                         className={`w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200'}`}
                       />
@@ -760,6 +815,21 @@ export default function TimeTracker() {
                         <div className={`px-3 py-1 rounded-full text-xs font-bold ${employee.isTracked ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
                           {employee.isTracked ? 'Tracking Enabled' : 'Tracking Disabled'}
                         </div>
+                        <button 
+                          onClick={() => {
+                            if (employee.phoneNumber) {
+                              sendWhatsAppMessage(employee.phoneNumber, `ERP Test: Hello ${employee.name}, this is a test message from the Time Tracking system.`);
+                              setAlertMessage(`Test WhatsApp sent to ${employee.name}`);
+                              setTimeout(() => setAlertMessage(null), 3000);
+                            } else {
+                              alert('No phone number found for this employee.');
+                            }
+                          }}
+                          className="p-2 rounded-lg border border-emerald-200 text-emerald-600 hover:bg-emerald-50 transition-colors"
+                          title="Send Test WhatsApp"
+                        >
+                          <MessageCircle className="w-5 h-5" />
+                        </button>
                         <button 
                           onClick={() => toggleTracking(employee.id)}
                           className={`p-2 rounded-lg border transition-colors ${
