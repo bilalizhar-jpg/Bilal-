@@ -230,11 +230,14 @@ function AppContent() {
             <Route path="/onboarding/custom-letter" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
 
             {/* Offboarding Routes */}
-            <Route path="/offboarding/warning-letter" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
-            <Route path="/offboarding/resignation-letter" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
+            <Route path="/offboarding/resignation-acceptance-letter" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
             <Route path="/offboarding/termination-letter" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
-            <Route path="/offboarding/complaint-letter" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
-            <Route path="/offboarding/custom-letter" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
+            <Route path="/offboarding/experience-letter" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
+            <Route path="/offboarding/relieving-letter" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
+            <Route path="/offboarding/fnf-letter" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
+            <Route path="/offboarding/clearance-certificate" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
+            <Route path="/offboarding/exit-interview" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
+            <Route path="/offboarding/nda-reminder" element={<ProtectedRoute allowedRoles={['admin']}><LetterManagement /></ProtectedRoute>} />
 
             <Route path="/attendance" element={<ProtectedRoute allowedRoles={['admin']}><Attendance /></ProtectedRoute>} />
             <Route path="/award" element={<ProtectedRoute allowedRoles={['admin']}><AwardList /></ProtectedRoute>} />

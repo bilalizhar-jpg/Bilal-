@@ -75,11 +75,14 @@ export const ADMIN_MENU_ITEMS = [
     icon: UserMinus,
     hasSub: true,
     subItems: [
-      { name: 'Warning Letter', path: '/offboarding/warning-letter' },
-      { name: 'Resignation Letter', path: '/offboarding/resignation-letter' },
+      { name: 'Resignation Acceptance Letter', path: '/offboarding/resignation-acceptance-letter' },
       { name: 'Termination Letter', path: '/offboarding/termination-letter' },
-      { name: 'Complaint Letter', path: '/offboarding/complaint-letter' },
-      { name: 'Custom Letter', path: '/offboarding/custom-letter' },
+      { name: 'Experience Letter', path: '/offboarding/experience-letter' },
+      { name: 'Relieving Letter', path: '/offboarding/relieving-letter' },
+      { name: 'Full & Final Settlement (FNF)', path: '/offboarding/fnf-letter' },
+      { name: 'No Dues / Clearance Certificate', path: '/offboarding/clearance-certificate' },
+      { name: 'Exit Interview Form', path: '/offboarding/exit-interview' },
+      { name: 'NDA / Confidentiality Reminder', path: '/offboarding/nda-reminder' },
     ]
   },
   { name: 'Leaves', icon: UserMinus, path: '/leave' },

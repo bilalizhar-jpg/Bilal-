@@ -22,6 +22,18 @@ export interface Letter {
   date: string;
   description: string;
   status: 'Saved' | 'Sent';
+  address?: string;
+  mobile?: string;
+  subject?: string;
+  // Clearance fields
+  itClearance?: boolean;
+  hrClearance?: boolean;
+  financeClearance?: boolean;
+  adminClearance?: boolean;
+  // Exit interview fields
+  reasonForLeaving?: string;
+  feedbackOnManagement?: string;
+  workEnvironmentReview?: string;
 }
 
 export interface LetterTemplate {
@@ -34,6 +46,7 @@ interface LetterContextType {
   letters: Letter[];
   templates: LetterTemplate[];
   addLetter: (letter: Omit<Letter, 'id'>) => void;
+  updateLetter: (id: string, letter: Partial<Letter>) => void;
   updateLetterStatus: (id: string, status: 'Saved' | 'Sent') => void;
   deleteLetter: (id: string) => void;
   addTemplate: (template: Omit<LetterTemplate, 'id'>) => void;
@@ -98,9 +111,20 @@ export const LetterProvider = ({ children }: { children: ReactNode }) => {
       id,
     };
     try {
-      await setDoc(doc(db, 'letters', id), newLetter);
+      // Use JSON stringify/parse to deeply remove all undefined values
+      const cleanLetter = JSON.parse(JSON.stringify(newLetter));
+      await setDoc(doc(db, 'letters', id), cleanLetter);
     } catch (error) {
       console.error("Error adding letter:", error);
+    }
+  };
+
+  const updateLetter = async (id: string, letter: Partial<Letter>) => {
+    try {
+      const cleanLetter = JSON.parse(JSON.stringify(letter));
+      await updateDoc(doc(db, 'letters', id), cleanLetter);
+    } catch (error) {
+      console.error("Error updating letter:", error);
     }
   };
 
@@ -127,7 +151,9 @@ export const LetterProvider = ({ children }: { children: ReactNode }) => {
       id,
     };
     try {
-      await setDoc(doc(db, 'letterTemplates', id), newTemplate);
+      // Use JSON stringify/parse to deeply remove all undefined values
+      const cleanTemplate = JSON.parse(JSON.stringify(newTemplate));
+      await setDoc(doc(db, 'letterTemplates', id), cleanTemplate);
     } catch (error) {
       console.error("Error adding template:", error);
     }
@@ -142,7 +168,7 @@ export const LetterProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <LetterContext.Provider value={{ letters, templates, addLetter, updateLetterStatus, deleteLetter, addTemplate, deleteTemplate }}>
+    <LetterContext.Provider value={{ letters, templates, addLetter, updateLetter, updateLetterStatus, deleteLetter, addTemplate, deleteTemplate }}>
       {children}
     </LetterContext.Provider>
   );
