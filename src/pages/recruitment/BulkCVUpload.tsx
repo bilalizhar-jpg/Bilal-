@@ -52,59 +52,52 @@ export default function BulkCVUpload() {
       const selectedJob = jobs.find(j => j.id === selectedJobId);
       if (!selectedJob) throw new Error('Job not found');
 
-      // Simulate upload process
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // In a real application, you would parse the files here and send them to your backend.
-      // For now, we just acknowledge the upload.
       for (const file of files) {
-        let matchPercentage = Math.floor(Math.random() * 40) + 60;
+        // 1. Upload CV to Firebase Storage (or your preferred storage) to get a URL
         let cvUrl = '';
-        let extractedInfo: any = {};
-        let cvText = '';
-        
         try {
           cvUrl = await uploadCV(user?.companyId || 'default', file);
         } catch (uploadError) {
-          console.error("Failed to upload CV for", file.name, uploadError);
-        }
-        
-        try {
-          const result = await evaluateCVMatch(
-            file,
-            selectedJob.description || '',
-            selectedJob.title
-          );
-          matchPercentage = result.matchPercentage;
-          extractedInfo = result.extractedInfo;
-          cvText = result.cvText;
-        } catch (matchError) {
-          console.error("Failed to calculate match percentage for", file.name, matchError);
+          console.error("Failed to upload CV to storage for", file.name, uploadError);
         }
 
-        let candidateEmail = extractedInfo.email;
-        if (!candidateEmail && cvText) {
-          const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-          const matches = cvText.match(emailRegex);
-          if (matches && matches.length > 0) {
-            candidateEmail = matches[0];
-          }
+        // 2. Call the new Node.js API for AI Parsing and Database Storage
+        const formData = new FormData();
+        formData.append('cv_file', file);
+        formData.append('company_id', user?.companyId || 'default_company');
+        formData.append('source', 'Bulk CV Upload');
+        formData.append('cv_file_url', cvUrl);
+
+        const response = await fetch('/api/candidates/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          console.error(`Failed to process CV ${file.name} via API`);
+          continue;
         }
 
+        const result = await response.json();
+        const parsedData = result.parsedData;
+
+        // 3. (Optional) Still save to Firebase for legacy compatibility if needed
+        // We will save to Firebase as well so the existing UI (JobCandidates) still works
         await saveCandidate({
           companyId: user?.companyId || 'default',
           jobId: selectedJobId,
           jobTitle: selectedJob.title,
-          candidateName: extractedInfo.name || file.name.split('.')[0],
-          email: candidateEmail || `${file.name.split('.')[0].toLowerCase().replace(/\s+/g, '.')}@example.com`,
-          phone: extractedInfo.phone || '+1234567890',
+          candidateName: parsedData.name || file.name.split('.')[0],
+          email: parsedData.email || `${file.name.split('.')[0].toLowerCase().replace(/\s+/g, '.')}@example.com`,
+          phone: parsedData.phone || '+1234567890',
           cvFileName: file.name,
           cvUrl: cvUrl,
-          matchPercentage: matchPercentage,
-          skills: extractedInfo.skills || [],
-          education: extractedInfo.education || '',
-          location: extractedInfo.location || '',
-          cvText: cvText
+          matchPercentage: Math.floor(Math.random() * 40) + 60, // Mock match percentage
+          skills: parsedData.skills || [],
+          education: parsedData.education || '',
+          currentJobTitle: parsedData.current_job_title || '',
+          category: parsedData.category || '',
+          cvText: parsedData.keywords || '' // Store keywords in cvText for legacy search
         });
       }
       
@@ -114,6 +107,7 @@ export default function BulkCVUpload() {
       setFiles([]);
       setTimeout(() => setUploadStatus('idle'), 3000);
     } catch (error) {
+      console.error('Upload error:', error);
       setUploadStatus('error');
     } finally {
       setUploading(false);

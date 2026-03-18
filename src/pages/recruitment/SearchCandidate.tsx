@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
-import { Search, Filter, X, Briefcase, MapPin, DollarSign, GraduationCap, Search as SearchIcon, FileText, Users, Mail, Download, ChevronRight } from 'lucide-react';
-import { getCandidates, subscribeToCandidates, Candidate } from '../../utils/candidateStore';
+import { Search, Filter, X, Briefcase, MapPin, DollarSign, GraduationCap, Search as SearchIcon, FileText, Users, Mail, Download, ChevronRight, UploadCloud } from 'lucide-react';
+import { getCandidates, subscribeToCandidates, Candidate, uploadCV } from '../../utils/candidateStore';
 import { useAuth } from '../../context/AuthContext';
 
 interface CandidateSearchFilters {
@@ -46,12 +46,93 @@ export default function SearchCandidate() {
   const [toEmail, setToEmail] = useState('');
   const [emailSubject, setEmailSubject] = useState('');
   const [emailBody, setEmailBody] = useState('');
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleManualUpload = async () => {
+    if (!uploadFile) return;
+    setIsUploading(true);
+    try {
+      // 1. Upload CV to Firebase Storage
+      let cvUrl = '';
+      try {
+        // We need to import uploadCV from candidateStore, it's already imported at the top
+        cvUrl = await uploadCV(user?.companyId || 'default', uploadFile);
+      } catch (uploadError) {
+        console.error("Failed to upload CV to storage", uploadError);
+      }
+
+      // 2. Call the API
+      const formData = new FormData();
+      formData.append('cv_file', uploadFile);
+      formData.append('company_id', user?.companyId || 'default_company');
+      formData.append('source', 'Manual Upload');
+      formData.append('cv_file_url', cvUrl);
+      
+      const response = await fetch('/api/candidates/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        alert('CV uploaded and parsed successfully!');
+        setIsUploadModalOpen(false);
+        setUploadFile(null);
+        // Refresh candidates list
+        handleSearch();
+      } else {
+        alert('Failed to upload CV');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Error uploading CV');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   useEffect(() => {
-    // Load all candidates on mount
+    // Load all candidates on mount from the new API
+    const fetchInitialCandidates = async () => {
+      try {
+        const queryParams = new URLSearchParams();
+        if (user?.companyId) queryParams.append('company_id', user.companyId);
+        
+        const response = await fetch(`/api/candidates/search?${queryParams.toString()}`);
+        if (response.ok) {
+          const data = await response.json();
+          const mappedResults: Candidate[] = data.map((c: any) => ({
+            id: c.id.toString(),
+            companyId: c.company_id,
+            candidateName: c.name,
+            email: c.email,
+            phone: c.phone,
+            cvUrl: c.cv_file_url,
+            currentJobTitle: c.current_job_title,
+            jobTitle: c.current_job_title || c.last_job_title || 'N/A',
+            skills: c.skills || [],
+            education: c.education,
+            category: c.category,
+            stage: 'New Candidates',
+            appliedAt: c.created_at,
+            cvText: c.keywords,
+          }));
+          setAllCandidates(mappedResults);
+          // If you want to show them initially:
+          // setSearchResults(mappedResults);
+        }
+      } catch (error) {
+        console.error('Error fetching initial candidates:', error);
+      }
+    };
+
+    fetchInitialCandidates();
+    
+    // Also keep the Firebase subscription for legacy candidates if needed
     const unsubscribe = subscribeToCandidates((apps) => {
-      setAllCandidates(apps);
-      // setSearchResults(apps); // Removed: Initially show all
+      // We can merge them or just rely on the API. For now, let's just keep the API ones.
+      // setAllCandidates(prev => [...prev, ...apps]);
     }, user?.companyId);
 
     return () => unsubscribe();
@@ -70,106 +151,89 @@ export default function SearchCandidate() {
     setFilters(prevFilters => ({ ...prevFilters, [name]: value }));
   };
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     setHasSearched(true);
-    let results = [...allCandidates];
+    console.log('Searching with filters:', filters);
+    console.log('User:', user);
+    
+    try {
+      const queryParams = new URLSearchParams();
+      if (user?.companyId) queryParams.append('company_id', user.companyId);
+      if (filters.keyword) queryParams.append('keyword', filters.keyword);
+      if (filters.skills) queryParams.append('skills', filters.skills);
+      if (filters.category) queryParams.append('category', filters.category);
+      if (filters.currentJobTitle) queryParams.append('job_title', filters.currentJobTitle);
 
-    if (filters.keyword) {
-      const keywordLower = filters.keyword.toLowerCase();
-      results = results.filter(app => 
-        app.candidateName.toLowerCase().includes(keywordLower) ||
-        app.jobTitle.toLowerCase().includes(keywordLower) ||
-        (app.cvText && app.cvText.toLowerCase().includes(keywordLower))
-      );
-    }
-
-    if (filters.location) {
-      const locationLower = filters.location.toLowerCase();
-      results = results.filter(app => 
-        app.location && app.location.toLowerCase().includes(locationLower)
-      );
-    }
-
-    if (filters.skills) {
-      const skillsArray = filters.skills.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-      if (skillsArray.length > 0) {
-        results = results.filter(app => {
-          if (!app.skills || app.skills.length === 0) return false;
-          const appSkillsLower = app.skills.map(s => s.toLowerCase());
-          // Check if candidate has AT LEAST ONE of the searched skills
-          return skillsArray.some(skill => appSkillsLower.some(appSkill => appSkill.includes(skill)));
-        });
+      const url = `/api/candidates/search?${queryParams.toString()}`;
+      console.log('Fetching:', url);
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch candidates');
       }
+      
+      const data = await response.json();
+      console.log('Search results:', data);
+      
+      // Map the API response to the Candidate interface expected by the UI
+      const mappedResults: Candidate[] = data.map((c: any) => ({
+        id: c.id.toString(),
+        companyId: c.company_id,
+        candidateName: c.name,
+        email: c.email,
+        phone: c.phone,
+        cvUrl: c.cv_file_url,
+        currentJobTitle: c.current_job_title,
+        jobTitle: c.current_job_title || c.last_job_title || 'N/A',
+        skills: c.skills || [],
+        education: c.education,
+        category: c.category,
+        stage: 'New Candidates',
+        appliedAt: c.created_at,
+        cvText: c.keywords, // Store keywords in cvText for display purposes if needed
+      }));
+
+      setSearchResults(mappedResults);
+    } catch (error) {
+      console.error('Error searching candidates via API:', error);
+      // Fallback to local filtering if API fails (optional, but good for robustness)
+      let results = [...allCandidates];
+
+      if (filters.keyword) {
+        const keywordLower = filters.keyword.toLowerCase();
+        results = results.filter(app => 
+          app.candidateName.toLowerCase().includes(keywordLower) ||
+          app.jobTitle?.toLowerCase().includes(keywordLower) ||
+          (app.cvText && app.cvText.toLowerCase().includes(keywordLower))
+        );
+      }
+
+      if (filters.skills) {
+        const skillsArray = filters.skills.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+        if (skillsArray.length > 0) {
+          results = results.filter(app => {
+            if (!app.skills || app.skills.length === 0) return false;
+            const appSkillsLower = app.skills.map(s => s.toLowerCase());
+            return skillsArray.some(skill => appSkillsLower.some(appSkill => appSkill.includes(skill)));
+          });
+        }
+      }
+
+      if (filters.category) {
+        const categoryLower = filters.category.toLowerCase();
+        results = results.filter(app => 
+          app.category && app.category.toLowerCase().includes(categoryLower)
+        );
+      }
+
+      if (filters.currentJobTitle) {
+        const jobTitleLower = filters.currentJobTitle.toLowerCase();
+        results = results.filter(app => 
+          app.currentJobTitle && app.currentJobTitle.toLowerCase().includes(jobTitleLower)
+        );
+      }
+
+      setSearchResults(results);
     }
-
-    if (filters.education) {
-      const educationLower = filters.education.toLowerCase();
-      results = results.filter(app => 
-        app.education && app.education.toLowerCase().includes(educationLower)
-      );
-    }
-
-    if (filters.university) {
-      const universityLower = filters.university.toLowerCase();
-      results = results.filter(app => 
-        app.university && app.university.toLowerCase().includes(universityLower)
-      );
-    }
-
-    if (filters.country) {
-      const countryLower = filters.country.toLowerCase();
-      results = results.filter(app => 
-        app.country && app.country.toLowerCase().includes(countryLower)
-      );
-    }
-
-    if (filters.currentJobTitle) {
-      const jobTitleLower = filters.currentJobTitle.toLowerCase();
-      results = results.filter(app => 
-        app.currentJobTitle && app.currentJobTitle.toLowerCase().includes(jobTitleLower)
-      );
-    }
-
-    if (filters.industry) {
-      const industryLower = filters.industry.toLowerCase();
-      results = results.filter(app => 
-        app.industry && app.industry.toLowerCase().includes(industryLower)
-      );
-    }
-
-    if (filters.gender && filters.gender !== 'All') {
-      results = results.filter(app => 
-        app.gender === filters.gender
-      );
-    }
-
-    if (filters.category) {
-      const categoryLower = filters.category.toLowerCase();
-      results = results.filter(app => 
-        app.category && app.category.toLowerCase().includes(categoryLower)
-      );
-    }
-
-    // Basic salary filtering (assuming expectedSalary is a string like "50k - 100k")
-    if (filters.minSalary || filters.maxSalary) {
-      const minSearch = parseInt(filters.minSalary) || 0;
-      const maxSearch = parseInt(filters.maxSalary) || Infinity;
-
-      results = results.filter(app => {
-        if (!app.expectedSalary) return false;
-        // Extract numbers from string
-        const numbers = app.expectedSalary.match(/\d+/g);
-        if (!numbers) return false;
-        
-        const minAppSalary = parseInt(numbers[0]) * (app.expectedSalary.toLowerCase().includes('k') ? 1000 : 1);
-        const maxAppSalary = numbers.length > 1 ? parseInt(numbers[1]) * (app.expectedSalary.toLowerCase().includes('k') ? 1000 : 1) : minAppSalary;
-
-        // Check if ranges overlap
-        return minAppSalary <= maxSearch && maxAppSalary >= minSearch;
-      });
-    }
-
-    setSearchResults(results);
   };
 
   const clearFilters = () => {
@@ -245,6 +309,13 @@ export default function SearchCandidate() {
               <h2 className="text-xl font-semibold text-slate-800">Search Candidates</h2>
             </div>
             <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsUploadModalOpen(true)}
+                className="flex items-center gap-2 border border-slate-300 text-slate-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-slate-50 transition-colors"
+              >
+                <FileText className="w-4 h-4" />
+                Manual Upload
+              </button>
               <button
                 onClick={clearFilters}
                 className="flex items-center gap-2 border border-slate-300 text-slate-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-slate-50 transition-colors"
@@ -722,6 +793,62 @@ export default function SearchCandidate() {
               >
                 <Mail className="w-4 h-4" />
                 Send Email
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Upload Modal */}
+      {isUploadModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md flex flex-col overflow-hidden">
+            <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-white">
+              <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-[#1976d2]" />
+                Manual CV Upload
+              </h3>
+              <button onClick={() => setIsUploadModalOpen(false)} className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Select CV File (PDF or DOCX)</label>
+                <input 
+                  type="file" 
+                  accept=".pdf,.docx,.doc"
+                  onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                  className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
+                />
+              </div>
+              <p className="text-xs text-slate-500">
+                The CV will be parsed by AI to extract skills, experience, and other details automatically.
+              </p>
+            </div>
+            <div className="p-4 border-t border-slate-200 flex justify-end gap-3 bg-slate-50">
+              <button 
+                onClick={() => setIsUploadModalOpen(false)}
+                className="px-4 py-2 border border-slate-300 text-slate-700 rounded-md text-sm font-medium hover:bg-slate-100 transition-colors"
+                disabled={isUploading}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleManualUpload}
+                disabled={!uploadFile || isUploading}
+                className="px-4 py-2 bg-[#1976d2] text-white rounded-md text-sm font-medium hover:bg-[#1565c0] transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isUploading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Parsing...
+                  </>
+                ) : (
+                  <>
+                    <UploadCloud className="w-4 h-4" />
+                    Upload & Parse
+                  </>
+                )}
               </button>
             </div>
           </div>

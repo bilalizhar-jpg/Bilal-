@@ -1,5 +1,33 @@
 {
   "entities": {
+    "Letter": {
+      "title": "Letter",
+      "description": "A letter (onboarding or offboarding)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "category": { "type": "string" },
+        "type": { "type": "string" },
+        "userId": { "type": "string" },
+        "customName": { "type": "string" },
+        "customEmail": { "type": "string" },
+        "title": { "type": "string" },
+        "date": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["Saved", "Sent"] },
+        "address": { "type": "string" },
+        "mobile": { "type": "string" },
+        "subject": { "type": "string" },
+        "itClearance": { "type": "boolean" },
+        "hrClearance": { "type": "boolean" },
+        "financeClearance": { "type": "boolean" },
+        "adminClearance": { "type": "boolean" },
+        "reasonForLeaving": { "type": "string" },
+        "feedbackOnManagement": { "type": "string" },
+        "workEnvironmentReview": { "type": "string" }
+      },
+      "required": ["id", "category", "type", "title", "date", "description", "status"]
+    },
     "User": {
       "title": "User",
       "description": "A system user (admin, superadmin, or employee)",

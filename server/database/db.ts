@@ -71,6 +71,23 @@ db.exec(`
     message_template TEXT,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+  CREATE TABLE IF NOT EXISTS candidates (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    company_id TEXT,
+    name TEXT,
+    email TEXT,
+    phone TEXT,
+    cv_file_url TEXT,
+    source TEXT,
+    current_job_title TEXT,
+    last_job_title TEXT,
+    skills TEXT, -- Stored as JSON string
+    education TEXT,
+    certifications TEXT,
+    category TEXT,
+    keywords TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
 
 export default db;

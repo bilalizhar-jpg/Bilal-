@@ -1,29 +1,15 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { initializeFirestore, doc, getDocFromServer, enableIndexedDbPersistence } from 'firebase/firestore';
+import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import firebaseConfig from '../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
 
-// Use initializeFirestore with settings to improve connectivity in restricted environments
-export const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true,
-}, firebaseConfig.firestoreDatabaseId);
-
-// Persistence can sometimes cause issues in iframe environments, disabling for now to verify connection
-/*
-enableIndexedDbPersistence(db).catch((err) => {
-  if (err.code == 'failed-precondition') {
-    console.warn('Persistence failed: Multiple tabs open');
-  } else if (err.code == 'unimplemented') {
-    console.warn('Persistence failed: The current browser does not support all of the features required to enable persistence');
-  }
-});
-*/
+export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 
 export const auth = getAuth(app);
-export const storage = getStorage(app);
+export const storage = getStorage(app, 'gs://' + firebaseConfig.storageBucket);
 
 // Validate Connection to Firestore
 async function testConnection() {
@@ -40,7 +26,7 @@ async function testConnection() {
     if (error instanceof Error) {
       if (error.message.includes('the client is offline')) {
         console.error("Firestore connection failed: The client is offline. This usually means the network is blocking the connection or the Firebase configuration is incorrect.");
-      } else if (error.message.includes('permission-denied')) {
+      } else if (error.message.includes('permission-denied') || error.message.includes('Missing or insufficient permissions')) {
         console.log("Firestore connection reached backend, but permission was denied (this is normal for a ping test).");
       }
     }

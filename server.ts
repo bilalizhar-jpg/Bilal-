@@ -6,6 +6,7 @@ import whatsappRoutes from './server/routes/whatsappRoutes';
 import attendanceAlertRoutes from './server/routes/attendanceAlertRoutes';
 import idleAlertRoutes from './server/routes/idleAlertRoutes';
 import welcomeMessageRoutes from './server/routes/welcomeMessageRoutes';
+import candidateRoutes from './server/routes/candidateRoutes';
 import db from './server/database/db';
 import { WhatsAppService } from './server/services/whatsappService';
 import { AttendanceAlertService } from './server/services/attendanceAlertService';
@@ -23,6 +24,7 @@ async function startServer() {
   app.use('/api/attendance-alerts', attendanceAlertRoutes);
   app.use('/api/idle-alerts', idleAlertRoutes);
   app.use('/api/welcome-messages', welcomeMessageRoutes);
+  app.use('/api/candidates', candidateRoutes);
 
   // Health check
   app.get('/api/health', (req, res) => {
