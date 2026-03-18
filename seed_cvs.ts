@@ -1,12 +1,12 @@
-import db from './server/database/db';
+import { db } from './server/database/firebaseAdmin';
 
 const candidates = [
   {
     name: "Ankush Arora",
     email: "nkusharoraa@gmail.com",
     phone: "+91 945 691 6921",
-    current_job_title: "Assistant Manager, AI & Vehicle Dynamics Integration",
-    last_job_title: "QA Automation Engineer",
+    currentJobTitle: "Assistant Manager, AI & Vehicle Dynamics Integration",
+    lastJobTitle: "QA Automation Engineer",
     skills: ["Python", "C++", "Java", "SQL", "MATLAB", "scikit-learn", "TensorFlow", "PyTorch", "Keras", "XGBoost", "MLflow", "Pandas", "NumPy", "OpenCV", "spaCy", "FastAPI", "GCP", "Docker", "Kubernetes", "AWS", "RAG", "LangChain"],
     education: "Bachelor of Technology (B.Tech.) in Mechanical Engineering, Indian Institute of Technology Delhi",
     certifications: "MITx MicroMasters",
@@ -17,8 +17,8 @@ const candidates = [
     name: "Richman Loveday",
     email: "lovedayrichman@yahoo.com",
     phone: "+2347055553109",
-    current_job_title: "Software Developer, PHP",
-    last_job_title: "Backend Developer, Laravel",
+    currentJobTitle: "Software Developer, PHP",
+    lastJobTitle: "Backend Developer, Laravel",
     skills: ["PHP", "JavaScript", "SQL", "MySQL", "Laravel", "Slim", "Langchain.js", "Bootstrap", "Tailwind CSS", "Git", "Linux"],
     education: "B.Eng Computer Engineering, University of Uyo",
     certifications: "",
@@ -29,8 +29,8 @@ const candidates = [
     name: "Pranjal Radadiya",
     email: "radadiyapranjal@gmail.com",
     phone: "+91 7043918708",
-    current_job_title: "Web Developer",
-    last_job_title: "Web Development Intern",
+    currentJobTitle: "Web Developer",
+    lastJobTitle: "Web Development Intern",
     skills: ["Laravel", "PHP", "Node.js", "Python", "MySQL", "PostgreSQL", "MongoDB", "Vue.js", "Tailwind CSS", "JavaScript", "GitHub", "GitLab", "WordPress"],
     education: "Master of Computer Applications (MCA), IGNOU; Bachelor of Computer Applications (BCA), Hirpara Girls School & College",
     certifications: "",
@@ -41,8 +41,8 @@ const candidates = [
     name: "Dhruvisha Jagani",
     email: "dhruvishajagani71@gmail.com",
     phone: "+91-97127 60064",
-    current_job_title: "Full-stack Developer",
-    last_job_title: "Senior PHP Developer",
+    currentJobTitle: "Full-stack Developer",
+    lastJobTitle: "Senior PHP Developer",
     skills: ["Laravel", "PHP", "API Development", "Shell Scripting", "MySQL", "AWS", "JavaScript", "AJAX", "CSS", "Bootstrap", "jQuery", "Vue.js", "React.js", "Node.js"],
     education: "Master of Computer Application, Suresh Gyan Vihar University; Bachelor of Computer Application, Veer Narmad South Gujarat University",
     certifications: "",
@@ -53,8 +53,8 @@ const candidates = [
     name: "Ogunwa Anthonia Chinasa",
     email: "Ogunwaanthonia@gmail.com",
     phone: "+2348132094661",
-    current_job_title: "Software Developer (Contract)",
-    last_job_title: "Fullstack Developer",
+    currentJobTitle: "Software Developer (Contract)",
+    lastJobTitle: "Fullstack Developer",
     skills: ["Laravel", "PHP", "Eloquent ORM", "Vue.js", "Nuxtjs", "React", "Tailwind css", "MySql", "Javascript", "Typescript"],
     education: "Higher National Diploma (HND) in Chemical Engineering, Federal Polytechnic Nekede Owerri",
     certifications: "",
@@ -65,8 +65,8 @@ const candidates = [
     name: "Rajan Desai",
     email: "desai.rajan.307@gmail.com",
     phone: "",
-    current_job_title: "Full-Time Freelancer",
-    last_job_title: "Software Engineer",
+    currentJobTitle: "Full-Time Freelancer",
+    lastJobTitle: "Software Engineer",
     skills: ["Laravel", "CodeIgniter", "Core PHP", "MySQL", "jQuery", "JavaScript", "HTML", "CSS", "Bootstrap", "Vue.js", "Node.js", "MongoDB"],
     education: "MCA, Gujarat Technological University; BCA, Saurashtra University",
     certifications: "",
@@ -77,8 +77,8 @@ const candidates = [
     name: "Iqra Nasir",
     email: "iqranasir251@gmail.com",
     phone: "+92 3176895251",
-    current_job_title: "Senior Backend Engineer",
-    last_job_title: "Laravel Developer",
+    currentJobTitle: "Senior Backend Engineer",
+    lastJobTitle: "Laravel Developer",
     skills: ["PHP", "Laravel", "Bootstrap", "Css", "Tailwind", "Javascript", "Jquery", "NextJs", "Typescript", "NodeJs", "NestJs", "MySql", "MongoDB", "ReactJs", "VueJs"],
     education: "BS Software Engineering, Khwaja Fareed university of engineering and IT",
     certifications: "Certified as a laravel developer",
@@ -89,8 +89,8 @@ const candidates = [
     name: "Mohammed Ali",
     email: "alimoh22062000@gmail.com",
     phone: "+2348135756270",
-    current_job_title: "Software Engineer",
-    last_job_title: "Youth Corper",
+    currentJobTitle: "Software Engineer",
+    lastJobTitle: "Youth Corper",
     skills: ["PHP", "Laravel", "JavaScript", "HTML", "CSS", "Vue.js", "React", "Next.js", "Tailwind CSS", "MySQL", "REST APIs"],
     education: "Master of Science (M.Sc.) in Computer Science, University of Ilorin; Bachelor of Science (B.Sc.) in Computer Science, University of Ilorin",
     certifications: "",
@@ -101,8 +101,8 @@ const candidates = [
     name: "Muhammad Arslan",
     email: "ma0305422@gmail.com",
     phone: "+92 340 030 5422",
-    current_job_title: "Full Stack Developer",
-    last_job_title: "Php / Laravel Jr.",
+    currentJobTitle: "Full Stack Developer",
+    lastJobTitle: "Php / Laravel Jr.",
     skills: ["PHP", "Laravel", "Blade", "HTML", "CSS", "Bootstrap", "Tailwind", "JavaScript", "JQuery", "MySQL", "React.js", "Vue.js"],
     education: "BS Computer Science, The Islamia University of Bahawalpur",
     certifications: "Programming with C++",
@@ -113,8 +113,8 @@ const candidates = [
     name: "K. Nabeela Fatima",
     email: "nabeelafatima4ll@gmail.com",
     phone: "9700912007",
-    current_job_title: "Software Developer",
-    last_job_title: "Full Stack PHP Developer [Intern]",
+    currentJobTitle: "Software Developer",
+    lastJobTitle: "Full Stack PHP Developer [Intern]",
     skills: ["HTML5", "CSS3", "JavaScript", "PHP", "Laravel", "Core Java", "Bootstrap 5", "React.js", "Node.js", "MySQL", "PostgreSQL", "MongoDB"],
     education: "B.Sc. (MPCs), KV Ranga Reddy Degree College for Women",
     certifications: "Web and Mobile Application at Nirmaan.org",
@@ -123,32 +123,19 @@ const candidates = [
   }
 ];
 
-const stmt = db.prepare(`
-  INSERT INTO candidates (
-    company_id, name, email, phone, cv_file_url, source, 
-    current_job_title, last_job_title, skills, education, 
-    certifications, category, keywords
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-`);
-
-let count = 0;
-for (const c of candidates) {
-  stmt.run(
-    'default_company',
-    c.name,
-    c.email,
-    c.phone,
-    '',
-    'Manual Upload',
-    c.current_job_title,
-    c.last_job_title,
-    JSON.stringify(c.skills),
-    c.education,
-    c.certifications,
-    c.category,
-    c.keywords
-  );
-  count++;
+async function seed() {
+  let count = 0;
+  for (const c of candidates) {
+    await db.collection('candidates').add({
+      companyId: 'default_company',
+      ...c,
+      cvFileUrl: '',
+      source: 'Manual Upload',
+      createdAt: new Date().toISOString()
+    });
+    count++;
+  }
+  console.log(`Successfully seeded ${count} candidates.`);
 }
 
-console.log(`Successfully seeded ${count} candidates.`);
+seed().catch(console.error);

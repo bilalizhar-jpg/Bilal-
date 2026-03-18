@@ -1,3 +1,8 @@
-import db from './server/database/db';
-const count = db.prepare("SELECT count(*) as count FROM candidates WHERE company_id = 'default_company'").get();
-console.log('Candidates count:', count);
+import { db } from './server/database/firebaseAdmin';
+
+async function check() {
+  const snapshot = await db.collection('candidates').where('companyId', '==', 'default_company').get();
+  console.log('Candidates count:', snapshot.size);
+}
+
+check().catch(console.error);

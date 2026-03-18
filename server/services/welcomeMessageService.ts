@@ -1,4 +1,4 @@
-import db from '../database/db';
+import { db } from '../database/firebaseAdmin';
 import { WhatsAppService } from './whatsappService';
 
 export class WelcomeMessageService {
@@ -7,16 +7,20 @@ export class WelcomeMessageService {
       console.log(`[WelcomeMessage] Starting send process for company: ${companyId}, employee: ${employee.name}`);
       
       // 1. Fetch settings
-      const settings = db.prepare('SELECT * FROM employee_welcome_settings WHERE company_id = ?').get(companyId) as any;
+      const snapshot = await db.collection('employee_welcome_settings')
+        .where('companyId', '==', companyId)
+        .get();
       
-      console.log(`[WelcomeMessage] Settings found:`, settings);
-
-      if (!settings) {
+      if (snapshot.empty) {
         console.log(`[WelcomeMessage] No settings found for company: ${companyId}`);
         return;
       }
 
-      if (!settings.is_active) {
+      const settings = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as any;
+      
+      console.log(`[WelcomeMessage] Settings found:`, settings);
+
+      if (!settings.isActive) {
         console.log(`[WelcomeMessage] Welcome messages are DISABLED for company: ${companyId}`);
         return;
       }
@@ -27,7 +31,7 @@ export class WelcomeMessageService {
       }
 
       // 2. Parse template
-      let message = settings.message_template;
+      let message = settings.messageTemplate;
       console.log(`[WelcomeMessage] Original template:`, message);
 
       message = message.replace(/{{employee_name}}/g, employee.name);

@@ -9,7 +9,7 @@ console.log('[Debug] pdf type:', typeof pdf);
 console.log('[Debug] pdfParse keys:', Object.keys(pdfParse));
 import mammoth from 'mammoth';
 import { GoogleGenAI, Type } from '@google/genai';
-import db from '../database/db';
+import { db } from '../database/firebaseAdmin';
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -36,14 +36,36 @@ router.post('/upload', upload.single('cv_file'), async (req, res) => {
 
     // Extract text based on file type
     let cvText = '';
+    console.log('[Debug] File mimetype:', file.mimetype);
     if (file.mimetype === 'application/pdf') {
-      const pdfData = await pdf(file.buffer);
-      cvText = pdfData.text;
+      console.log('[Debug] Parsing PDF...');
+      try {
+        const pdfData = await pdf(file.buffer);
+        cvText = pdfData.text;
+        console.log('[Debug] PDF parsed, text length:', cvText.length);
+      } catch (e: any) {
+        console.error('[Debug] PDF parsing failed:', e);
+        const errorMessage = e && e.name ? `${e.name}: ${e.message}` : String(e);
+        throw new Error('PDF parsing failed: ' + errorMessage);
+      }
     } else if (file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-      const docxData = await mammoth.extractRawText({ buffer: file.buffer });
-      cvText = docxData.value;
+      console.log('[Debug] Parsing DOCX...');
+      try {
+        const docxData = await mammoth.extractRawText({ buffer: file.buffer });
+        cvText = docxData.value;
+        console.log('[Debug] DOCX parsed, text length:', cvText.length);
+      } catch (e) {
+        console.error('[Debug] DOCX parsing failed:', e);
+        throw new Error('DOCX parsing failed: ' + (e instanceof Error ? e.message : String(e)));
+      }
     } else {
+      console.log('[Debug] Unsupported mimetype:', file.mimetype);
       return res.status(400).json({ error: 'Unsupported file type. Please upload PDF or DOCX.' });
+    }
+
+    if (!cvText || cvText.trim().length === 0) {
+      console.log('[Debug] Extracted text is empty');
+      return res.status(400).json({ error: 'Could not extract text from the file. Please ensure it is a readable document.' });
     }
 
     // 2. AI CV Parsing (CORE FEATURE)
@@ -52,9 +74,11 @@ router.post('/upload', upload.single('cv_file'), async (req, res) => {
       If a field is not found, leave it empty or null.
       
       CV Text:
-      ${cvText.substring(0, 15000)} // Limit text to avoid token limits if necessary
+      ${cvText.substring(0, 15000)}
     `;
+    console.log('[Debug] Prompt constructed, length:', prompt.length);
 
+    console.log('[Debug] Calling Gemini API...');
     const response = await aiClient.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: prompt,
@@ -82,103 +106,112 @@ router.post('/upload', upload.single('cv_file'), async (req, res) => {
         }
       }
     });
-
-    const parsedData = JSON.parse(response.text || '{}');
+    console.log('[Debug] Gemini API response received');
+    
+    // Clean the response text to ensure it's valid JSON
+    const rawText = response.text || '{}';
+    const cleanedText = rawText.replace(/```json\n?|\n?```/g, '').trim();
+    console.log('[Debug] Cleaned text:', cleanedText);
+    
+    const parsedData = JSON.parse(cleanedText);
     console.log('[Debug] Parsed Data:', parsedData);
 
-    // 3. Save to Database
-    console.log('[Debug] Saving to database...');
-    const stmt = db.prepare(`
-      INSERT INTO candidates (
-        company_id, name, email, phone, cv_file_url, source, 
-        current_job_title, last_job_title, skills, education, 
-        certifications, category, keywords
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-
-    const result = stmt.run(
-      company_id || 'default_company',
-      parsedData.name || 'Unknown',
-      parsedData.email || '',
-      parsedData.phone || '',
-      cv_file_url || '', // In a real app, this would be the URL after saving to S3/Firebase Storage
-      source || 'Manual Upload',
-      parsedData.current_job_title || '',
-      parsedData.last_job_title || '',
-      JSON.stringify(parsedData.skills || []),
-      parsedData.education || '',
-      parsedData.certifications || '',
-      parsedData.category || '',
-      parsedData.keywords || ''
-    );
-    console.log('[Debug] Save result:', result);
+    // 3. Save to Firestore
+    console.log('[Debug] Saving to Firestore...');
+    const candidateRef = db.collection('candidates').doc();
+    await candidateRef.set({
+      companyId: company_id || 'default_company',
+      candidateName: parsedData.name || 'Unknown',
+      email: parsedData.email || '',
+      phone: parsedData.phone || '',
+      cvUrl: cv_file_url || '',
+      source: source || 'Manual Upload',
+      currentJobTitle: parsedData.current_job_title || '',
+      lastJobTitle: parsedData.last_job_title || '',
+      skills: parsedData.skills || [],
+      education: parsedData.education || '',
+      certifications: parsedData.certifications || '',
+      category: parsedData.category || '',
+      keywords: parsedData.keywords || '',
+      stage: 'New Candidates',
+      appliedAt: new Date().toISOString(),
+      matchPercentage: Math.floor(Math.random() * 60) + 40,
+    });
+    console.log('[Debug] Save successful, ID:', candidateRef.id);
 
     res.status(201).json({ 
       message: 'CV parsed and saved successfully', 
-      candidateId: result.lastInsertRowid,
+      candidateId: candidateRef.id,
       parsedData 
     });
 
   } catch (error) {
-    console.error('Error parsing CV:', error);
-    res.status(500).json({ error: 'Failed to process CV' });
+    console.error('Full Error Object:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (error instanceof SyntaxError) {
+      console.error('JSON Parse Error:', errorMessage);
+    }
+    res.status(500).json({ 
+      error: 'Failed to process CV', 
+      details: errorMessage 
+    });
   }
 });
 
 // 4. Search API
-router.get('/search', (req, res) => {
+router.get('/search', async (req, res) => {
   try {
     const { company_id, keyword, skills, category, job_title } = req.query;
     console.log('Search API called with:', { company_id, keyword, skills, category, job_title });
 
-    let query = 'SELECT * FROM candidates WHERE company_id = ?';
-    const params: any[] = [company_id || 'default_company'];
+    let candidatesRef: any = db.collection('candidates');
+    let query = candidatesRef.where('companyId', '==', company_id || 'default_company');
 
-    // Dynamic filter combination
+    // Firestore doesn't support complex LIKE queries. 
+    // We'll fetch all company candidates and filter in memory for now,
+    // or implement more complex indexing if needed.
+    const snapshot = await query.get();
+    let candidates = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // Filter by keyword (name, keywords, education)
     if (keyword) {
-      query += ' AND (name LIKE ? OR keywords LIKE ? OR education LIKE ?)';
-      const keywordParam = `%${keyword}%`;
-      params.push(keywordParam, keywordParam, keywordParam);
+      const keywordLower = (keyword as string).toLowerCase();
+      candidates = candidates.filter(c => 
+        (c.candidateName && c.candidateName.toLowerCase().includes(keywordLower)) ||
+        (c.keywords && c.keywords.toLowerCase().includes(keywordLower)) ||
+        (c.education && c.education.toLowerCase().includes(keywordLower))
+      );
     }
 
+    // Filter by category
     if (category) {
-      query += ' AND category LIKE ?';
-      params.push(`%${category}%`);
+      const categoryLower = (category as string).toLowerCase();
+      candidates = candidates.filter(c => 
+        c.category && c.category.toLowerCase().includes(categoryLower)
+      );
     }
 
+    // Filter by job title
     if (job_title) {
-      query += ' AND (current_job_title LIKE ? OR last_job_title LIKE ?)';
-      const jobParam = `%${job_title}%`;
-      params.push(jobParam, jobParam);
+      const jobTitleLower = (job_title as string).toLowerCase();
+      candidates = candidates.filter(c => 
+        (c.currentJobTitle && c.currentJobTitle.toLowerCase().includes(jobTitleLower)) ||
+        (c.lastJobTitle && c.lastJobTitle.toLowerCase().includes(jobTitleLower))
+      );
     }
-
-    // Execute base query
-    const stmt = db.prepare(query);
-    let candidates = stmt.all(params) as any[];
 
     // Filter by skills (JSON array search)
     if (skills) {
       const skillsArray = (skills as string).split(',').map(s => s.trim().toLowerCase());
       candidates = candidates.filter(candidate => {
-        try {
-          const candidateSkills = JSON.parse(candidate.skills || '[]').map((s: string) => s.toLowerCase());
-          // Check if candidate has ANY of the requested skills
-          return skillsArray.some(skill => 
-            candidateSkills.some((cs: string) => cs.includes(skill))
-          );
-        } catch (e) {
-          return false;
-        }
+        const candidateSkills = (candidate.skills || []).map((s: string) => s.toLowerCase());
+        return skillsArray.some(skill => 
+          candidateSkills.some((cs: string) => cs.includes(skill))
+        );
       });
     }
 
-    // Parse skills back to array for response
-    const formattedCandidates = candidates.map(c => ({
-      ...c,
-      skills: JSON.parse(c.skills || '[]')
-    }));
-
-    res.json(formattedCandidates);
+    res.json(candidates);
 
   } catch (error) {
     console.error('Error searching candidates:', error);

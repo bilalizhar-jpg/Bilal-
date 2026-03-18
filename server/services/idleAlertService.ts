@@ -1,13 +1,6 @@
 import cron from 'node-cron';
-import db from '../database/db';
+import { db } from '../database/firebaseAdmin';
 import { WhatsAppService } from './whatsappService';
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
-import firebaseConfig from '../../firebase-applet-config.json';
-
-// Initialize Firebase for backend use
-const app = initializeApp(firebaseConfig);
-const firestore = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 
 export class IdleAlertService {
   static init() {
@@ -21,7 +14,8 @@ export class IdleAlertService {
   private static async checkAndSendIdleAlerts() {
     try {
       // 1. Get all active idle alert settings
-      const activeSettings = db.prepare('SELECT * FROM idle_alert_settings WHERE is_active = 1').all() as any[];
+      const snapshot = await db.collection('idle_alert_settings').where('isActive', '==', true).get();
+      const activeSettings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
       for (const setting of activeSettings) {
         await this.processCompanyIdleAlerts(setting);
@@ -32,27 +26,23 @@ export class IdleAlertService {
   }
 
   private static async processCompanyIdleAlerts(setting: any) {
-    const { company_id, idle_minutes, message_template } = setting;
+    const { companyId, idleMinutes, messageTemplate } = setting;
     const today = new Date().toISOString().split('T')[0];
     const now = Date.now();
 
     try {
       // 1. Get all active employees for this company
-      const employeesQuery = query(
-        collection(firestore, 'employees'),
-        where('companyId', '==', company_id),
-        where('status', '==', 'Active')
-      );
-      const employeesSnapshot = await getDocs(employeesQuery);
+      const employeesSnapshot = await db.collection('employees')
+        .where('companyId', '==', companyId)
+        .where('status', '==', 'Active')
+        .get();
       const employees = employeesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
 
       // 2. Get today's tracking data for these employees
-      const trackingQuery = query(
-        collection(firestore, 'timeTracking'),
-        where('companyId', '==', company_id),
-        where('date', '==', today)
-      );
-      const trackingSnapshot = await getDocs(trackingQuery);
+      const trackingSnapshot = await db.collection('timeTracking')
+        .where('companyId', '==', companyId)
+        .where('date', '==', today)
+        .get();
       const trackingRecords = trackingSnapshot.docs.map(doc => doc.data() as any);
 
       for (const emp of employees) {
@@ -61,28 +51,30 @@ export class IdleAlertService {
         if (!tracking || tracking.status === 'Offline' || tracking.status === 'On Break') {
           // If offline or on break, they are not "idle" in the sense of being inactive while working
           // Reset their alert log if it exists
-          db.prepare('DELETE FROM idle_alert_logs WHERE employee_id = ?').run(emp.id);
+          const logsSnapshot = await db.collection('idle_alert_logs').where('employeeId', '==', emp.id).get();
+          for (const doc of logsSnapshot.docs) {
+            await doc.ref.delete();
+          }
           continue;
         }
 
         const lastActive = tracking.lastActive || 0;
         const idleDurationMs = now - lastActive;
-        const idleThresholdMs = idle_minutes * 60 * 1000;
+        const idleThresholdMs = idleMinutes * 60 * 1000;
 
         if (idleDurationMs >= idleThresholdMs) {
           // Employee is idle beyond threshold
           
           // Check if already alerted for this idle session
-          // We use idle_session_start to track when they first went idle
-          const log = db.prepare('SELECT * FROM idle_alert_logs WHERE employee_id = ?').get(emp.id) as any;
+          const logSnapshot = await db.collection('idle_alert_logs').where('employeeId', '==', emp.id).get();
           
-          if (log) {
+          if (!logSnapshot.empty) {
             // Already alerted for this session
             continue;
           }
 
           // Send alert
-          const message = message_template
+          const message = messageTemplate
             .replace('{{employee_name}}', emp.name)
             .replace('{{idle_minutes}}', Math.floor(idleDurationMs / 60000).toString());
           
@@ -90,20 +82,27 @@ export class IdleAlertService {
 
           if (phone) {
             console.log(`[IdleAlert] Sending idle alert to ${emp.name} (${phone}) - Idle for ${Math.floor(idleDurationMs / 60000)} mins`);
-            await WhatsAppService.sendMessage(company_id, phone, message);
+            await WhatsAppService.sendMessage(companyId, phone, message);
             
             // Log it to prevent duplicate alerts for this session
-            db.prepare('INSERT INTO idle_alert_logs (company_id, employee_id, idle_session_start) VALUES (?, ?, ?)')
-              .run(company_id, emp.id, new Date(lastActive).toISOString());
+            await db.collection('idle_alert_logs').add({
+              companyId,
+              employeeId: emp.id,
+              idleSessionStart: new Date(lastActive).toISOString(),
+              createdAt: new Date().toISOString()
+            });
           }
         } else {
           // Employee is active (idle duration < threshold)
           // Reset alert log so they can be alerted again if they go idle later
-          db.prepare('DELETE FROM idle_alert_logs WHERE employee_id = ?').run(emp.id);
+          const logsSnapshot = await db.collection('idle_alert_logs').where('employeeId', '==', emp.id).get();
+          for (const doc of logsSnapshot.docs) {
+            await doc.ref.delete();
+          }
         }
       }
     } catch (error) {
-      console.error(`[IdleAlert] Error processing company ${company_id}:`, error);
+      console.error(`[IdleAlert] Error processing company ${companyId}:`, error);
     }
   }
 

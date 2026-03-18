@@ -1,5 +1,105 @@
 {
   "entities": {
+    "WhatsappAccount": {
+      "title": "Whatsapp Account",
+      "description": "A whatsapp account for a company",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "sessionData": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "companyId"]
+    },
+    "WhatsappMessage": {
+      "title": "Whatsapp Message",
+      "description": "A whatsapp message",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "toNumber": { "type": "string" },
+        "message": { "type": "string" },
+        "status": { "type": "string" },
+        "responseLog": { "type": "string" },
+        "retryCount": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "companyId", "toNumber", "message"]
+    },
+    "AttendanceAlertSettings": {
+      "title": "Attendance Alert Settings",
+      "description": "Settings for attendance alerts",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "officeTime": { "type": "string" },
+        "graceTime": { "type": "string" },
+        "triggerTime": { "type": "string" },
+        "messageTemplate": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "companyId"]
+    },
+    "AttendanceAlertLog": {
+      "title": "Attendance Alert Log",
+      "description": "Log of attendance alerts",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "employeeId": { "type": "string" },
+        "date": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "companyId", "employeeId", "date"]
+    },
+    "IdleAlertSettings": {
+      "title": "Idle Alert Settings",
+      "description": "Settings for idle alerts",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "idleMinutes": { "type": "number" },
+        "messageTemplate": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "companyId"]
+    },
+    "IdleAlertLog": {
+      "title": "Idle Alert Log",
+      "description": "Log of idle alerts",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "employeeId": { "type": "string" },
+        "lastAlertTime": { "type": "string" },
+        "idleSessionStart": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "companyId", "employeeId"]
+    },
+    "EmployeeWelcomeSettings": {
+      "title": "Employee Welcome Settings",
+      "description": "Settings for employee welcome messages",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "companyId": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "messageTemplate": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "companyId"]
+    },
     "Letter": {
       "title": "Letter",
       "description": "A letter (onboarding or offboarding)",
@@ -997,6 +1097,34 @@
     }
   },
   "firestore": {
+    "/whatsapp_accounts/{accountId}": {
+      "schema": "WhatsappAccount",
+      "description": "Whatsapp accounts"
+    },
+    "/whatsapp_messages/{messageId}": {
+      "schema": "WhatsappMessage",
+      "description": "Whatsapp messages"
+    },
+    "/attendance_alert_settings/{settingId}": {
+      "schema": "AttendanceAlertSettings",
+      "description": "Attendance alert settings"
+    },
+    "/attendance_alert_logs/{logId}": {
+      "schema": "AttendanceAlertLog",
+      "description": "Attendance alert logs"
+    },
+    "/idle_alert_settings/{settingId}": {
+      "schema": "IdleAlertSettings",
+      "description": "Idle alert settings"
+    },
+    "/idle_alert_logs/{logId}": {
+      "schema": "IdleAlertLog",
+      "description": "Idle alert logs"
+    },
+    "/employee_welcome_settings/{settingId}": {
+      "schema": "EmployeeWelcomeSettings",
+      "description": "Employee welcome settings"
+    },
     "/accounting_accounts/{accountId}": {
       "schema": "AccountingAccount",
       "description": "Chart of Accounts for companies"

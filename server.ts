@@ -7,7 +7,7 @@ import attendanceAlertRoutes from './server/routes/attendanceAlertRoutes';
 import idleAlertRoutes from './server/routes/idleAlertRoutes';
 import welcomeMessageRoutes from './server/routes/welcomeMessageRoutes';
 import candidateRoutes from './server/routes/candidateRoutes';
-import db from './server/database/db';
+import { db } from './server/database/firebaseAdmin';
 import { WhatsAppService } from './server/services/whatsappService';
 import { AttendanceAlertService } from './server/services/attendanceAlertService';
 import { IdleAlertService } from './server/services/idleAlertService';
@@ -46,11 +46,12 @@ async function startServer() {
 
   // Auto-reconnect existing sessions on startup
   try {
-    const activeAccounts = db.prepare("SELECT company_id FROM whatsapp_accounts WHERE status = 'connected'").all() as any[];
-    for (const account of activeAccounts) {
-      console.log(`Auto-reconnecting WhatsApp for company: ${account.company_id}`);
-      WhatsAppService.connect(account.company_id, () => {}, () => {}).catch(err => {
-        console.error(`Failed to auto-reconnect for ${account.company_id}:`, err);
+    const snapshot = await db.collection('whatsapp_accounts').where('status', '==', 'connected').get();
+    for (const doc of snapshot.docs) {
+      const account = doc.data();
+      console.log(`Auto-reconnecting WhatsApp for company: ${account.companyId}`);
+      WhatsAppService.connect(account.companyId, () => {}, () => {}).catch(err => {
+        console.error(`Failed to auto-reconnect for ${account.companyId}:`, err);
       });
     }
   } catch (err) {

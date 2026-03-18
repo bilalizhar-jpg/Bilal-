@@ -1,24 +1,26 @@
 import express from 'express';
-import db from '../database/db';
+import { db } from '../database/firebaseAdmin';
 import { WelcomeMessageService } from '../services/welcomeMessageService';
 
 const router = express.Router();
 
 // Get welcome message settings for a company
-router.get('/:companyId', (req, res) => {
+router.get('/:companyId', async (req, res) => {
   try {
     const { companyId } = req.params;
-    const settings = db.prepare('SELECT * FROM employee_welcome_settings WHERE company_id = ?').get(companyId);
+    const snapshot = await db.collection('employee_welcome_settings')
+      .where('companyId', '==', companyId)
+      .get();
     
-    if (!settings) {
+    if (snapshot.empty) {
       return res.json({
-        company_id: companyId,
-        is_active: 0,
-        message_template: "Dear {{employee_name}},\n\nWelcome to our company! 🎉\nWe’re excited to have you join our winning team.\n\nYour login details are:\nUsername: {{username}}\nPassword: {{password}}\n\nPlease log in and update your password.\n\nLet’s achieve great things together!"
+        companyId,
+        isActive: false,
+        messageTemplate: "Dear {{employee_name}},\n\nWelcome to our company! 🎉\nWe’re excited to have you join our winning team.\n\nYour login details are:\nUsername: {{username}}\nPassword: {{password}}\n\nPlease log in and update your password.\n\nLet’s achieve great things together!"
       });
     }
     
-    res.json(settings);
+    res.json({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() });
   } catch (error) {
     console.error('Error fetching welcome settings:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -26,33 +28,39 @@ router.get('/:companyId', (req, res) => {
 });
 
 // Update welcome message settings
-router.post('/:companyId', (req, res) => {
+router.post('/:companyId', async (req, res) => {
   try {
     const { companyId } = req.params;
-    const { is_active, message_template } = req.body;
+    const { isActive, messageTemplate } = req.body;
 
     console.log(`[WelcomeMessage API] Updating settings for company: ${companyId}`);
-    console.log(`[WelcomeMessage API] Payload:`, { is_active, message_template });
+    console.log(`[WelcomeMessage API] Payload:`, { isActive, messageTemplate });
 
-    const existing = db.prepare('SELECT id FROM employee_welcome_settings WHERE company_id = ?').get(companyId);
+    const snapshot = await db.collection('employee_welcome_settings')
+      .where('companyId', '==', companyId)
+      .get();
 
-    let result;
-    if (existing) {
-      result = db.prepare(`
-        UPDATE employee_welcome_settings 
-        SET is_active = ?, message_template = ?, updated_at = CURRENT_TIMESTAMP 
-        WHERE company_id = ?
-      `).run(is_active ? 1 : 0, message_template, companyId);
-      console.log(`[WelcomeMessage API] Updated existing settings. Changes: ${result.changes}`);
+    if (!snapshot.empty) {
+      await snapshot.docs[0].ref.update({
+        isActive,
+        messageTemplate,
+        updatedAt: new Date().toISOString()
+      });
+      console.log(`[WelcomeMessage API] Updated existing settings.`);
     } else {
-      result = db.prepare(`
-        INSERT INTO employee_welcome_settings (company_id, is_active, message_template) 
-        VALUES (?, ?, ?)
-      `).run(companyId, is_active ? 1 : 0, message_template);
-      console.log(`[WelcomeMessage API] Inserted new settings. ID: ${result.lastInsertRowid}`);
+      await db.collection('employee_welcome_settings').add({
+        companyId,
+        isActive,
+        messageTemplate,
+        updatedAt: new Date().toISOString()
+      });
+      console.log(`[WelcomeMessage API] Inserted new settings.`);
     }
 
-    const updated = db.prepare('SELECT * FROM employee_welcome_settings WHERE company_id = ?').get(companyId);
+    const updatedSnapshot = await db.collection('employee_welcome_settings')
+      .where('companyId', '==', companyId)
+      .get();
+    const updated = { id: updatedSnapshot.docs[0].id, ...updatedSnapshot.docs[0].data() };
     console.log(`[WelcomeMessage API] Final state in DB:`, updated);
 
     res.json({ success: true, settings: updated });

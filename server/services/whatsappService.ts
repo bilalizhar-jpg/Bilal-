@@ -8,15 +8,16 @@ import makeWASocket, {
 } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
 import pino from 'pino';
-import db from '../database/db';
+import { db } from '../database/firebaseAdmin';
 import path from 'path';
 import fs from 'fs/promises';
 import QRCode from 'qrcode';
+import { FieldValue } from 'firebase-admin/firestore';
 
 const logger = pino({ level: 'silent' });
 const sessions = new Map<string, any>();
 const qrCodes = new Map<string, string>();
-const messageQueues = new Map<string, { toNumber: string; message: string; messageId: number | bigint }[]>();
+const messageQueues = new Map<string, { toNumber: string; message: string; messageId: string }[]>();
 const processingQueues = new Map<string, boolean>();
 
 export class WhatsAppService {
@@ -72,13 +73,24 @@ export class WhatsAppService {
         } else {
           sessions.delete(companyId);
           qrCodes.delete(companyId);
-          db.prepare('UPDATE whatsapp_accounts SET status = ? WHERE company_id = ?').run('disconnected', companyId);
+          
+          const snapshot = await db.collection('whatsapp_accounts').where('companyId', '==', companyId).get();
+          for (const doc of snapshot.docs) {
+            await doc.ref.update({ status: 'disconnected' });
+          }
+          
           await fs.rm(sessionPath, { recursive: true, force: true });
         }
       } else if (connection === 'open') {
         console.log(`WhatsApp connected for company: ${companyId}`);
         qrCodes.delete(companyId);
-        db.prepare('INSERT OR REPLACE INTO whatsapp_accounts (company_id, status) VALUES (?, ?)').run(companyId, 'connected');
+        
+        const snapshot = await db.collection('whatsapp_accounts').where('companyId', '==', companyId).get();
+        if (snapshot.empty) {
+          await db.collection('whatsapp_accounts').add({ companyId, status: 'connected', createdAt: new Date().toISOString() });
+        } else {
+          await snapshot.docs[0].ref.update({ status: 'connected' });
+        }
         onConnected();
       }
     });
@@ -93,7 +105,8 @@ export class WhatsAppService {
     if (socket?.user) return { status: 'connected' };
     if (qr) return { status: 'qr_ready', qr };
     
-    const row = db.prepare('SELECT status FROM whatsapp_accounts WHERE company_id = ?').get(companyId) as any;
+    const snapshot = await db.collection('whatsapp_accounts').where('companyId', '==', companyId).get();
+    const row = snapshot.empty ? null : snapshot.docs[0].data();
     return { status: row?.status || 'disconnected' };
   }
 
@@ -116,14 +129,22 @@ export class WhatsAppService {
       console.error('Session path removal error:', e);
     }
     
-    db.prepare('UPDATE whatsapp_accounts SET status = ? WHERE company_id = ?').run('disconnected', companyId);
+    const snapshot = await db.collection('whatsapp_accounts').where('companyId', '==', companyId).get();
+    for (const doc of snapshot.docs) {
+      await doc.ref.update({ status: 'disconnected' });
+    }
   }
 
   static async sendMessage(companyId: string, toNumber: string, message: string) {
     // Log message to DB first
-    const stmt = db.prepare('INSERT INTO whatsapp_messages (company_id, to_number, message, status) VALUES (?, ?, ?, ?)');
-    const info = stmt.run(companyId, toNumber, message, 'pending');
-    const messageId = info.lastInsertRowid;
+    const docRef = await db.collection('whatsapp_messages').add({
+      companyId,
+      toNumber,
+      message,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    });
+    const messageId = docRef.id;
 
     // Add to queue
     if (!messageQueues.has(companyId)) {
@@ -173,12 +194,16 @@ export class WhatsAppService {
         console.log(`[Queue] Sending to ${formattedNumber}...`);
         await socket.sendMessage(formattedNumber, { text: message });
         
-        db.prepare('UPDATE whatsapp_messages SET status = ?, response_log = ? WHERE id = ?')
-          .run('sent', 'Success', messageId);
+        await db.collection('whatsapp_messages').doc(messageId).update({
+          status: 'sent',
+          responseLog: 'Success'
+        });
       } catch (error: any) {
         console.error(`[Queue] Failed for ${toNumber}:`, error.message);
-        db.prepare('UPDATE whatsapp_messages SET status = ?, response_log = ? WHERE id = ?')
-          .run('failed', error.message, messageId);
+        await db.collection('whatsapp_messages').doc(messageId).update({
+          status: 'failed',
+          responseLog: error.message
+        });
       }
     }
 

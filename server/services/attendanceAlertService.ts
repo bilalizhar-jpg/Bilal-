@@ -1,13 +1,7 @@
 import cron from 'node-cron';
-import db from '../database/db';
+import { db } from '../database/firebaseAdmin';
 import { WhatsAppService } from './whatsappService';
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
-import firebaseConfig from '../../firebase-applet-config.json';
-
-// Initialize Firebase for backend use
-const app = initializeApp(firebaseConfig);
-const firestore = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+import { FieldValue } from 'firebase-admin/firestore';
 
 export class AttendanceAlertService {
   static init() {
@@ -27,37 +21,34 @@ export class AttendanceAlertService {
     }); // e.g. "09:16 AM"
 
     // Get all active settings
-    const activeSettings = db.prepare('SELECT * FROM attendance_alert_settings WHERE is_active = 1').all() as any[];
+    const snapshot = await db.collection('attendance_alert_settings').where('isActive', '==', true).get();
+    const activeSettings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
 
     for (const setting of activeSettings) {
-      if (setting.trigger_time === currentTime) {
-        console.log(`[AttendanceAlert] Trigger time reached for company: ${setting.company_id}`);
+      if (setting.triggerTime === currentTime) {
+        console.log(`[AttendanceAlert] Trigger time reached for company: ${setting.companyId}`);
         await this.processCompanyAlerts(setting);
       }
     }
   }
 
   private static async processCompanyAlerts(setting: any) {
-    const { company_id, grace_time, message_template } = setting;
+    const { companyId, graceTime, messageTemplate } = setting;
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
     try {
       // 1. Get all active employees for this company
-      const employeesQuery = query(
-        collection(firestore, 'employees'),
-        where('companyId', '==', company_id),
-        where('status', '==', 'Active')
-      );
-      const employeesSnapshot = await getDocs(employeesQuery);
+      const employeesSnapshot = await db.collection('employees')
+        .where('companyId', '==', companyId)
+        .where('status', '==', 'Active')
+        .get();
       const employees = employeesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
 
       // 2. Get today's attendance for this company
-      const attendanceQuery = query(
-        collection(firestore, 'attendance'),
-        where('companyId', '==', company_id),
-        where('date', '==', today)
-      );
-      const attendanceSnapshot = await getDocs(attendanceQuery);
+      const attendanceSnapshot = await db.collection('attendance')
+        .where('companyId', '==', companyId)
+        .where('date', '==', today)
+        .get();
       const attendanceRecords = attendanceSnapshot.docs.map(doc => doc.data() as any);
 
       // 3. Identify employees who haven't checked in
@@ -66,47 +57,46 @@ export class AttendanceAlertService {
         if (!record) return true; // No record at all
         if (record.currentState === 'not_checked_in') return true;
         
-        // If they checked in after grace time, they are late but maybe they already got a message or we don't care if they are already here?
-        // The requirement says: "IF an employee has NOT marked attendance before grace_time THEN automatically send a WhatsApp message at trigger_time"
-        // If they marked it at 09:10 and grace is 09:15, they are fine.
-        // If they marked it at 09:20 and grace is 09:15, they are late, but they ARE checked in now.
-        // Usually, if they are already checked in by trigger_time (09:16), we don't send the alert.
         if (record.loginTime) {
           const loginMins = this.parseTimeToMinutes(record.loginTime);
-          const graceMins = this.parseTimeToMinutes(grace_time);
+          const graceMins = this.parseTimeToMinutes(graceTime);
           if (loginMins <= graceMins) return false; // Checked in on time
         }
         
-        return false; // They are checked in, even if late, maybe don't send? 
-        // Re-reading: "IF an employee has NOT marked attendance before grace_time"
-        // If it's 09:16 (trigger) and they marked it at 09:10, don't send.
-        // If it's 09:16 and they haven't marked it, send.
+        return false;
       });
 
       for (const emp of lateEmployees) {
         // Check if already sent today
-        const alreadySent = db.prepare('SELECT id FROM attendance_alert_logs WHERE employee_id = ? AND date = ?')
-          .get(emp.id, today);
+        const alreadySentSnapshot = await db.collection('attendance_alert_logs')
+          .where('employeeId', '==', emp.id)
+          .where('date', '==', today)
+          .get();
 
-        if (alreadySent) continue;
+        if (!alreadySentSnapshot.empty) continue;
 
         // Format message
-        const message = message_template.replace('{{employee_name}}', emp.name);
+        const message = messageTemplate.replace('{{employee_name}}', emp.name);
         
         // Format phone
         const phone = this.formatPhoneNumber(emp.mobile);
 
         if (phone) {
           console.log(`[AttendanceAlert] Sending alert to ${emp.name} (${phone})`);
-          await WhatsAppService.sendMessage(company_id, phone, message);
+          await WhatsAppService.sendMessage(companyId, phone, message);
           
           // Log it
-          db.prepare('INSERT INTO attendance_alert_logs (company_id, employee_id, date, status) VALUES (?, ?, ?, ?)')
-            .run(company_id, emp.id, today, 'sent');
+          await db.collection('attendance_alert_logs').add({
+            companyId,
+            employeeId: emp.id,
+            date: today,
+            status: 'sent',
+            createdAt: new Date().toISOString()
+          });
         }
       }
     } catch (error) {
-      console.error(`[AttendanceAlert] Error processing company ${company_id}:`, error);
+      console.error(`[AttendanceAlert] Error processing company ${companyId}:`, error);
     }
   }
 
