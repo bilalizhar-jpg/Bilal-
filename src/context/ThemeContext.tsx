@@ -1,34 +1,32 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState} from 'react';
 
 type Theme = 'light' | 'dark';
 
 export interface ColorPalette {
-  id: string;
-  name: string;
-  primary: string;
+ id: string;
+ name: string;
+ primary: string;
 }
 
 export const palettes: ColorPalette[] = [
-  { id: 'indigo', name: 'Indigo', primary: '#4f46e5' },
-  { id: 'emerald', name: 'Emerald', primary: '#059669' },
-  { id: 'rose', name: 'Rose', primary: '#e11d48' },
-  { id: 'amber', name: 'Amber', primary: '#d97706' },
-  { id: 'sky', name: 'Sky', primary: '#0284c7' },
-  { id: 'violet', name: 'Violet', primary: '#7c3aed' },
-  { id: 'fuchsia', name: 'Fuchsia', primary: '#c026d3' },
-  { id: 'teal', name: 'Teal', primary: '#0d9488' },
-  { id: 'cyan', name: 'Cyan', primary: '#0891b2' },
-  { id: 'orange', name: 'Orange', primary: '#ea580c' },
-  { id: 'pink', name: 'Pink', primary: '#db2777' },
-  { id: 'lime', name: 'Lime', primary: '#65a30d' },
-  { id: 'slate', name: 'Slate', primary: '#475569' },
+ { id: 'indigo', name: 'Indigo', primary: '#4f46e5'},
+ { id: 'emerald', name: 'Emerald', primary: '#059669'},
+ { id: 'rose', name: 'Rose', primary: '#e11d48'},
+ { id: 'amber', name: 'Amber', primary: '#d97706'},
+ { id: 'sky', name: 'Sky', primary: '#0284c7'},
+ { id: 'violet', name: 'Violet', primary: '#7c3aed'},
+ { id: 'fuchsia', name: 'Fuchsia', primary: '#c026d3'},
+ { id: 'teal', name: 'Teal', primary: '#0d9488'},
+ { id: 'cyan', name: 'Cyan', primary: '#0891b2'},
+ { id: 'orange', name: 'Orange', primary: '#ea580c'},
+ { id: 'pink', name: 'Pink', primary: '#db2777'},
+ { id: 'lime', name: 'Lime', primary: '#65a30d'},
+ { id: 'slate', name: 'Slate', primary: '#475569'},
 ];
 
 export type PortalDesign = 'cosmic' | 'aurora' | 'cyber';
 
 interface ThemeContextType {
-  theme: Theme;
-  toggleTheme: () => void;
   colorPalette: string;
   setColorPalette: (id: string) => void;
   palettes: ColorPalette[];
@@ -38,12 +36,7 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('theme');
-    return (saved as Theme) || 'light';
-  });
-
+export function ThemeProvider({ children}: { children: React.ReactNode}) {
   const [colorPalette, setColorPaletteState] = useState<string>(() => {
     const saved = localStorage.getItem('colorPalette');
     return saved || 'indigo';
@@ -56,13 +49,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const root = window.document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+    root.classList.remove('dark');
+  }, []);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -76,10 +64,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('portalDesign', portalDesign);
   }, [portalDesign]);
 
-  const toggleTheme = () => {
-    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
-  };
-
   const setColorPalette = (id: string) => {
     setColorPaletteState(id);
   };
@@ -89,16 +73,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, colorPalette, setColorPalette, palettes, portalDesign, setPortalDesign }}>
+    <ThemeContext.Provider value={{ colorPalette, setColorPalette, palettes, portalDesign, setPortalDesign}}>
       {children}
     </ThemeContext.Provider>
   );
 }
 
 export function useTheme() {
-  const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
+ const context = useContext(ThemeContext);
+ if (context === undefined) {
+ throw new Error('useTheme must be used within a ThemeProvider');
+}
+ return context;
 }
