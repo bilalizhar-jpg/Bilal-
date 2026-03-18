@@ -13,8 +13,10 @@ import { AttendanceAlertService } from './server/services/attendanceAlertService
 import { IdleAlertService } from './server/services/idleAlertService';
 
 async function startServer() {
+  console.log('[Server] Starting server...');
   const app = express();
   const PORT = 3000;
+  console.log('[Server] Port:', PORT);
 
   app.use(cors());
   app.use(express.json());

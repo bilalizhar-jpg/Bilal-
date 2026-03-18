@@ -88,7 +88,15 @@ export const updateApplicationStage = async (id: string, stage: Application['sta
 };
 
 export const uploadCV = async (companyId: string, jobId: string, file: File): Promise<string> => {
-  const fileRef = ref(storage, `companies/${companyId}/jobs/${jobId}/applications/${Date.now()}_${file.name}`);
-  await uploadBytes(fileRef, file, { contentType: file.type });
-  return getDownloadURL(fileRef);
+  console.log(`[Storage] Uploading ${file.name} to companies/${companyId}/jobs/${jobId}/applications/`);
+  try {
+    const fileRef = ref(storage, `companies/${companyId}/jobs/${jobId}/applications/${Date.now()}_${file.name}`);
+    console.log(`[Storage] File reference created: ${fileRef.fullPath}`);
+    await uploadBytes(fileRef, file, { contentType: file.type });
+    console.log(`[Storage] Upload successful`);
+    return getDownloadURL(fileRef);
+  } catch (error) {
+    console.error(`[Storage] Upload failed:`, error);
+    throw error;
+  }
 };

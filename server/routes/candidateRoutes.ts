@@ -3,6 +3,10 @@ import multer from 'multer';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const pdfParse = require('pdf-parse');
+const pdf = typeof pdfParse === 'function' ? pdfParse : (pdfParse.default || pdfParse);
+console.log('[Debug] pdfParse type:', typeof pdfParse);
+console.log('[Debug] pdf type:', typeof pdf);
+console.log('[Debug] pdfParse keys:', Object.keys(pdfParse));
 import mammoth from 'mammoth';
 import { GoogleGenAI, Type } from '@google/genai';
 import db from '../database/db';
@@ -33,7 +37,7 @@ router.post('/upload', upload.single('cv_file'), async (req, res) => {
     // Extract text based on file type
     let cvText = '';
     if (file.mimetype === 'application/pdf') {
-      const pdfData = await pdfParse(file.buffer);
+      const pdfData = await pdf(file.buffer);
       cvText = pdfData.text;
     } else if (file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
       const docxData = await mammoth.extractRawText({ buffer: file.buffer });
@@ -80,8 +84,10 @@ router.post('/upload', upload.single('cv_file'), async (req, res) => {
     });
 
     const parsedData = JSON.parse(response.text || '{}');
+    console.log('[Debug] Parsed Data:', parsedData);
 
     // 3. Save to Database
+    console.log('[Debug] Saving to database...');
     const stmt = db.prepare(`
       INSERT INTO candidates (
         company_id, name, email, phone, cv_file_url, source, 
@@ -105,6 +111,7 @@ router.post('/upload', upload.single('cv_file'), async (req, res) => {
       parsedData.category || '',
       parsedData.keywords || ''
     );
+    console.log('[Debug] Save result:', result);
 
     res.status(201).json({ 
       message: 'CV parsed and saved successfully', 

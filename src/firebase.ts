@@ -10,6 +10,7 @@ export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 
 export const auth = getAuth(app);
 export const storage = getStorage(app, 'gs://' + firebaseConfig.storageBucket);
+console.log("[Firebase] Storage initialized with bucket:", firebaseConfig.storageBucket);
 
 // Validate Connection to Firestore
 async function testConnection() {
