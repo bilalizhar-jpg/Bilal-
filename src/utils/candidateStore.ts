@@ -1,119 +1,97 @@
-import { 
- collection, 
- addDoc, 
- updateDoc, 
- doc, 
- getDocs, 
- query, 
- where,
- onSnapshot
-} from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL} from 'firebase/storage';
-import { db, storage} from '../firebase';
+import { api } from '../services/api';
 
 export interface Candidate {
- id: string;
- companyId: string;
- jobId?: string;
- jobTitle?: string;
- candidateName: string;
- email: string;
- phone?: string;
- cvFileName?: string;
- cvUrl?: string;
- cvText?: string;
- stage: 'New Candidates' | 'Interested' | 'Shortlisted' | 'Client Submission' | 'Client Interview' | 'Offered' | 'Hired' | 'Dropped';
- appliedAt: string;
- matchPercentage?: number;
- skills?: string[];
- education?: string;
- university?: string;
- country?: string;
- currentJobTitle?: string;
- expectedSalary?: string;
- location?: string;
- industry?: string;
- gender?: string;
- category?: string;
- customQuestionAnswer?: string;
- customQuestionAnswers?: { question: string; answer: string}[];
- mcqAnswers?: { 
- questionId: string; 
- question: string; 
- selectedOptionId: string; 
- selectedOptionText: string; 
- isCorrect: boolean 
-}[];
+  id: string;
+  companyId: string;
+  jobId?: string;
+  jobTitle?: string;
+  candidateName: string;
+  email: string;
+  phone?: string;
+  cvFileName?: string;
+  cvUrl?: string;
+  cvText?: string;
+  stage: 'New Candidates' | 'Interested' | 'Shortlisted' | 'Client Submission' | 'Client Interview' | 'Offered' | 'Hired' | 'Dropped';
+  appliedAt: string;
+  matchPercentage?: number;
+  skills?: string[];
+  education?: string;
+  university?: string;
+  country?: string;
+  currentJobTitle?: string;
+  expectedSalary?: string;
+  location?: string;
+  industry?: string;
+  gender?: string;
+  category?: string;
+  customQuestionAnswer?: string;
+  customQuestionAnswers?: { question: string; answer: string }[];
+  mcqAnswers?: {
+    questionId: string;
+    question: string;
+    selectedOptionId: string;
+    selectedOptionText: string;
+    isCorrect: boolean;
+  }[];
 }
 
 const COLLECTION_NAME = 'candidates';
 
-// Placeholder for CV parsing system
 export const parseCV = async (cvText: string): Promise<Partial<Candidate>> => {
- // In a real system, this would call an AI/OCR service to extract fields.
- // For now, we simulate extraction.
- const skills = ['React', 'TypeScript', 'Firebase', 'Node.js'].filter(skill => 
- cvText.toLowerCase().includes(skill.toLowerCase())
- );
- 
- return {
- skills,
- // Add more extraction logic here
-};
+  const skills = ['React', 'TypeScript', 'Node.js', 'MongoDB'].filter((skill) =>
+    cvText.toLowerCase().includes(skill.toLowerCase())
+  );
+  return { skills };
 };
 
 export const getCandidates = async (companyId?: string): Promise<Candidate[]> => {
- const candidatesRef = collection(db, COLLECTION_NAME);
- const q = companyId ? query(candidatesRef, where('companyId', '==', companyId)) : candidatesRef;
- const querySnapshot = await getDocs(q);
- return querySnapshot.docs.map(doc => ({
- ...doc.data(),
- id: doc.id
-} as Candidate));
+  const params = companyId ? { companyId } : {};
+  const data = await api.get<Candidate[]>(COLLECTION_NAME, params);
+  return Array.isArray(data) ? data : [];
 };
 
 export const subscribeToCandidates = (callback: (candidates: Candidate[]) => void, companyId?: string) => {
- const candidatesRef = collection(db, COLLECTION_NAME);
- const q = companyId ? query(candidatesRef, where('companyId', '==', companyId)) : candidatesRef;
- 
- return onSnapshot(q, (snapshot) => {
- const candidates = snapshot.docs.map(doc => ({
- ...doc.data(),
- id: doc.id
-} as Candidate));
- callback(candidates);
-});
+  const fetch = () => getCandidates(companyId).then(callback);
+  fetch();
+  const interval = setInterval(fetch, 10000);
+  return () => clearInterval(interval);
 };
 
 export const saveCandidate = async (candidate: Omit<Candidate, 'id' | 'stage' | 'appliedAt'>) => {
- const parsedData = candidate.cvText ? await parseCV(candidate.cvText) : {};
- 
- const newCandidate = {
- ...candidate,
- ...parsedData,
- stage: 'New Candidates' as const,
- appliedAt: new Date().toISOString(),
- matchPercentage: candidate.matchPercentage || Math.floor(Math.random() * 60) + 40,
-};
- const docRef = await addDoc(collection(db, COLLECTION_NAME), newCandidate);
- return { ...newCandidate, id: docRef.id};
+  const parsedData = candidate.cvText ? await parseCV(candidate.cvText) : {};
+  const id = Math.random().toString(36).substr(2, 9);
+  const newCandidate = {
+    ...candidate,
+    ...parsedData,
+    id,
+    stage: 'New Candidates' as const,
+    appliedAt: new Date().toISOString(),
+    matchPercentage: candidate.matchPercentage ?? Math.floor(Math.random() * 60) + 40,
+  };
+  await api.post(COLLECTION_NAME, newCandidate);
+  return { ...newCandidate, id };
 };
 
 export const updateCandidateStage = async (id: string, stage: Candidate['stage']) => {
- const docRef = doc(db, COLLECTION_NAME, id);
- await updateDoc(docRef, { stage});
+  await api.put(COLLECTION_NAME, id, { stage });
+};
+
+const API_URL = '/api';
+const getHeaders = () => {
+  const token = localStorage.getItem('auth_token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
 export const uploadCV = async (companyId: string, file: File): Promise<string> => {
- console.log(`[Storage] Uploading ${file.name} to companies/${companyId}/candidates/`);
- try {
- const fileRef = ref(storage,`companies/${companyId}/candidates/${Date.now()}_${file.name}`);
- console.log(`[Storage] File reference created: ${fileRef.fullPath}`);
- await uploadBytes(fileRef, file, { contentType: file.type});
- console.log(`[Storage] Upload successful`);
- return getDownloadURL(fileRef);
-} catch (error) {
- console.error(`[Storage] Upload failed:`, error);
- throw error;
-}
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch(`${API_URL}/upload`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: formData,
+  });
+  if (!res.ok) throw new Error('Upload failed');
+  const data = await res.json();
+  const path = data.url || `/uploads/${data.filename}`;
+  return path.startsWith('http') ? path : `${window.location.origin}${path.startsWith('/') ? '' : '/'}${path}`;
 };

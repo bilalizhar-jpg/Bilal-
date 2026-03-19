@@ -51,7 +51,7 @@ export const useCompanyData = () => {
 };
 
 export const CompanyDataProvider = ({ children}: { children: ReactNode}) => {
-  const { user, isFirebaseReady } = useAuth();
+  const { user, isAuthReady } = useAuth();
   const [awards, setAwards] = useState<DataEntity[]>([]);
   const [departments, setDepartments] = useState<DataEntity[]>([]);
   const [designations, setDesignations] = useState<DataEntity[]>([]);
@@ -126,7 +126,7 @@ export const CompanyDataProvider = ({ children}: { children: ReactNode}) => {
   }, [user?.companyId, user?.currentCompanyId, user?.role]);
 
   useEffect(() => {
-    if (!isFirebaseReady || !user?.companyId) {
+    if (!isAuthReady || !user?.companyId) {
       setLoading(false);
       return;
     }
@@ -136,7 +136,7 @@ export const CompanyDataProvider = ({ children}: { children: ReactNode}) => {
     // Optional: Poll for updates every 60 seconds
     const interval = setInterval(fetchAllData, 60000);
     return () => clearInterval(interval);
-  }, [fetchAllData, isFirebaseReady]);
+  }, [fetchAllData, isAuthReady]);
 
   const addEntity = async (collectionName: string, data: any) => {
   const activeCompanyId = user?.currentCompanyId || user?.companyId;

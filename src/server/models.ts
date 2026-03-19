@@ -100,6 +100,7 @@ export interface IAuditLog extends Document {
 }
 
 const AuditLogSchema: Schema = new Schema({
+  id: { type: String, required: true },
   companyId: { type: String, required: true },
   userId: { type: String, required: true },
   userName: { type: String, required: true },

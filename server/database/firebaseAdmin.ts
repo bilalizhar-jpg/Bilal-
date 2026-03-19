@@ -1,42 +1,100 @@
-import admin from 'firebase-admin';
-import { getFirestore } from 'firebase-admin/firestore';
-import fs from 'fs';
-import path from 'path';
+/**
+ * Mongoose-based replacement for Firebase Admin.
+ * Uses the same MongoDB as the main app (GenericEntity collection).
+ */
+import mongoose from 'mongoose';
+import { GenericEntity } from '../../src/server/models.js';
 
-// Load the Firebase configuration to get the project ID and database ID
-const firebaseConfigPath = path.join(process.cwd(), 'firebase-applet-config.json');
-const firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/hrms';
+let connected = false;
 
-let app;
-try {
-  if (admin.apps.length === 0) {
-    // Try initializing with config first
-    console.log('[FirebaseAdmin] Initializing with config...');
-    app = admin.initializeApp({
-      projectId: firebaseConfig.projectId
-    });
-  } else {
-    app = admin.app();
-  }
-} catch (e) {
-  console.error('[FirebaseAdmin] Failed to initialize with config, trying default initialization:', e);
-  if (admin.apps.length === 0) {
-    try {
-      app = admin.initializeApp();
-    } catch (innerError) {
-      console.error('[FirebaseAdmin] Critical: Failed all initialization attempts:', innerError);
-      throw innerError;
-    }
-  } else {
-    app = admin.app();
+async function ensureConnected() {
+  if (!connected) {
+    await mongoose.connect(MONGODB_URI);
+    connected = true;
   }
 }
 
-export const db = (() => {
-  try {
-    return getFirestore(app, firebaseConfig.firestoreDatabaseId);
-  } catch (e) {
-    console.warn('[FirebaseAdmin] Failed to initialize with specific databaseId, falling back to default:', e);
-    return getFirestore(app);
-  }
-})();
+function normalizeDoc(collectionName: string, data: any) {
+  const id = data.id || new mongoose.Types.ObjectId().toString();
+  const companyId = data.companyId ?? 'default_company';
+  const name = data.name ?? data.candidateName ?? data.title ?? 'Untitled';
+  return { ...data, id, companyId, name, collectionName };
+}
+
+export const db = {
+  collection(name: string) {
+    return {
+      doc(id?: string) {
+        const docId = id || new mongoose.Types.ObjectId().toString();
+        const ref: {
+          id: string;
+          set: (data: any) => Promise<{ id: string }>;
+          update: (data: any) => Promise<void>;
+        } = {
+          id: docId,
+          async set(data: any) {
+            await ensureConnected();
+            const payload = normalizeDoc(name, { ...data, id: docId });
+            await GenericEntity.findOneAndUpdate(
+              { id: docId, collectionName: name },
+              payload,
+              { upsert: true, new: true }
+            ).exec();
+            ref.id = docId;
+            return { id: docId };
+          },
+          async update(data: any) {
+            await ensureConnected();
+            await GenericEntity.findOneAndUpdate(
+              { id: docId, collectionName: name },
+              { $set: data },
+              { new: true }
+            ).exec();
+          },
+        };
+        return ref;
+      },
+      async add(data: any) {
+        await ensureConnected();
+        const id = new mongoose.Types.ObjectId().toString();
+        const payload = normalizeDoc(name, { ...data, id });
+        await GenericEntity.create(payload);
+        return { id };
+      },
+      where(field: string, _op: string, value: any) {
+        const filters: Record<string, any> = { [field]: value };
+        const chain = {
+          where(f2: string, _op2: string, value2: any) {
+            filters[f2] = value2;
+            return chain;
+          },
+          async get() {
+            await ensureConnected();
+            const filter: any = { collectionName: name, ...filters };
+            const docs = await GenericEntity.find(filter).lean().exec();
+            return {
+              docs: docs.map((d: any) => ({
+                id: d.id,
+                data: () => d,
+                ref: {
+                  id: d.id,
+                  update: async (data: any) => {
+                    await GenericEntity.findOneAndUpdate(
+                      { id: d.id, collectionName: name },
+                      { $set: data },
+                      { new: true }
+                    ).exec();
+                  },
+                },
+              })),
+              size: docs.length,
+              empty: docs.length === 0,
+            };
+          },
+        };
+        return chain;
+      },
+    };
+  },
+};

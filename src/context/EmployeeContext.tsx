@@ -73,32 +73,28 @@ export const EmployeeProvider = ({ children}: { children: ReactNode}) => {
   const [loading, setLoading] = useState(true);
 
   const fetchEmployees = async () => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
     try {
       const params: any = {};
-      if (user.role !== 'superadmin') {
+      if (user?.role === 'superadmin') {
+        // no filter – all employees
+      } else if (user?.companyId || user?.currentCompanyId) {
         params.companyId = user.currentCompanyId || user.companyId;
       }
-      const data = await api.get<Employee[]>('/api/employees', params);
-      setAllEmployees(data);
+      const data = await api.get<Employee[]>('employees', params);
+      setAllEmployees(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching employees:", error);
+      setAllEmployees([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
+    // Fetch employees when no user too (so login page can validate employee credentials)
     fetchEmployees();
-    
+    if (!user) return;
+
     const interval = setInterval(fetchEmployees, 30000);
     return () => clearInterval(interval);
   }, [user?.id, user?.companyId, user?.currentCompanyId]);

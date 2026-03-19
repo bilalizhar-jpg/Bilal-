@@ -3,12 +3,17 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import jwt from 'jsonwebtoken';
+import multer from 'multer';
+import { OAuth2Client } from 'google-auth-library';
 import { User, Employee, AuditLog, TimeTracking, GenericEntity } from './src/server/models.js';
 
 dotenv.config();
+
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,8 +23,18 @@ const PORT = Number(process.env.PORT) || 3000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/hrms';
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 
+const uploadsDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, uploadsDir),
+  filename: (_req, file, cb) => cb(null, `${Date.now()}_${(file.originalname || 'file').replace(/[^a-zA-Z0-9.-]/g, '_')}`),
+});
+const upload = multer({ storage });
+
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+app.use('/uploads', express.static(uploadsDir));
 
 // MongoDB Connection
 mongoose.connect(MONGODB_URI)
@@ -32,8 +47,6 @@ const authenticateToken = (req: any, res: any, next: any) => {
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-    // If no token, we might still allow some routes or check for Firebase token
-    // For now, let's just pass through if we're in development or if we want to allow initial setup
     return next();
   }
 
@@ -43,6 +56,55 @@ const authenticateToken = (req: any, res: any, next: any) => {
     next();
   });
 };
+
+// File upload (e.g. CV, screenshots)
+app.post('/api/upload', authenticateToken, upload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
+  const url = `/uploads/${req.file.filename}`;
+  res.json({ url, filename: req.file.filename });
+});
+
+// Google Sign-In: verify id_token and return JWT + user
+app.post('/api/auth/google', express.json(), async (req, res) => {
+  const { idToken } = req.body || {};
+  if (!idToken || !GOOGLE_CLIENT_ID) {
+    return res.status(400).json({ message: 'Missing idToken or GOOGLE_CLIENT_ID not configured' });
+  }
+  try {
+    const client = new OAuth2Client(GOOGLE_CLIENT_ID);
+    const ticket = await client.verifyIdToken({ idToken, audience: GOOGLE_CLIENT_ID });
+    const payload = ticket.getPayload();
+    if (!payload || !payload.sub) {
+      return res.status(401).json({ message: 'Invalid token payload' });
+    }
+    const uid = payload.sub;
+    const email = payload.email || '';
+    const name = payload.name || payload.email || 'User';
+    const picture = payload.picture;
+    const role = email === 'bilal.izhar@algorepublic.com' ? 'superadmin' : 'admin';
+    const userData = {
+      id: uid,
+      name,
+      email,
+      role,
+      avatar: picture,
+      lastLogin: new Date().toISOString(),
+    };
+    const updated = await User.findOneAndUpdate(
+      { id: uid },
+      userData,
+      { new: true, upsert: true }
+    ).exec();
+    const token = jwt.sign({ uid: updated.id, email: updated.email }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({
+      token,
+      ...updated.toObject(),
+    });
+  } catch (err) {
+    console.error('Google auth error:', err);
+    res.status(401).json({ message: 'Invalid or expired Google token' });
+  }
+});
 
 // Generic CRUD Routes
 const getModel = (collectionName: string) => {
@@ -100,7 +162,7 @@ app.post('/api/:collection', authenticateToken, async (req: any, res) => {
     
     let responseData: any = newData.toObject();
     if (collection === 'users') {
-      const token = jwt.sign({ uid: body.uid, email: body.email }, JWT_SECRET, { expiresIn: '7d' });
+      const token = jwt.sign({ uid: (body.id ?? body.uid), email: body.email }, JWT_SECRET, { expiresIn: '7d' });
       responseData.token = token;
     }
     
@@ -118,7 +180,7 @@ app.put('/api/:collection/:id', authenticateToken, async (req: any, res) => {
     let responseData: any = updatedData.toObject();
     
     if (collection === 'users') {
-      const token = jwt.sign({ uid: updatedData.uid, email: updatedData.email }, JWT_SECRET, { expiresIn: '7d' });
+      const token = jwt.sign({ uid: updatedData.id || updatedData.uid, email: updatedData.email }, JWT_SECRET, { expiresIn: '7d' });
       responseData.token = token;
     }
     

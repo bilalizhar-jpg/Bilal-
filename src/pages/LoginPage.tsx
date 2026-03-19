@@ -1,10 +1,11 @@
-import React, { useState, FormEvent, useEffect} from 'react';
-import { useNavigate, Link, useLocation} from 'react-router-dom';
-import { motion} from 'motion/react';
-import { Building2, Lock, User} from 'lucide-react';
-import { useAuth} from '../context/AuthContext';
-import { useEmployees} from '../context/EmployeeContext';
-import { useSuperAdmin} from '../context/SuperAdminContext';
+import React, { useState, FormEvent, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { motion } from 'motion/react';
+import { Building2, Lock, User } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
+import { useAuth } from '../context/AuthContext';
+import { useEmployees } from '../context/EmployeeContext';
+import { useSuperAdmin } from '../context/SuperAdminContext';
 
 export default function LoginPage() {
  const navigate = useNavigate();
@@ -40,17 +41,18 @@ export default function LoginPage() {
  setError('');
 };
 
- const handleGoogleLogin = async () => {
- setIsLoading(true);
- setError('');
- try {
- await signInWithGoogle();
-} catch (err: any) {
- setError(err.message || 'Failed to sign in with Google');
-} finally {
- setIsLoading(false);
-}
-};
+ const handleGoogleSuccess = async (credential: string) => {
+   setIsLoading(true);
+   setError('');
+   try {
+     await signInWithGoogle(credential);
+     // Navigation is handled by useEffect when isAuthenticated/user changes
+   } catch (err: any) {
+     setError(err.message || 'Failed to sign in with Google');
+   } finally {
+     setIsLoading(false);
+   }
+ };
 
  const handleSubmit = async (e: FormEvent) => {
  e.preventDefault();
@@ -271,17 +273,16 @@ export default function LoginPage() {
  </div>
  </div>
 
- <div className="mt-8">
- <motion.button
- whileHover={{ scale: 1.02}}
- whileTap={{ scale: 0.98}}
- onClick={handleGoogleLogin}
- disabled={isLoading}
- className="w-full flex justify-center items-center gap-4 py-4 px-4 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all disabled:opacity-50"
- >
- <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"alt="Google"className="w-5 h-5"/>
- Super Admin Override
- </motion.button>
+ <div className="mt-8 flex justify-center">
+ <GoogleLogin
+   onSuccess={(res) => res.credential && handleGoogleSuccess(res.credential)}
+   onError={() => setError('Google sign-in was cancelled or failed')}
+   useOneTap={false}
+   theme="filled_black"
+   size="large"
+   text="continue_with"
+   shape="rectangular"
+ />
  </div>
  </div>
  </div>

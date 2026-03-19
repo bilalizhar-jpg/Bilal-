@@ -125,8 +125,6 @@ import { AnimatePresence, motion} from 'motion/react';
 import { AuthProvider, useAuth} from './context/AuthContext';
 import { ThemeProvider} from './context/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import { db} from './firebase';
-import { doc, getDocFromServer} from 'firebase/firestore';
 import { EmployeeProvider} from './context/EmployeeContext';
 import { AttendanceProvider} from './context/AttendanceContext';
 import { TimeTrackingProvider} from './context/TimeTrackingContext';
@@ -149,25 +147,12 @@ import { BankProvider} from './context/BankContext';
 import { AuditProvider} from './context/AuditContext';
 import AuditLogs from './pages/settings/AuditLogs';
 
-async function testConnection() {
- try {
- await getDocFromServer(doc(db, 'test', 'connection'));
- console.log("Firestore connection successful");
-} catch (error) {
- if (error instanceof Error && error.message.includes('the client is offline')) {
- console.error("Please check your Firebase configuration. The client is offline.");
-}
-}
-}
-
-testConnection();
-
 function AppContent() {
  const location = useLocation();
- const { isFirebaseReady} = useAuth();
+ const { isAuthReady } = useAuth();
  const isAuthPage = location.pathname !== '/' && location.pathname !== '/careers';
 
- if (!isFirebaseReady) {
+ if (!isAuthReady) {
  return (
  <div className="min-h-screen flex flex-col items-center justify-center bg-[#f5f7fb] relative overflow-hidden">
  {/* Atmospheric Background */}

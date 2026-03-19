@@ -1,8 +1,6 @@
 import cron from 'node-cron';
 import { db } from '../database/firebaseAdmin';
 import { WhatsAppService } from './whatsappService';
-import { FieldValue } from 'firebase-admin/firestore';
-
 export class AttendanceAlertService {
   static init() {
     console.log('[AttendanceAlert] Initializing cron job...');

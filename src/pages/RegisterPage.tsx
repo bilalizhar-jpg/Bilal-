@@ -2,9 +2,8 @@ import { useState, ChangeEvent, FormEvent} from 'react';
 import { useNavigate, Link} from 'react-router-dom';
 import { motion} from 'motion/react';
 import { Building2, Upload, ArrowLeft, CheckCircle2} from 'lucide-react';
-import { db} from '../firebase';
-import { doc, setDoc} from 'firebase/firestore';
-import { Company, Invoice} from '../context/SuperAdminContext';
+import { api } from '../services/api';
+import { Company, Invoice } from '../context/SuperAdminContext';
 
 export default function RegisterPage() {
  const navigate = useNavigate();
@@ -66,28 +65,27 @@ export default function RegisterPage() {
  isActive: true,
 };
 
- await setDoc(doc(db, 'companies', companyId), newCompany);
- 
- // Auto-generate invoice (optional for pending companies, but keeping it for consistency)
+ await api.post('companies', newCompany);
+
  const plan = 'Basic';
  const rate = 100;
  const invoiceId = Date.now().toString() + '_inv';
  const newInvoice: Invoice = {
- id: invoiceId,
- companyId: companyId,
- invoiceNumber: 'INV-' + Math.floor(100000 + Math.random() * 900000),
- date: new Date().toISOString().split('T')[0],
- dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
- items: [
- { id: '1', description:`Subscription Fee - ${plan}`, quantity: 1, rate: rate, amount: rate}
- ],
- total: rate,
- status: 'unpaid',
- template: 'basic',
- notes: 'Thank you for your business!',
- terms: 'Payment due within 30 days.'
-};
- await setDoc(doc(db, 'invoices', invoiceId), newInvoice);
+   id: invoiceId,
+   companyId: companyId,
+   invoiceNumber: 'INV-' + Math.floor(100000 + Math.random() * 900000),
+   date: new Date().toISOString().split('T')[0],
+   dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+   items: [
+     { id: '1', description: `Subscription Fee - ${plan}`, quantity: 1, rate: rate, amount: rate },
+   ],
+   total: rate,
+   status: 'unpaid',
+   template: 'basic',
+   notes: 'Thank you for your business!',
+   terms: 'Payment due within 30 days.',
+ };
+ await api.post('invoices', newInvoice);
  
  setIsLoading(false);
  alert("Registration submitted successfully! Your account is pending approval by Super Admin.");

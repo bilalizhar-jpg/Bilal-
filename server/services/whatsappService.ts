@@ -12,8 +12,6 @@ import { db } from '../database/firebaseAdmin';
 import path from 'path';
 import fs from 'fs/promises';
 import QRCode from 'qrcode';
-import { FieldValue } from 'firebase-admin/firestore';
-
 const logger = pino({ level: 'silent' });
 const sessions = new Map<string, any>();
 const qrCodes = new Map<string, string>();

@@ -1,96 +1,79 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect} from 'react';
-import { 
- collection, 
- onSnapshot, 
- doc, 
- setDoc, 
- deleteDoc,
- query
-} from 'firebase/firestore';
-import { db} from '../firebase';
-import { handleFirestoreError, OperationType} from '../utils/firestoreErrorHandler';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { api } from '../services/api';
+import { useAuth } from './AuthContext';
 
 export interface CompanyPolicy {
- id: string;
- location: string;
- title: string;
- description: string;
- methodType: 'upload' | 'create';
- content?: string; // For created text or base64 uploaded file
- fileName?: string;
- dateAdded: string;
+  id: string;
+  location: string;
+  title: string;
+  description: string;
+  methodType: 'upload' | 'create';
+  content?: string;
+  fileName?: string;
+  dateAdded: string;
+  companyId?: string;
 }
 
 interface PolicyContextType {
- policies: CompanyPolicy[];
- addPolicy: (policy: Omit<CompanyPolicy, 'id' | 'dateAdded'>) => void;
- deletePolicy: (id: string) => void;
+  policies: CompanyPolicy[];
+  addPolicy: (policy: Omit<CompanyPolicy, 'id' | 'dateAdded'>) => void;
+  deletePolicy: (id: string) => void;
 }
 
 const PolicyContext = createContext<PolicyContextType | undefined>(undefined);
 
 export const usePolicies = () => {
- const context = useContext(PolicyContext);
- if (!context) {
- throw new Error('usePolicies must be used within a PolicyProvider');
-}
- return context;
+  const context = useContext(PolicyContext);
+  if (!context) {
+    throw new Error('usePolicies must be used within a PolicyProvider');
+  }
+  return context;
 };
-
-import { useAuth} from './AuthContext';
-
-// ... imports
 
 export const PolicyProvider = ({ children }: { children: ReactNode }) => {
-  const { user, isFirebaseReady } = useAuth();
+  const { user, isAuthReady } = useAuth();
   const [policies, setPolicies] = useState<CompanyPolicy[]>([]);
-  const [loading, setLoading] = useState(true);
+  const activeCompanyId = user?.currentCompanyId || user?.companyId;
 
   useEffect(() => {
-    if (!isFirebaseReady || !user) {
+    if (!isAuthReady || !user || !activeCompanyId) {
       setPolicies([]);
-      setLoading(false);
       return;
     }
+    api
+      .get<CompanyPolicy[]>('policies', { companyId: activeCompanyId })
+      .then((data) => setPolicies(Array.isArray(data) ? data : []))
+      .catch(() => setPolicies([]));
+  }, [user?.id, isAuthReady, activeCompanyId]);
 
- const q = query(collection(db, 'policies'));
- const unsubscribe = onSnapshot(q, (snapshot) => {
- const policiesData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id} as CompanyPolicy));
- setPolicies(policiesData);
- setLoading(false);
-}, (error) => {
- handleFirestoreError(error, OperationType.LIST, 'policies');
-});
+  const addPolicy = async (policy: Omit<CompanyPolicy, 'id' | 'dateAdded'>) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    const newPolicy: CompanyPolicy = {
+      ...policy,
+      id,
+      dateAdded: new Date().toISOString().split('T')[0],
+      companyId: activeCompanyId,
+    };
+    try {
+      await api.post('policies', newPolicy);
+      setPolicies((prev) => [...prev, newPolicy]);
+    } catch (error) {
+      console.error('Error adding policy:', error);
+    }
+  };
 
-  return () => unsubscribe();
-}, [user?.id, isFirebaseReady]);
+  const deletePolicy = async (id: string) => {
+    try {
+      await api.delete('policies', id);
+      setPolicies((prev) => prev.filter((p) => p.id !== id));
+    } catch (error) {
+      console.error('Error deleting policy:', error);
+    }
+  };
 
- const addPolicy = async (policy: Omit<CompanyPolicy, 'id' | 'dateAdded'>) => {
- const id = Math.random().toString(36).substr(2, 9);
- const newPolicy: CompanyPolicy = {
- ...policy,
- id,
- dateAdded: new Date().toISOString().split('T')[0]
-};
- 
- try {
- await setDoc(doc(db, 'policies', id), newPolicy);
-} catch (error) {
- console.error("Error adding policy:", error);
-}
-};
-
- const deletePolicy = async (id: string) => {
- try {
- await deleteDoc(doc(db, 'policies', id));
-} catch (error) {
- console.error("Error deleting policy:", error);
-}
-};
-
- return (
- <PolicyContext.Provider value={{ policies, addPolicy, deletePolicy}}>
- {children}
- </PolicyContext.Provider>
- );
+  return (
+    <PolicyContext.Provider value={{ policies, addPolicy, deletePolicy }}>
+      {children}
+    </PolicyContext.Provider>
+  );
 };

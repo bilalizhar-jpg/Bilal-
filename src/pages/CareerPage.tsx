@@ -4,8 +4,7 @@ import { Search, MapPin, ChevronDown, X, Upload, ChevronRight, Home, ArrowLeft, 
 import { AnimatePresence, motion} from 'motion/react';
 import { saveApplication} from '../utils/applicationStore';
 import { getJobs, subscribeToJobs, Job as StoreJob, CustomQuestion} from '../utils/jobStore';
-import { doc, onSnapshot as onDocSnapshot} from 'firebase/firestore';
-import { db} from '../firebase';
+import { api } from '../services/api';
 
 interface Job {
  id: string;
@@ -74,29 +73,15 @@ export default function CareerPage() {
 }, [companyId]);
 
  useEffect(() => {
- if (!companyId) {
- setCompany({ name: 'Info Resume Edge'});
- return;
-}
-
- const unsubscribe = onDocSnapshot(doc(db, 'companies', companyId), (docSnap) => {
- if (docSnap.exists()) {
- const data = docSnap.data();
- setCompany({ 
- name: data.name, 
- logo: data.logo, 
- website: data.website,
- email: data.email,
- aboutUs: data.aboutUs,
- addresses: data.addresses
-});
-} else {
- setCompany({ name: 'Info Resume Edge'});
-}
-});
-
- return () => unsubscribe();
-}, [companyId]);
+   if (!companyId) {
+     setCompany({ name: 'Info Resume Edge' });
+     return;
+   }
+   api
+     .getById<{ name: string; logo?: string; website?: string; email?: string; aboutUs?: string; addresses?: { id: string; label: string; address: string }[] }>('companies', companyId)
+     .then((data) => setCompany({ name: data.name, logo: data.logo, website: data.website, email: data.email, aboutUs: data.aboutUs, addresses: data.addresses }))
+     .catch(() => setCompany({ name: 'Info Resume Edge' }));
+ }, [companyId]);
 
  const handleApply = (job: Job) => {
  navigate(`/careers/${companyId || 'default'}/apply/${job.id}`);

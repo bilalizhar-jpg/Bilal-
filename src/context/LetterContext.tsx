@@ -1,178 +1,141 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect} from 'react';
-import { 
- collection, 
- onSnapshot, 
- doc, 
- setDoc, 
- updateDoc,
- deleteDoc,
- query,
- where
-} from 'firebase/firestore';
-import { db} from '../firebase';
-import { handleFirestoreError, OperationType} from '../utils/firestoreErrorHandler';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { api } from '../services/api';
+import { useAuth } from './AuthContext';
 
 export interface Letter {
- id: string;
- category: string;
- type: string;
- userId?: string;
- customName?: string;
- customEmail?: string;
- title: string;
- date: string;
- description: string;
- status: 'Saved' | 'Sent';
- address?: string;
- mobile?: string;
- subject?: string;
- // Clearance fields
- itClearance?: boolean;
- hrClearance?: boolean;
- financeClearance?: boolean;
- adminClearance?: boolean;
- // Exit interview fields
- reasonForLeaving?: string;
- feedbackOnManagement?: string;
- workEnvironmentReview?: string;
+  id: string;
+  category: string;
+  type: string;
+  userId?: string;
+  customName?: string;
+  customEmail?: string;
+  title: string;
+  date: string;
+  description: string;
+  status: 'Saved' | 'Sent';
+  address?: string;
+  mobile?: string;
+  subject?: string;
+  itClearance?: boolean;
+  hrClearance?: boolean;
+  financeClearance?: boolean;
+  adminClearance?: boolean;
+  reasonForLeaving?: string;
+  feedbackOnManagement?: string;
+  workEnvironmentReview?: string;
+  companyId?: string;
 }
 
 export interface LetterTemplate {
- id: string;
- name: string;
- content: string;
+  id: string;
+  name: string;
+  content: string;
+  companyId?: string;
 }
 
 interface LetterContextType {
- letters: Letter[];
- templates: LetterTemplate[];
- addLetter: (letter: Omit<Letter, 'id'>) => void;
- updateLetter: (id: string, letter: Partial<Letter>) => void;
- updateLetterStatus: (id: string, status: 'Saved' | 'Sent') => void;
- deleteLetter: (id: string) => void;
- addTemplate: (template: Omit<LetterTemplate, 'id'>) => void;
- deleteTemplate: (id: string) => void;
+  letters: Letter[];
+  templates: LetterTemplate[];
+  addLetter: (letter: Omit<Letter, 'id'>) => void;
+  updateLetter: (id: string, letter: Partial<Letter>) => void;
+  updateLetterStatus: (id: string, status: 'Saved' | 'Sent') => void;
+  deleteLetter: (id: string) => void;
+  addTemplate: (template: Omit<LetterTemplate, 'id'>) => void;
+  deleteTemplate: (id: string) => void;
 }
 
 const LetterContext = createContext<LetterContextType | undefined>(undefined);
 
 export const useLetters = () => {
- const context = useContext(LetterContext);
- if (!context) {
- throw new Error('useLetters must be used within a LetterProvider');
-}
- return context;
+  const context = useContext(LetterContext);
+  if (!context) {
+    throw new Error('useLetters must be used within a LetterProvider');
+  }
+  return context;
 };
 
-import { useAuth} from './AuthContext'; // Import useAuth
-
-// ... imports
-
-export const LetterProvider = ({ children}: { children: ReactNode}) => {
-  const { user, isFirebaseReady } = useAuth(); // Get user
+export const LetterProvider = ({ children }: { children: ReactNode }) => {
+  const { user, isAuthReady } = useAuth();
   const [letters, setLetters] = useState<Letter[]>([]);
   const [templates, setTemplates] = useState<LetterTemplate[]>([]);
-  const [loading, setLoading] = useState(true);
+  const companyId = user?.currentCompanyId || user?.companyId;
 
   useEffect(() => {
-    if (!isFirebaseReady || !user) {
+    if (!isAuthReady || !user || !companyId) {
       setLetters([]);
       setTemplates([]);
-      setLoading(false);
       return;
     }
-
-    const companyId = user.companyId;
-
-    const qLetters = query(collection(db, 'letters'), where('companyId', '==', companyId));
-    const unsubscribeLetters = onSnapshot(qLetters, (snapshot) => {
-      const lettersData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Letter));
-      setLetters(lettersData);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'letters');
+    Promise.all([
+      api.get<Letter[]>('letters', { companyId }).catch(() => []),
+      api.get<LetterTemplate[]>('letterTemplates', { companyId }).catch(() => []),
+    ]).then(([lettersData, templatesData]) => {
+      setLetters(Array.isArray(lettersData) ? lettersData : []);
+      setTemplates(Array.isArray(templatesData) ? templatesData : []);
     });
+  }, [user?.id, companyId, isAuthReady]);
 
-    const qTemplates = query(collection(db, 'letterTemplates'), where('companyId', '==', companyId));
-    const unsubscribeTemplates = onSnapshot(qTemplates, (snapshot) => {
-      const templatesData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as LetterTemplate));
-      setTemplates(templatesData);
-      setLoading(false);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'letterTemplates');
-    });
+  const addLetter = async (letter: Omit<Letter, 'id'>) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    const newLetter: Letter = { ...letter, id, companyId };
+    try {
+      await api.post('letters', JSON.parse(JSON.stringify(newLetter)));
+      setLetters((prev) => [...prev, newLetter]);
+    } catch (error) {
+      console.error('Error adding letter:', error);
+    }
+  };
 
-    return () => {
-      unsubscribeLetters();
-      unsubscribeTemplates();
-    };
-  }, [user?.id, user?.companyId, isFirebaseReady]); // Depend on user and readiness
+  const updateLetter = async (id: string, letter: Partial<Letter>) => {
+    try {
+      await api.put('letters', id, JSON.parse(JSON.stringify(letter)));
+      setLetters((prev) => prev.map((l) => (l.id === id ? { ...l, ...letter } : l)));
+    } catch (error) {
+      console.error('Error updating letter:', error);
+    }
+  };
 
- const addLetter = async (letter: Omit<Letter, 'id'>) => {
- const id = Math.random().toString(36).substr(2, 9);
- const newLetter: Letter = {
- ...letter,
- id,
-};
- try {
- // Use JSON stringify/parse to deeply remove all undefined values
- const cleanLetter = JSON.parse(JSON.stringify(newLetter));
- await setDoc(doc(db, 'letters', id), cleanLetter);
-} catch (error) {
- console.error("Error adding letter:", error);
-}
-};
+  const updateLetterStatus = async (id: string, status: 'Saved' | 'Sent') => {
+    try {
+      await api.put('letters', id, { status });
+      setLetters((prev) => prev.map((l) => (l.id === id ? { ...l, status } : l)));
+    } catch (error) {
+      console.error('Error updating letter status:', error);
+    }
+  };
 
- const updateLetter = async (id: string, letter: Partial<Letter>) => {
- try {
- const cleanLetter = JSON.parse(JSON.stringify(letter));
- await updateDoc(doc(db, 'letters', id), cleanLetter);
-} catch (error) {
- console.error("Error updating letter:", error);
-}
-};
+  const deleteLetter = async (id: string) => {
+    try {
+      await api.delete('letters', id);
+      setLetters((prev) => prev.filter((l) => l.id !== id));
+    } catch (error) {
+      console.error('Error deleting letter:', error);
+    }
+  };
 
- const updateLetterStatus = async (id: string, status: 'Saved' | 'Sent') => {
- try {
- await updateDoc(doc(db, 'letters', id), { status});
-} catch (error) {
- console.error("Error updating letter status:", error);
-}
-};
+  const addTemplate = async (template: Omit<LetterTemplate, 'id'>) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    const newTemplate: LetterTemplate = { ...template, id, companyId };
+    try {
+      await api.post('letterTemplates', JSON.parse(JSON.stringify(newTemplate)));
+      setTemplates((prev) => [...prev, newTemplate]);
+    } catch (error) {
+      console.error('Error adding template:', error);
+    }
+  };
 
- const deleteLetter = async (id: string) => {
- try {
- await deleteDoc(doc(db, 'letters', id));
-} catch (error) {
- console.error("Error deleting letter:", error);
-}
-};
+  const deleteTemplate = async (id: string) => {
+    try {
+      await api.delete('letterTemplates', id);
+      setTemplates((prev) => prev.filter((t) => t.id !== id));
+    } catch (error) {
+      console.error('Error deleting template:', error);
+    }
+  };
 
- const addTemplate = async (template: Omit<LetterTemplate, 'id'>) => {
- const id = Math.random().toString(36).substr(2, 9);
- const newTemplate: LetterTemplate = {
- ...template,
- id,
-};
- try {
- // Use JSON stringify/parse to deeply remove all undefined values
- const cleanTemplate = JSON.parse(JSON.stringify(newTemplate));
- await setDoc(doc(db, 'letterTemplates', id), cleanTemplate);
-} catch (error) {
- console.error("Error adding template:", error);
-}
-};
-
- const deleteTemplate = async (id: string) => {
- try {
- await deleteDoc(doc(db, 'letterTemplates', id));
-} catch (error) {
- console.error("Error deleting template:", error);
-}
-};
-
- return (
- <LetterContext.Provider value={{ letters, templates, addLetter, updateLetter, updateLetterStatus, deleteLetter, addTemplate, deleteTemplate}}>
- {children}
- </LetterContext.Provider>
- );
+  return (
+    <LetterContext.Provider value={{ letters, templates, addLetter, updateLetter, updateLetterStatus, deleteLetter, addTemplate, deleteTemplate }}>
+      {children}
+    </LetterContext.Provider>
+  );
 };

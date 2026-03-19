@@ -31,8 +31,7 @@ import { useAuth} from '../context/AuthContext';
 import { useWhatsApp} from '../hooks/useWhatsApp';
 import { motion, AnimatePresence} from 'motion/react';
 import * as XLSX from 'xlsx';
-import { collection, query, where, onSnapshot, getDocs, doc, setDoc} from 'firebase/firestore';
-import { db} from '../firebase';
+import { api } from '../services/api';
 
 // Helper to format seconds to HH:MM:SS
 const formatSeconds = (seconds: number) => {
@@ -93,21 +92,19 @@ export default function TimeTracker() {
  useEffect(() => {
  if (!user?.companyId) return;
 
- const q = query(
- collection(db, 'timeTracking'), 
- where('date', '==', dashboardDate),
- where('companyId', '==', user.companyId)
- );
-
- const unsubscribe = onSnapshot(q, (snapshot) => {
- const data: Record<string, TrackingData> = {};
- snapshot.docs.forEach(doc => {
- data[doc.id] = doc.data() as TrackingData;
-});
- setDashboardTrackingData(data);
-});
-
- return () => unsubscribe();
+ const fetchData = () => {
+   api.get<any[]>('timeTracking', { companyId: user.companyId, date: dashboardDate }).then((list) => {
+     const data: Record<string, TrackingData> = {};
+     (Array.isArray(list) ? list : []).forEach((item: any) => {
+       const id = item.id || `${item.employeeId}_${item.date}`;
+       data[id] = item as TrackingData;
+     });
+     setDashboardTrackingData(data);
+   }).catch(() => setDashboardTrackingData({}));
+ };
+ fetchData();
+ const interval = setInterval(fetchData, 10000);
+ return () => clearInterval(interval);
 }, [user?.companyId, dashboardDate]);
 
  // Settings State
@@ -122,31 +119,30 @@ export default function TimeTracker() {
  // Tracked Employees State
  const [employees, setEmployees] = useState<TrackedEmployee[]>([]);
 
- // Load Settings from Firestore
+ // Load Settings from API
  useEffect(() => {
- if (!user?.companyId) return;
- const unsub = onSnapshot(doc(db, 'settings',`${user.companyId}_timeTracking`), (docSnap) => {
- if (docSnap.exists()) {
- const data = docSnap.data();
- setIdleThresholdMinutes(data.idleThresholdMinutes || 5);
- setEmailIdleThresholdMinutes(data.emailIdleThresholdMinutes || 5);
- setAutoWhatsAppAlerts(data.autoWhatsAppAlerts || false);
- setAutoEmailAlerts(data.autoEmailAlerts || false);
- setHeadEmail(data.headEmail || '');
-}
-});
- return () => unsub();
-}, [user?.companyId]);
+   if (!user?.companyId) return;
+   const settingsId = `${user.companyId}_timeTracking`;
+   api.getById<any>('settings', settingsId).then((data) => {
+     if (data) {
+       setIdleThresholdMinutes(data.idleThresholdMinutes ?? 5);
+       setEmailIdleThresholdMinutes(data.emailIdleThresholdMinutes ?? 5);
+       setAutoWhatsAppAlerts(data.autoWhatsAppAlerts ?? false);
+       setAutoEmailAlerts(data.autoEmailAlerts ?? false);
+       setHeadEmail(data.headEmail ?? '');
+     }
+   }).catch(() => {});
+ }, [user?.companyId]);
 
- // Save Settings to Firestore
  const saveSettings = async (updates: any) => {
- if (!user?.companyId) return;
- try {
- await setDoc(doc(db, 'settings',`${user.companyId}_timeTracking`), updates, { merge: true});
-} catch (error) {
- console.error('Error saving time tracking settings:', error);
-}
-};
+   if (!user?.companyId) return;
+   try {
+     const settingsId = `${user.companyId}_timeTracking`;
+     await api.put('settings', settingsId, updates);
+   } catch (error) {
+     console.error('Error saving time tracking settings:', error);
+   }
+ };
 
  // Sync with context employees and tracking data
  useEffect(() => {
@@ -216,20 +212,17 @@ export default function TimeTracker() {
  if (!user?.companyId || !reportFilter.startDate || !reportFilter.endDate) return;
 
  const fetchReportTracking = async () => {
- const q = query(
- collection(db, 'timeTracking'),
- where('companyId', '==', user.companyId),
- where('date', '>=', reportFilter.startDate),
- where('date', '<=', reportFilter.endDate)
- );
- 
- const snapshot = await getDocs(q);
- const data: Record<string, TrackingData> = {};
- snapshot.docs.forEach(doc => {
- data[doc.id] = doc.data() as TrackingData;
-});
- setReportTrackingData(data);
-};
+   const list = await api.get<any[]>('timeTracking', { companyId: user.companyId });
+   const filtered = (Array.isArray(list) ? list : []).filter(
+     (item: any) => item.date >= reportFilter.startDate && item.date <= reportFilter.endDate
+   );
+   const data: Record<string, TrackingData> = {};
+   filtered.forEach((item: any) => {
+     const id = item.id || `${item.employeeId}_${item.date}`;
+     data[id] = item as TrackingData;
+   });
+   setReportTrackingData(data);
+ };
 
  fetchReportTracking();
 }, [user?.companyId, reportFilter.startDate, reportFilter.endDate]);

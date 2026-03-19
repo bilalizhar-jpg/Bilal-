@@ -4,8 +4,7 @@ import { MapPin, ChevronDown, Upload, Home, ArrowLeft, Mail, ChevronRight, FileT
 import { motion, AnimatePresence} from 'motion/react';
 import { saveApplication, uploadCV} from '../utils/applicationStore';
 import { subscribeToJobs, Job} from '../utils/jobStore';
-import { doc, onSnapshot as onDocSnapshot} from 'firebase/firestore';
-import { db} from '../firebase';
+import { api } from '../services/api';
 import { evaluateCVMatch} from '../utils/cvMatcher';
 
 export default function ApplyPage() {
@@ -47,25 +46,12 @@ export default function ApplyPage() {
 }, [companyId, jobId]);
 
  useEffect(() => {
- if (!companyId) return;
-
- const unsubscribe = onDocSnapshot(doc(db, 'companies', companyId), (docSnap) => {
- if (docSnap.exists()) {
- const data = docSnap.data();
- setCompany({ 
- name: data.name, 
- logo: data.logo,
- website: data.website,
- email: data.email,
- aboutUs: data.aboutUs
-});
-} else {
- setCompany({ name: 'Info Resume Edge'});
-}
-});
-
- return () => unsubscribe();
-}, [companyId]);
+   if (!companyId) return;
+   api
+     .getById<{ name: string; logo?: string; website?: string; email?: string; aboutUs?: string }>('companies', companyId)
+     .then((data) => setCompany({ name: data.name, logo: data.logo, website: data.website, email: data.email, aboutUs: data.aboutUs }))
+     .catch(() => setCompany({ name: 'Info Resume Edge' }));
+ }, [companyId]);
 
  const handleSubmit = async (e: React.FormEvent) => {
  e.preventDefault();
