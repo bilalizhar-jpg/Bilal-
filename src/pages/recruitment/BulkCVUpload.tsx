@@ -54,7 +54,7 @@ export default function BulkCVUpload() {
  if (!selectedJob) throw new Error('Job not found');
 
  for (const file of files) {
- // 1. Upload CV to Firebase Storage (or your preferred storage) to get a URL
+ // 1. Upload CV to storage to get a URL
  let cvUrl = '';
  try {
  cvUrl = await uploadCV(user?.companyId || 'default', file);
@@ -90,8 +90,7 @@ export default function BulkCVUpload() {
  const result = await response.json();
  const parsedData = result.parsedData;
 
- // 3. (Optional) Still save to Firebase for legacy compatibility if needed
- // We will save to Firebase as well so the existing UI (JobCandidates) still works
+ // 3. Save candidate so the UI (JobCandidates) shows them
  await saveCandidate({
  companyId: user?.companyId || 'default',
  jobId: selectedJobId,

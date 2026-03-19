@@ -54,7 +54,7 @@ export default function SearchCandidate() {
  if (!uploadFile) return;
  setIsUploading(true);
  try {
- // 1. Upload CV to Firebase Storage
+ // 1. Upload CV to storage
  let cvUrl = '';
  try {
  // We need to import uploadCV from candidateStore, it's already imported at the top
@@ -129,7 +129,7 @@ export default function SearchCandidate() {
 
  fetchInitialCandidates();
  
- // Also keep the Firebase subscription for legacy candidates if needed
+ // Refresh candidates list via subscription
  const unsubscribe = subscribeToCandidates((apps) => {
  // We can merge them or just rely on the API. For now, let's just keep the API ones.
  // setAllCandidates(prev => [...prev, ...apps]);

@@ -10,6 +10,11 @@ import jwt from 'jsonwebtoken';
 import multer from 'multer';
 import { OAuth2Client } from 'google-auth-library';
 import { User, Employee, AuditLog, TimeTracking, GenericEntity } from './src/server/models.js';
+import candidateRoutes from './server/routes/candidateRoutes';
+import welcomeMessageRoutes from './server/routes/welcomeMessageRoutes';
+import attendanceAlertRoutes from './server/routes/attendanceAlertRoutes';
+import idleAlertRoutes from './server/routes/idleAlertRoutes';
+import whatsappRoutes from './server/routes/whatsappRoutes';
 
 dotenv.config();
 
@@ -57,12 +62,20 @@ const authenticateToken = (req: any, res: any, next: any) => {
   });
 };
 
-// File upload (e.g. CV, screenshots)
+// File upload (e.g. CV, screenshots) – token optional so public Apply page can upload
 app.post('/api/upload', authenticateToken, upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
   const url = `/uploads/${req.file.filename}`;
   res.json({ url, filename: req.file.filename });
 });
+
+// Candidate CV upload + AI parse (PDF/DOCX → candidates collection)
+app.use('/api/candidates', candidateRoutes);
+// Alerts & messaging (use Mongoose via firebaseAdmin adapter)
+app.use('/api/welcome-messages', welcomeMessageRoutes);
+app.use('/api/attendance-alerts', attendanceAlertRoutes);
+app.use('/api/idle-alerts', idleAlertRoutes);
+app.use('/api/whatsapp', whatsappRoutes);
 
 // Google Sign-In: verify id_token and return JWT + user
 app.post('/api/auth/google', express.json(), async (req, res) => {
