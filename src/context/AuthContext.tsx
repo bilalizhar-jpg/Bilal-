@@ -1,9 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect} from 'react';
 import { auth} from '../firebase';
 import { onAuthStateChanged, signInAnonymously, signOut, GoogleAuthProvider, signInWithPopup} from 'firebase/auth';
-import { doc, setDoc, getDoc} from 'firebase/firestore';
-import { db} from '../firebase';
-import { Employee} from './EmployeeContext';
+import { api} from '../services/api';
 import { logAuditAction} from '../services/auditService';
 
 interface User {
@@ -80,10 +78,14 @@ export const AuthProvider = ({ children}: { children: ReactNode}) => {
  }
  userData.id = firebaseUser.uid;
  
- await setDoc(doc(db, 'users', userData.id), {
- ...userData,
- lastLogin: new Date().toISOString()
- }, { merge: true });
+    // Save/Update user in MongoDB
+    const response = await api.put<any>('users', userData.id, {
+      ...userData,
+      lastLogin: new Date().toISOString()
+    });
+    if (response && response.token) {
+      localStorage.setItem('auth_token', response.token);
+    }
  } catch (error) {
  console.error("Error signing in anonymously:", error);
  }
@@ -110,8 +112,9 @@ export const AuthProvider = ({ children}: { children: ReactNode}) => {
  description:`User ${user.name} logged out`
 });
 }
- setUser(null);
- await signOut(auth);
+  localStorage.removeItem('auth_token');
+  setUser(null);
+  await signOut(auth);
 };
 
  const signInWithGoogle = async () => {
@@ -143,13 +146,16 @@ export const AuthProvider = ({ children}: { children: ReactNode}) => {
     }
 
     try {
-      // Create/Update user document in Firestore
-      await setDoc(doc(db, 'users', firebaseUser.uid), {
+      // Create/Update user in MongoDB
+      const response = await api.put<any>('users', firebaseUser.uid, {
         ...userData,
         lastLogin: new Date().toISOString()
-      }, { merge: true });
+      });
+      if (response && response.token) {
+        localStorage.setItem('auth_token', response.token);
+      }
     } catch (error) {
-      console.error("Error saving user to Firestore:", error);
+      console.error("Error saving user to MongoDB:", error);
     }
 
     await login(userData);

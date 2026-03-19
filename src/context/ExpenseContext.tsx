@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useState, useEffect} from 'react';
-import { collection, query, where, onSnapshot, doc, setDoc, updateDoc, deleteDoc} from 'firebase/firestore';
-import { db} from '../firebase';
 import { useAuth} from './AuthContext';
 import { logAuditAction} from '../services/auditService';
+import { api } from '../services/api';
 
 export interface Expense {
  id: string;
@@ -36,39 +35,34 @@ export function ExpenseProvider({ children}: { children: React.ReactNode}) {
  const [expenses, setExpenses] = useState<Expense[]>([]);
  const [loading, setLoading] = useState(true);
  const [error, setError] = useState<string | null>(null);
-  const { user, isFirebaseReady } = useAuth();
+  const { user } = useAuth();
   const activeCompanyId = user?.currentCompanyId || user?.companyId;
 
-  useEffect(() => {
-    if (!isFirebaseReady || !activeCompanyId) {
+  const fetchExpenses = async () => {
+    if (!activeCompanyId) {
       setExpenses([]);
       setLoading(false);
       return;
     }
 
- const q = query(
- collection(db, 'expenses'),
- where('companyId', '==', activeCompanyId)
- );
+    try {
+      const data = await api.get<Expense[]>(`/api/expenses?companyId=${activeCompanyId}`);
+      data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setExpenses(data);
+      setError(null);
+    } catch (err: any) {
+      console.error('Error fetching expenses:', err);
+      setError(err.message || 'Failed to fetch expenses');
+    } finally {
+      setLoading(false);
+    }
+  };
 
- const unsubscribe = onSnapshot(q, (snapshot) => {
- const expensesData = snapshot.docs.map(doc => ({
- ...doc.data(),
- id: doc.id
-})) as Expense[];
- 
- expensesData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
- 
- setExpenses(expensesData);
- setLoading(false);
-}, (err) => {
- console.error('Error fetching expenses:', err);
- setError(err.message);
- setLoading(false);
-});
-
-  return () => unsubscribe();
-}, [activeCompanyId, isFirebaseReady]);
+  useEffect(() => {
+    fetchExpenses();
+    const interval = setInterval(fetchExpenses, 30000);
+    return () => clearInterval(interval);
+  }, [activeCompanyId]);
 
  const addExpense = async (data: Omit<Expense, 'id' | 'companyId' | 'createdAt' | 'updatedAt'>) => {
  if (!activeCompanyId) throw new Error('No company ID found');
@@ -84,7 +78,8 @@ export function ExpenseProvider({ children}: { children: React.ReactNode}) {
  updatedAt: now,
 };
 
- await setDoc(doc(db, 'expenses', id), newExpense);
+ await api.post('/api/expenses', newExpense);
+ await fetchExpenses();
 
  logAuditAction({
  companyId: activeCompanyId,
@@ -107,7 +102,8 @@ export function ExpenseProvider({ children}: { children: React.ReactNode}) {
  updatedAt: new Date().toISOString(),
 };
 
- await updateDoc(doc(db, 'expenses', id), updateData);
+ await api.put(`/api/expenses/${id}`, updateData);
+ await fetchExpenses();
 
  logAuditAction({
  companyId: activeCompanyId,
@@ -123,7 +119,8 @@ export function ExpenseProvider({ children}: { children: React.ReactNode}) {
  const deleteExpense = async (id: string) => {
  if (!activeCompanyId) throw new Error('No company ID found');
  
- await deleteDoc(doc(db, 'expenses', id));
+ await api.delete(`/api/expenses/${id}`);
+ await fetchExpenses();
 
  logAuditAction({
  companyId: activeCompanyId,

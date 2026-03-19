@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect} from 'react';
-import { collection, query, where, onSnapshot, doc, setDoc, updateDoc, deleteDoc} from 'firebase/firestore';
-import { db} from '../firebase';
 import { useAuth} from './AuthContext';
+import { api } from '../services/api';
 
 export interface Vendor {
  id: string;
@@ -32,39 +31,34 @@ export function VendorProvider({ children}: { children: React.ReactNode}) {
  const [vendors, setVendors] = useState<Vendor[]>([]);
  const [loading, setLoading] = useState(true);
  const [error, setError] = useState<string | null>(null);
-  const { user, isFirebaseReady } = useAuth();
+  const { user } = useAuth();
   const activeCompanyId = user?.currentCompanyId || user?.companyId;
 
-  useEffect(() => {
-    if (!isFirebaseReady || !activeCompanyId) {
+  const fetchVendors = async () => {
+    if (!activeCompanyId) {
       setVendors([]);
       setLoading(false);
       return;
     }
 
- const q = query(
- collection(db, 'vendors'),
- where('companyId', '==', activeCompanyId)
- );
+    try {
+      const data = await api.get<Vendor[]>(`/api/vendors?companyId=${activeCompanyId}`);
+      data.sort((a, b) => a.name.localeCompare(b.name));
+      setVendors(data);
+      setError(null);
+    } catch (err: any) {
+      console.error('Error fetching vendors:', err);
+      setError(err.message || 'Failed to fetch vendors');
+    } finally {
+      setLoading(false);
+    }
+  };
 
- const unsubscribe = onSnapshot(q, (snapshot) => {
- const vendorsData = snapshot.docs.map(doc => ({
- ...doc.data(),
- id: doc.id
-})) as Vendor[];
- 
- vendorsData.sort((a, b) => a.name.localeCompare(b.name));
- 
- setVendors(vendorsData);
- setLoading(false);
-}, (err) => {
- console.error('Error fetching vendors:', err);
- setError(err.message);
- setLoading(false);
-});
-
-  return () => unsubscribe();
-}, [activeCompanyId, isFirebaseReady]);
+  useEffect(() => {
+    fetchVendors();
+    const interval = setInterval(fetchVendors, 30000);
+    return () => clearInterval(interval);
+  }, [activeCompanyId]);
 
  const addVendor = async (data: Omit<Vendor, 'id' | 'companyId' | 'createdAt' | 'updatedAt'>) => {
  if (!activeCompanyId) throw new Error('No company ID found');
@@ -80,7 +74,8 @@ export function VendorProvider({ children}: { children: React.ReactNode}) {
  updatedAt: now,
 };
 
- await setDoc(doc(db, 'vendors', id), newVendor);
+ await api.post('/api/vendors', newVendor);
+ await fetchVendors();
  return id;
 };
 
@@ -92,13 +87,15 @@ export function VendorProvider({ children}: { children: React.ReactNode}) {
  updatedAt: new Date().toISOString(),
 };
 
- await updateDoc(doc(db, 'vendors', id), updateData);
+ await api.put(`/api/vendors/${id}`, updateData);
+ await fetchVendors();
 };
 
  const deleteVendor = async (id: string) => {
  if (!activeCompanyId) throw new Error('No company ID found');
  
- await deleteDoc(doc(db, 'vendors', id));
+ await api.delete(`/api/vendors/${id}`);
+ await fetchVendors();
 };
 
  return (

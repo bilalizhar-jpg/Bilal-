@@ -1,17 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode} from 'react';
-import { 
- collection, 
- onSnapshot, 
- doc, 
- setDoc, 
- updateDoc, 
- deleteDoc, 
- query,
- where
-} from 'firebase/firestore';
-import { db} from '../firebase';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback} from 'react';
 import { useAuth} from './AuthContext';
-import { handleFirestoreError, OperationType} from '../utils/firestoreErrorHandler';
+import { api} from '../services/api';
 
 interface DataEntity {
  id: string;
@@ -89,132 +78,141 @@ export const CompanyDataProvider = ({ children}: { children: ReactNode}) => {
   const [tickets, setTickets] = useState<DataEntity[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchAllData = useCallback(async () => {
+    if (!user?.companyId) return;
+
+    const collections = [
+      { name: 'awards', setter: setAwards},
+      { name: 'departments', setter: setDepartments},
+      { name: 'designations', setter: setDesignations},
+      { name: 'subDepartments', setter: setSubDepartments},
+      { name: 'notices', setter: setNotices},
+      { name: 'projects', setter: setProjects},
+      { name: 'assets', setter: setAssets},
+      { name: 'tasks', setter: setTasks},
+      { name: 'sales', setter: setSales},
+      { name: 'milestones', setter: setMilestones},
+      { name: 'loans', setter: setLoans},
+      { name: 'payrolls', setter: setPayrolls},
+      { name: 'payrollBatches', setter: setPayrollBatches},
+      { name: 'salaryRecords', setter: setSalaryRecords},
+      { name: 'orgChartTemplates', setter: setOrgChartTemplates},
+      { name: 'procurementRequests', setter: setProcurementRequests},
+      { name: 'procurementSettings', setter: setProcurementSettings},
+      { name: 'crm_companies', setter: setCompanies},
+      { name: 'products', setter: setProducts},
+      { name: 'salesOrders', setter: setSalesOrders},
+      { name: 'quotations', setter: setQuotations},
+      { name: 'bids', setter: setBids},
+      { name: 'callLogs', setter: setCallLogs},
+      { name: 'tickets', setter: setTickets}
+    ];
+
+    try {
+      const promises = collections.map(async ({ name, setter }) => {
+        const params: any = {};
+        if (!(name === 'crm_companies' && user.role === 'superadmin')) {
+          params.companyId = user.currentCompanyId || user.companyId;
+        }
+        const data = await api.get<any[]>(name, params);
+        setter(data);
+      });
+      await Promise.all(promises);
+    } catch (error) {
+      console.error("Error fetching company data:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.companyId, user?.currentCompanyId, user?.role]);
+
   useEffect(() => {
     if (!isFirebaseReady || !user?.companyId) {
       setLoading(false);
       return;
     }
 
- const collections = [
- { name: 'awards', setter: setAwards},
- { name: 'departments', setter: setDepartments},
- { name: 'designations', setter: setDesignations},
- { name: 'subDepartments', setter: setSubDepartments},
- { name: 'notices', setter: setNotices},
- { name: 'projects', setter: setProjects},
- { name: 'assets', setter: setAssets},
- { name: 'tasks', setter: setTasks},
- { name: 'sales', setter: setSales},
- { name: 'milestones', setter: setMilestones},
- { name: 'loans', setter: setLoans},
- { name: 'payrolls', setter: setPayrolls},
- { name: 'payrollBatches', setter: setPayrollBatches},
- { name: 'salaryRecords', setter: setSalaryRecords},
- { name: 'orgChartTemplates', setter: setOrgChartTemplates},
- { name: 'procurementRequests', setter: setProcurementRequests},
- { name: 'procurementSettings', setter: setProcurementSettings},
- { name: 'crm_companies', setter: setCompanies},
- { name: 'products', setter: setProducts},
- { name: 'salesOrders', setter: setSalesOrders},
- { name: 'quotations', setter: setQuotations},
- { name: 'bids', setter: setBids},
- { name: 'callLogs', setter: setCallLogs},
- { name: 'tickets', setter: setTickets}
- ];
+    fetchAllData();
+    
+    // Optional: Poll for updates every 60 seconds
+    const interval = setInterval(fetchAllData, 60000);
+    return () => clearInterval(interval);
+  }, [fetchAllData, isFirebaseReady]);
 
- const unsubscribes = collections.map(({ name, setter}) => {
- let q;
- if (name === 'crm_companies' && user.role === 'superadmin') {
- q = query(collection(db, name));
-} else {
- q = query(collection(db, name), where('companyId', '==', user?.currentCompanyId || user?.companyId || 'nonexistent'));
-}
- return onSnapshot(q, (snapshot) => {
- const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id} as DataEntity));
- setter(data);
-}, (error) => {
- handleFirestoreError(error, OperationType.LIST, name);
-});
-});
-
-  setLoading(false);
-  return () => unsubscribes.forEach(unsub => unsub());
-}, [user?.companyId, user?.currentCompanyId, isFirebaseReady]);
-
- const addEntity = async (collectionName: string, data: any) => {
- const activeCompanyId = user?.currentCompanyId || user?.companyId;
- if (!activeCompanyId) return;
- const id = data.id || Math.random().toString(36).substr(2, 9);
- const entityData = { ...data, id, companyId: activeCompanyId};
- try {
- await setDoc(doc(db, collectionName, id), entityData);
+  const addEntity = async (collectionName: string, data: any) => {
+  const activeCompanyId = user?.currentCompanyId || user?.companyId;
+  if (!activeCompanyId) return;
+  const id = data.id || Math.random().toString(36).substr(2, 9);
+  const entityData = { ...data, id, companyId: activeCompanyId};
+  try {
+  await api.post(collectionName, entityData);
+  await fetchAllData();
 } catch (error) {
- handleFirestoreError(error, OperationType.CREATE, collectionName);
+  console.error(`Error adding entity to ${collectionName}:`, error);
 }
 };
 
  const updateEntity = async (collectionName: string, id: string, data: any) => {
  try {
- await updateDoc(doc(db, collectionName, id), data);
+ await api.put(collectionName, id, data);
+ await fetchAllData();
 } catch (error) {
- handleFirestoreError(error, OperationType.UPDATE, collectionName);
+ console.error(`Error updating entity in ${collectionName}:`, error);
 }
 };
 
  const deleteEntity = async (collectionName: string, id: string) => {
- console.log("Attempting to delete entity:", collectionName, id);
  try {
- await deleteDoc(doc(db, collectionName, id));
- console.log("Entity deleted successfully");
+ await api.delete(collectionName, id);
+ await fetchAllData();
 } catch (error) {
- console.error("Error deleting entity:", error);
- handleFirestoreError(error, OperationType.DELETE, collectionName);
+ console.error(`Error deleting entity from ${collectionName}:`, error);
 }
 };
 
  const clearNotices = async () => {
  if (!user?.companyId) return;
  try {
- const batch = notices.map(notice => deleteDoc(doc(db, 'notices', notice.id)));
- await Promise.all(batch);
+ const promises = notices.map(notice => api.delete('notices', notice.id));
+ await Promise.all(promises);
+ await fetchAllData();
 } catch (error) {
- handleFirestoreError(error, OperationType.DELETE, 'notices');
+ console.error("Error clearing notices:", error);
 }
 };
 
- return (
- <CompanyDataContext.Provider value={{ 
- awards, 
- departments, 
- designations,
- subDepartments,
- notices, 
- projects, 
- assets, 
- tasks,
- sales,
- milestones,
- loans,
- payrolls,
- payrollBatches,
- salaryRecords,
- orgChartTemplates,
- procurementRequests,
- procurementSettings,
- companies,
- products,
- salesOrders,
- quotations,
- bids,
- callLogs,
- tickets,
- loading,
- addEntity,
- updateEntity,
- deleteEntity,
- clearNotices
-}}>
- {children}
- </CompanyDataContext.Provider>
- );
+  return (
+    <CompanyDataContext.Provider value={{ 
+      awards, 
+      departments, 
+      designations,
+      subDepartments,
+      notices, 
+      projects, 
+      assets, 
+      tasks,
+      sales,
+      milestones,
+      loans,
+      payrolls,
+      payrollBatches,
+      salaryRecords,
+      orgChartTemplates,
+      procurementRequests,
+      procurementSettings,
+      companies,
+      products,
+      salesOrders,
+      quotations,
+      bids,
+      callLogs,
+      tickets,
+      loading,
+      addEntity,
+      updateEntity,
+      deleteEntity,
+      clearNotices
+    }}>
+      {children}
+    </CompanyDataContext.Provider>
+  );
 };

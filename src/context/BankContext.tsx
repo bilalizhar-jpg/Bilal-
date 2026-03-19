@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useState, useEffect} from 'react';
-import { collection, query, where, onSnapshot, doc, setDoc, updateDoc, deleteDoc, writeBatch, getDocs} from 'firebase/firestore';
-import { db} from '../firebase';
 import { useAuth} from './AuthContext';
 import { useAccounting} from './AccountingContext';
+import { api } from '../services/api';
 
 export interface BankAccount {
  id: string;
@@ -53,45 +52,40 @@ export function BankProvider({ children }: { children: React.ReactNode }) {
   const [bankTransactions, setBankTransactions] = useState<BankTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user, isFirebaseReady } = useAuth();
+  const { user } = useAuth();
   const activeCompanyId = user?.currentCompanyId || user?.companyId;
-  const { addJournalEntry, accounts } = useAccounting();
 
-  useEffect(() => {
-    if (!isFirebaseReady || !activeCompanyId) {
+  const fetchData = async () => {
+    if (!activeCompanyId) {
       setBankAccounts([]);
       setBankTransactions([]);
       setLoading(false);
       return;
     }
 
- const qAccounts = query(
- collection(db, 'bankAccounts'),
- where('companyId', '==', activeCompanyId)
- );
+    try {
+      const [accountsData, transactionsData] = await Promise.all([
+        api.get<BankAccount[]>(`/api/bankAccounts?companyId=${activeCompanyId}`),
+        api.get<BankTransaction[]>(`/api/bankTransactions?companyId=${activeCompanyId}`)
+      ]);
 
- const qTransactions = query(
- collection(db, 'transactions'),
- where('companyId', '==', activeCompanyId)
- );
-
- const unsubscribeAccounts = onSnapshot(qAccounts, (snapshot) => {
- const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id})) as BankAccount[];
- setBankAccounts(data);
-});
-
- const unsubscribeTransactions = onSnapshot(qTransactions, (snapshot) => {
- const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id})) as BankTransaction[];
- data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
- setBankTransactions(data);
- setLoading(false);
-});
-
-  return () => {
-    unsubscribeAccounts();
-    unsubscribeTransactions();
+      transactionsData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setBankAccounts(accountsData);
+      setBankTransactions(transactionsData);
+      setError(null);
+    } catch (err: any) {
+      console.error('Error fetching bank data:', err);
+      setError(err.message || 'Failed to fetch bank data');
+    } finally {
+      setLoading(false);
+    }
   };
-}, [activeCompanyId, isFirebaseReady]);
+
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, [activeCompanyId]);
 
  const addBankAccount = async (data: Omit<BankAccount, 'id' | 'companyId' | 'currentBalance' | 'createdAt' | 'updatedAt'>) => {
  if (!activeCompanyId) throw new Error('No company ID found');
@@ -108,17 +102,20 @@ export function BankProvider({ children }: { children: React.ReactNode }) {
  updatedAt: now,
 };
 
- await setDoc(doc(db, 'bankAccounts', id), newAccount);
+ await api.post('/api/bankAccounts', newAccount);
+ await fetchData();
 };
 
  const updateBankAccount = async (id: string, data: Partial<BankAccount>) => {
  if (!activeCompanyId) throw new Error('No company ID found');
- await updateDoc(doc(db, 'bankAccounts', id), { ...data, updatedAt: new Date().toISOString()});
+ await api.put(`/api/bankAccounts/${id}`, { ...data, updatedAt: new Date().toISOString()});
+ await fetchData();
 };
 
  const deleteBankAccount = async (id: string) => {
  if (!activeCompanyId) throw new Error('No company ID found');
- await deleteDoc(doc(db, 'bankAccounts', id));
+ await api.delete(`/api/bankAccounts/${id}`);
+ await fetchData();
 };
 
  const addBankTransaction = async (data: Omit<BankTransaction, 'id' | 'companyId' | 'isReconciled' | 'createdAt' | 'updatedAt'>) => {
@@ -136,38 +133,39 @@ export function BankProvider({ children }: { children: React.ReactNode }) {
  updatedAt: now,
 };
 
- const batch = writeBatch(db);
- batch.set(doc(db, 'transactions', id), newTransaction);
+ await api.post('/api/bankTransactions', newTransaction);
 
  // Update bank account balance
  const bankAccount = bankAccounts.find(a => a.id === data.bankAccountId);
  if (bankAccount) {
  const balanceChange = data.type === 'Credit' ? data.amount : -data.amount;
- batch.update(doc(db, 'bankAccounts', bankAccount.id), {
+ await api.put(`/api/bankAccounts/${bankAccount.id}`, {
  currentBalance: bankAccount.currentBalance + balanceChange,
  updatedAt: now
 });
 }
 
- await batch.commit();
+ await fetchData();
 };
 
  const reconcileTransaction = async (transactionId: string, journalEntryId: string) => {
  if (!activeCompanyId) throw new Error('No company ID found');
- await updateDoc(doc(db, 'transactions', transactionId), {
+ await api.put(`/api/bankTransactions/${transactionId}`, {
  linkedJournalEntryId: journalEntryId,
  isReconciled: true,
  updatedAt: new Date().toISOString()
 });
+ await fetchData();
 };
 
  const unreconcileTransaction = async (transactionId: string) => {
  if (!activeCompanyId) throw new Error('No company ID found');
- await updateDoc(doc(db, 'transactions', transactionId), {
+ await api.put(`/api/bankTransactions/${transactionId}`, {
  linkedJournalEntryId: null,
  isReconciled: false,
  updatedAt: new Date().toISOString()
 });
+ await fetchData();
 };
 
  return (

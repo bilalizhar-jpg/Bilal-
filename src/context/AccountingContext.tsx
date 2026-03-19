@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useState, useEffect} from 'react';
-import { collection, query, where, onSnapshot, doc, setDoc, updateDoc, deleteDoc, writeBatch} from 'firebase/firestore';
-import { db} from '../firebase';
 import { useAuth} from './AuthContext';
 import { logAuditAction} from '../services/auditService';
+import { api } from '../services/api';
 
 export type AccountType = 'Asset' | 'Liability' | 'Equity' | 'Revenue' | 'Expense';
 
@@ -80,94 +79,50 @@ export function AccountingProvider({ children}: { children: React.ReactNode}) {
  const [fiscalYears, setFiscalYears] = useState<FiscalYear[]>([]);
  const [loading, setLoading] = useState(true);
  const [error, setError] = useState<string | null>(null);
-  const { user, isFirebaseReady } = useAuth();
+  const { user } = useAuth();
 
   const activeCompanyId = user?.currentCompanyId || user?.companyId;
 
-  useEffect(() => {
-    if (!isFirebaseReady || !activeCompanyId) {
+  const fetchData = async () => {
+    if (!activeCompanyId) {
       setAccounts([]);
+      setJournalEntries([]);
+      setJournalLines([]);
       setFiscalYears([]);
       setLoading(false);
       return;
     }
 
- const q = query(
- collection(db, 'accounting_accounts'),
- where('companyId', '==', activeCompanyId)
- );
+    try {
+      const [accountsData, entriesData, linesData, fiscalData] = await Promise.all([
+        api.get<Account[]>(`/api/accounting_accounts?companyId=${activeCompanyId}`),
+        api.get<JournalEntry[]>(`/api/journalEntries?companyId=${activeCompanyId}`),
+        api.get<JournalLine[]>(`/api/journalLines?companyId=${activeCompanyId}`),
+        api.get<FiscalYear[]>(`/api/fiscalYears?companyId=${activeCompanyId}`)
+      ]);
 
- const qEntries = query(
- collection(db, 'journalEntries'),
- where('companyId', '==', activeCompanyId)
- );
+      accountsData.sort((a, b) => a.code.localeCompare(b.code));
+      entriesData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      fiscalData.sort((a, b) => b.startDate.localeCompare(a.startDate));
 
- const qLines = query(
- collection(db, 'journalLines'),
- where('companyId', '==', activeCompanyId)
- );
-
- const qFiscal = query(
- collection(db, 'fiscalYears'),
- where('companyId', '==', activeCompanyId)
- );
-
- const unsubscribeAccounts = onSnapshot(q, (snapshot) => {
- const accountsData = snapshot.docs.map(doc => ({
- ...doc.data(),
- id: doc.id
-})) as Account[];
- accountsData.sort((a, b) => a.code.localeCompare(b.code));
- setAccounts(accountsData);
-}, (err) => {
- console.error('Error fetching accounts:', err);
- setError(err.message);
-});
-
- const unsubscribeEntries = onSnapshot(qEntries, (snapshot) => {
- const entriesData = snapshot.docs.map(doc => ({
- ...doc.data(),
- id: doc.id
-})) as JournalEntry[];
- entriesData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
- setJournalEntries(entriesData);
-}, (err) => {
- console.error('Error fetching journal entries:', err);
- setError(err.message);
-});
-
- const unsubscribeLines = onSnapshot(qLines, (snapshot) => {
- const linesData = snapshot.docs.map(doc => ({
- ...doc.data(),
- id: doc.id
-})) as JournalLine[];
- setJournalLines(linesData);
-}, (err) => {
- console.error('Error fetching journal lines:', err);
- setError(err.message);
-});
-
- const unsubscribeFiscal = onSnapshot(qFiscal, (snapshot) => {
- const fiscalData = snapshot.docs.map(doc => ({
- ...doc.data(),
- id: doc.id
-})) as FiscalYear[];
- fiscalData.sort((a, b) => b.startDate.localeCompare(a.startDate));
- setFiscalYears(fiscalData);
- setLoading(false);
-}, (err) => {
- console.error('Error fetching fiscal years:', err);
- setError(err.message);
- setLoading(false);
-});
-
-  return () => {
-    unsubscribeAccounts();
-    unsubscribeEntries();
-    unsubscribeLines();
-    unsubscribeFiscal();
+      setAccounts(accountsData);
+      setJournalEntries(entriesData);
+      setJournalLines(linesData);
+      setFiscalYears(fiscalData);
+      setError(null);
+    } catch (err: any) {
+      console.error('Error fetching accounting data:', err);
+      setError(err.message || 'Failed to fetch accounting data');
+    } finally {
+      setLoading(false);
+    }
   };
-}, [activeCompanyId, isFirebaseReady]);
+
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, [activeCompanyId]);
 
  const isPeriodClosed = (date: string) => {
  return fiscalYears.some(fy => 
@@ -189,15 +144,17 @@ export function AccountingProvider({ children}: { children: React.ReactNode}) {
  createdAt: now,
  updatedAt: now,
 };
- await setDoc(doc(db, 'fiscalYears', id), newFY);
+ await api.post('/api/fiscalYears', newFY);
+ await fetchData();
 };
 
  const updateFiscalYear = async (id: string, data: Partial<FiscalYear>) => {
  if (!activeCompanyId) throw new Error('No company ID found');
- await updateDoc(doc(db, 'fiscalYears', id), {
+ await api.put(`/api/fiscalYears/${id}`, {
  ...data,
  updatedAt: new Date().toISOString(),
 });
+ await fetchData();
 };
 
  const closeFiscalYear = async (id: string, retainedEarningsAccountId: string) => {
@@ -205,7 +162,6 @@ export function AccountingProvider({ children}: { children: React.ReactNode}) {
  const fy = fiscalYears.find(f => f.id === id);
  if (!fy) throw new Error('Fiscal year not found');
 
- const batch = writeBatch(db);
  const now = new Date().toISOString();
 
  // 1. Calculate Net Profit for the period
@@ -283,16 +239,15 @@ export function AccountingProvider({ children}: { children: React.ReactNode}) {
  createdBy: user.id
 };
 
- batch.set(doc(db, 'journalEntries', closingEntryId), closingEntry);
- closingLines.forEach(line => {
+ await api.post('/api/journalEntries', closingEntry);
+ for (const line of closingLines) {
  const lineId = Math.random().toString(36).substr(2, 9);
- batch.set(doc(db, 'journalLines', lineId), { ...line, id: lineId, companyId: activeCompanyId, journalEntryId: closingEntryId});
-});
+ await api.post('/api/journalLines', { ...line, id: lineId, companyId: activeCompanyId, journalEntryId: closingEntryId});
+}
 
  // 3. Update Fiscal Year Status
- batch.update(doc(db, 'fiscalYears', id), { status: 'Closed', updatedAt: now});
-
- await batch.commit();
+ await api.put(`/api/fiscalYears/${id}`, { status: 'Closed', updatedAt: now});
+ await fetchData();
 };
 
  const addAccount = async (data: Omit<Account, 'id' | 'companyId' | 'currentBalance' | 'createdAt' | 'updatedAt'>) => {
@@ -310,7 +265,8 @@ export function AccountingProvider({ children}: { children: React.ReactNode}) {
  updatedAt: now,
 };
 
- await setDoc(doc(db, 'accounting_accounts', id), newAccount);
+ await api.post('/api/accounting_accounts', newAccount);
+ await fetchData();
 
  logAuditAction({
  companyId: activeCompanyId,
@@ -331,7 +287,8 @@ export function AccountingProvider({ children}: { children: React.ReactNode}) {
  updatedAt: new Date().toISOString(),
 };
 
- await updateDoc(doc(db, 'accounting_accounts', id), updateData);
+ await api.put(`/api/accounting_accounts/${id}`, updateData);
+ await fetchData();
 
  logAuditAction({
  companyId: activeCompanyId,
@@ -348,7 +305,8 @@ export function AccountingProvider({ children}: { children: React.ReactNode}) {
  if (!activeCompanyId) throw new Error('No company ID found');
  
  // In a real system, we should check if there are transactions linked to this account before deleting
- await deleteDoc(doc(db, 'accounting_accounts', id));
+ await api.delete(`/api/accounting_accounts/${id}`);
+ await fetchData();
 
  logAuditAction({
  companyId: activeCompanyId,
@@ -371,7 +329,6 @@ export function AccountingProvider({ children}: { children: React.ReactNode}) {
  throw new Error('Cannot add transaction to a closed fiscal period.');
 }
 
- const batch = writeBatch(db);
  const entryId = Math.random().toString(36).substr(2, 9);
  const now = new Date().toISOString();
 
@@ -383,7 +340,7 @@ export function AccountingProvider({ children}: { children: React.ReactNode}) {
  createdBy: user.id
 };
 
- batch.set(doc(db, 'journalEntries', entryId), newEntry);
+ await api.post('/api/journalEntries', newEntry);
 
  // Process lines and update account balances
  for (const line of linesData) {
@@ -395,7 +352,7 @@ export function AccountingProvider({ children}: { children: React.ReactNode}) {
  journalEntryId: entryId
 };
  
- batch.set(doc(db, 'journalLines', lineId), newLine);
+ await api.post('/api/journalLines', newLine);
 
  // Update account balance
  const account = accounts.find(a => a.id === line.accountId);
@@ -411,14 +368,14 @@ export function AccountingProvider({ children}: { children: React.ReactNode}) {
 }
 
  const newBalance = account.currentBalance + balanceChange;
- batch.update(doc(db, 'accounting_accounts', account.id), {
+ await api.put(`/api/accounting_accounts/${account.id}`, {
  currentBalance: newBalance,
  updatedAt: now
 });
 }
 }
 
- await batch.commit();
+ await fetchData();
 
  logAuditAction({
  companyId: activeCompanyId,

@@ -1,18 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect} from 'react';
 import { useAuth} from './AuthContext';
-import { 
- collection, 
- onSnapshot, 
- doc, 
- setDoc, 
- updateDoc, 
- deleteDoc, 
- query,
- where,
- writeBatch
-} from 'firebase/firestore';
-import { db} from '../firebase';
-import { handleFirestoreError, OperationType} from '../utils/firestoreErrorHandler';
+import { api} from '../services/api';
 
 export interface CustomField {
  key: string;
@@ -80,55 +68,63 @@ const generateCredentials = (name: string, employeeId: string) => {
 };
 
 export const EmployeeProvider = ({ children}: { children: ReactNode}) => {
-  const { user, isFirebaseReady } = useAuth();
+  const { user } = useAuth();
   const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchEmployees = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    try {
+      const params: any = {};
+      if (user.role !== 'superadmin') {
+        params.companyId = user.currentCompanyId || user.companyId;
+      }
+      const data = await api.get<Employee[]>('/api/employees', params);
+      setAllEmployees(data);
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    if (!isFirebaseReady || !user) {
+    if (!user) {
       setLoading(false);
       return;
     }
 
-    let q;
-    if (user.role === 'superadmin') {
-      q = query(collection(db, 'employees'));
-    } else {
-      q = query(collection(db, 'employees'), where('companyId', '==', user.companyId));
-    }
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const employeesData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Employee));
-      setAllEmployees(employeesData);
-      setLoading(false);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'employees');
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [user?.id, user?.companyId, isFirebaseReady]);
+    fetchEmployees();
+    
+    const interval = setInterval(fetchEmployees, 30000);
+    return () => clearInterval(interval);
+  }, [user?.id, user?.companyId, user?.currentCompanyId]);
 
  // Filter employees by companyId
- const employees = allEmployees.filter(emp => emp.companyId === user?.companyId);
+ const activeCompanyId = user?.currentCompanyId || user?.companyId;
+ const employees = allEmployees.filter(emp => emp.companyId === activeCompanyId);
 
  const addEmployee = async (employee: Omit<Employee, 'companyId'>) => {
- if (!user?.companyId) return;
+ if (!activeCompanyId) return;
  const { username, password} = generateCredentials(employee.name, employee.employeeId);
  const id = employee.id || Date.now().toString();
  const newEmployee: Employee = {
  ...employee,
  id,
- companyId: user.companyId,
+ companyId: activeCompanyId,
  username: employee.username || username,
  password: employee.password || password
 };
  
  try {
- await setDoc(doc(db, 'employees', id), newEmployee);
+ await api.post('/api/employees', newEmployee);
+ await fetchEmployees();
  
  // Trigger welcome message
- fetch(`/api/welcome-messages/${user.companyId}/trigger`, {
+ fetch(`/api/welcome-messages/${activeCompanyId}/trigger`, {
  method: 'POST',
  headers: { 'Content-Type': 'application/json'},
  body: JSON.stringify({ employee: newEmployee})
@@ -140,34 +136,32 @@ export const EmployeeProvider = ({ children}: { children: ReactNode}) => {
 };
 
  const addEmployees = async (newEmployees: Omit<Employee, 'companyId'>[]) => {
- if (!user?.companyId) return;
- const batch = writeBatch(db);
- const addedEmployees: Employee[] = [];
+ if (!activeCompanyId) return;
  
- newEmployees.forEach(emp => {
- const { username, password} = generateCredentials(emp.name, emp.employeeId);
- const id = emp.id || Math.random().toString(36).substr(2, 9);
- const employeeData: Employee = {
- ...emp,
- id,
- companyId: user.companyId!,
- username: emp.username || username,
- password: emp.password || password
-};
- addedEmployees.push(employeeData);
- const ref = doc(db, 'employees', id);
- batch.set(ref, employeeData);
-});
-
  try {
- await batch.commit();
- 
- // Trigger welcome messages for all new employees
- addedEmployees.forEach(emp => {
- fetch(`/api/welcome-messages/${user.companyId}/trigger`, {
- method: 'POST',
- headers: { 'Content-Type': 'application/json'},
- body: JSON.stringify({ employee: emp})
+  const addedEmployees: Employee[] = [];
+  for (const emp of newEmployees) {
+    const { username, password} = generateCredentials(emp.name, emp.employeeId);
+    const id = emp.id || Math.random().toString(36).substr(2, 9);
+    const employeeData: Employee = {
+      ...emp,
+      id,
+      companyId: activeCompanyId,
+      username: emp.username || username,
+      password: emp.password || password
+    };
+    await api.post('/api/employees', employeeData);
+    addedEmployees.push(employeeData);
+  }
+  
+  await fetchEmployees();
+  
+  // Trigger welcome messages for all new employees
+  addedEmployees.forEach(emp => {
+  fetch(`/api/welcome-messages/${activeCompanyId}/trigger`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json'},
+  body: JSON.stringify({ employee: emp})
 }).catch(err => console.error('Error triggering welcome message:', err));
 });
 
@@ -178,7 +172,8 @@ export const EmployeeProvider = ({ children}: { children: ReactNode}) => {
 
  const updateEmployee = async (id: string, updatedFields: Partial<Employee>) => {
  try {
- await updateDoc(doc(db, 'employees', id), updatedFields as any);
+ await api.put(`/api/employees/${id}`, updatedFields);
+ await fetchEmployees();
 } catch (error) {
  console.error("Error updating employee:", error);
 }
@@ -186,7 +181,8 @@ export const EmployeeProvider = ({ children}: { children: ReactNode}) => {
 
  const deleteEmployee = async (id: string) => {
  try {
- await deleteDoc(doc(db, 'employees', id));
+ await api.delete(`/api/employees/${id}`);
+ await fetchEmployees();
 } catch (error) {
  console.error("Error deleting employee:", error);
 }
@@ -198,21 +194,22 @@ export const EmployeeProvider = ({ children}: { children: ReactNode}) => {
 
  const { username, password} = generateCredentials(emp.name, emp.employeeId);
  try {
- await updateDoc(doc(db, 'employees', id), { username, password});
+ await api.put(`/api/employees/${id}`, { username, password});
+ await fetchEmployees();
 } catch (error) {
  console.error("Error regenerating credentials:", error);
 }
 };
 
- const validateEmployee = (username: string, password: string) => {
- return allEmployees.find(emp => 
- (emp.username === username || emp.email === username) && emp.password === password
- );
-};
+  const validateEmployee = (username: string, password: string) => {
+    return allEmployees.find(emp => 
+      (emp.username === username || emp.email === username) && emp.password === password
+    );
+  };
 
- return (
- <EmployeeContext.Provider value={{ employees, allEmployees, addEmployee, addEmployees, updateEmployee, deleteEmployee, regenerateCredentials, validateEmployee, loading}}>
- {children}
- </EmployeeContext.Provider>
- );
+  return (
+    <EmployeeContext.Provider value={{ employees, allEmployees, addEmployee, addEmployees, updateEmployee, deleteEmployee, regenerateCredentials, validateEmployee, loading}}>
+      {children}
+    </EmployeeContext.Provider>
+  );
 };
