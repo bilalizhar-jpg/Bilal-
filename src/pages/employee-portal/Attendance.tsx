@@ -26,17 +26,17 @@ export default function EmployeeAttendance() {
  const [capturedImage, setCapturedImage] = useState<string | null>(null);
  
  const todayDate = new Date().toISOString().split('T')[0];
- const todayRecord = user ? getEmployeeTodayRecord(user.id, todayDate) : undefined;
+ const todayRecord = user ? getEmployeeTodayRecord(user.employeeId || user.id, todayDate) : undefined;
  
  const attendanceState = todayRecord?.currentState || 'not_checked_in';
  const logs = todayRecord?.logs || [];
 
- const empTracking = user ? trackingData[`${user.id}_${todayDate}`] : null;
+ const empTracking = user ? trackingData[`${user.employeeId || user.id}_${todayDate}`] : null;
  console.log("empTracking:", empTracking,"attendanceState:", attendanceState);
 
  const myRecords = useMemo(() => {
  if (!user) return [];
- const empId = user.id;
+ const empId = user.employeeId || user.id;
  return attendanceRecords.filter(r => r.employeeId === empId).sort((a, b) => b.date.localeCompare(a.date));
 }, [attendanceRecords, user]);
 
@@ -67,7 +67,7 @@ export default function EmployeeAttendance() {
  // Monitoring Logic - Handled by ActivityTracker component in Layout
  useEffect(() => {
  if (attendanceState === 'checked_in' && user) {
- const empId = user.id;
+ const empId = user.employeeId || user.id;
  // We still want to ensure status is Online when they are on this page
  updateTracking(empId, { status: 'Online'});
 }
@@ -189,7 +189,7 @@ export default function EmployeeAttendance() {
  const proceedWithAction = async (action: string, loc: {lat: number, lng: number}, skipSelfie: boolean = false) => {
  if (!user) return;
 
- const empId = user.id;
+ const empId = user.employeeId || user.id;
  const timeStr = currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'});
  const locStr =`${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)}`;
  
@@ -436,7 +436,7 @@ export default function EmployeeAttendance() {
  onClick={async () => {
  if (capturedImage && user) {
  try {
- await updateEmployee(user.id, { avatar: capturedImage});
+ await updateEmployee(user.employeeId || user.id, { avatar: capturedImage});
  login({ ...user, avatar: capturedImage});
  alert("Profile identity synchronized successfully.");
 } catch (err) { console.error(err);}

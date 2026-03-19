@@ -36,12 +36,12 @@ export const ScreenCapture = () => {
  const dataUrl = canvas.toDataURL('image/jpeg');
  
  // Upload to Firebase Storage
- const storageRef = ref(storage,`screenshots/${user.id}/${Date.now()}.jpg`);
+ const storageRef = ref(storage,`screenshots/${user.employeeId || user.id}/${Date.now()}.jpg`);
  await uploadString(storageRef, dataUrl, 'data_url');
  const downloadUrl = await getDownloadURL(storageRef);
 
  // Update Firestore
- updateTracking(user.id, { screenshot: downloadUrl});
+ updateTracking(user.employeeId || user.id, { screenshot: downloadUrl});
 
  // Stop video
  video.pause();

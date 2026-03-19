@@ -11,7 +11,7 @@ export default function ProcurementHistory() {
   const [searchTerm, setSearchTerm] = useState('');
 
  // Filter requests for the current employee
- const employeeRequests = procurementRequests.filter(req => req.employeeId === user?.id || req.employeeName === user?.name);
+ const employeeRequests = procurementRequests.filter(req => req.employeeId === (user?.employeeId || user?.id) || req.employeeName === user?.name);
 
  const handleExport = () => {
  if (employeeRequests.length === 0) {

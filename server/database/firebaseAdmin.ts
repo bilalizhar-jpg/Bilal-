@@ -3,14 +3,40 @@ import { getFirestore } from 'firebase-admin/firestore';
 import fs from 'fs';
 import path from 'path';
 
-// Load the service account key (assuming it's available in the environment or a file)
-// For this environment, we might need to use the project ID and credentials from the environment
-// or a service account file if provided.
-// Since we don't have a service account file, we rely on the default credentials
-// provided by the Firebase Admin SDK when running in a Google Cloud environment.
+// Load the Firebase configuration to get the project ID and database ID
+const firebaseConfigPath = path.join(process.cwd(), 'firebase-applet-config.json');
+const firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
 
-const app = admin.initializeApp({
-  credential: admin.credential.applicationDefault(),
-});
+let app;
+try {
+  if (admin.apps.length === 0) {
+    // Try initializing with config first
+    console.log('[FirebaseAdmin] Initializing with config...');
+    app = admin.initializeApp({
+      projectId: firebaseConfig.projectId
+    });
+  } else {
+    app = admin.app();
+  }
+} catch (e) {
+  console.error('[FirebaseAdmin] Failed to initialize with config, trying default initialization:', e);
+  if (admin.apps.length === 0) {
+    try {
+      app = admin.initializeApp();
+    } catch (innerError) {
+      console.error('[FirebaseAdmin] Critical: Failed all initialization attempts:', innerError);
+      throw innerError;
+    }
+  } else {
+    app = admin.app();
+  }
+}
 
-export const db = getFirestore(app);
+export const db = (() => {
+  try {
+    return getFirestore(app, firebaseConfig.firestoreDatabaseId);
+  } catch (e) {
+    console.warn('[FirebaseAdmin] Failed to initialize with specific databaseId, falling back to default:', e);
+    return getFirestore(app);
+  }
+})();

@@ -77,22 +77,22 @@ export const useLeaves = () => {
 };
 
 export const LeaveProvider = ({ children}: { children: ReactNode}) => {
- const { user} = useAuth();
- const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
- const [holidays, setHolidays] = useState<Holiday[]>([]);
- const [weeklyHolidays, setWeeklyHolidays] = useState<WeeklyHoliday | null>(null);
- const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
- const [loading, setLoading] = useState(true);
+  const { user, isFirebaseReady } = useAuth();
+  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
+  const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const [weeklyHolidays, setWeeklyHolidays] = useState<WeeklyHoliday | null>(null);
+  const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
+  const [loading, setLoading] = useState(true);
 
- useEffect(() => {
- if (!user?.companyId) {
- setLeaveRequests([]);
- setHolidays([]);
- setWeeklyHolidays(null);
- setLeaveTypes([]);
- setLoading(false);
- return;
-}
+  useEffect(() => {
+    if (!isFirebaseReady || !user?.companyId) {
+      setLeaveRequests([]);
+      setHolidays([]);
+      setWeeklyHolidays(null);
+      setLeaveTypes([]);
+      setLoading(false);
+      return;
+    }
 
  const companyId = user.companyId;
 
@@ -134,13 +134,13 @@ export const LeaveProvider = ({ children}: { children: ReactNode}) => {
 
  setLoading(false);
 
- return () => {
- unsubscribeLeaves();
- unsubscribeHolidays();
- unsubscribeWeekly();
- unsubscribeTypes();
-};
-}, [user?.companyId]);
+  return () => {
+    unsubscribeLeaves();
+    unsubscribeHolidays();
+    unsubscribeWeekly();
+    unsubscribeTypes();
+  };
+}, [user?.companyId, isFirebaseReady]);
 
  const applyLeave = async (request: Omit<LeaveRequest, 'id' | 'status' | 'appliedDate' | 'companyId'>) => {
  if (!user?.companyId) return;

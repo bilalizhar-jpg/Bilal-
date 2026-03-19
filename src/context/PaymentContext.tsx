@@ -31,15 +31,15 @@ export function PaymentProvider({ children}: { children: React.ReactNode}) {
  const [payments, setPayments] = useState<Payment[]>([]);
  const [loading, setLoading] = useState(true);
  const [error, setError] = useState<string | null>(null);
- const { user} = useAuth();
- const activeCompanyId = user?.currentCompanyId || user?.companyId;
+  const { user, isFirebaseReady } = useAuth();
+  const activeCompanyId = user?.currentCompanyId || user?.companyId;
 
- useEffect(() => {
- if (!activeCompanyId) {
- setPayments([]);
- setLoading(false);
- return;
-}
+  useEffect(() => {
+    if (!isFirebaseReady || !activeCompanyId) {
+      setPayments([]);
+      setLoading(false);
+      return;
+    }
 
  const q = query(
  collection(db, 'payments'),
@@ -63,8 +63,8 @@ export function PaymentProvider({ children}: { children: React.ReactNode}) {
  setLoading(false);
 });
 
- return () => unsubscribe();
-}, [activeCompanyId]);
+  return () => unsubscribe();
+}, [activeCompanyId, isFirebaseReady]);
 
  const addPayment = async (data: Omit<Payment, 'id' | 'companyId' | 'createdAt' | 'updatedAt'>) => {
  if (!activeCompanyId) throw new Error('No company ID found');

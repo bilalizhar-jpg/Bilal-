@@ -51,22 +51,34 @@ export const useTraining = () => {
 };
 
 export const TrainingProvider = ({ children}: { children: ReactNode}) => {
- const { user} = useAuth();
- const [allPrograms, setAllPrograms] = useState<TrainingProgram[]>([]);
- const [loading, setLoading] = useState(true);
+  const { user, isFirebaseReady } = useAuth();
+  const [allPrograms, setAllPrograms] = useState<TrainingProgram[]>([]);
+  const [loading, setLoading] = useState(true);
 
- useEffect(() => {
- const q = query(collection(db, 'trainingPrograms'));
- const unsubscribe = onSnapshot(q, (snapshot) => {
- const programsData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id} as TrainingProgram));
- setAllPrograms(programsData);
- setLoading(false);
-}, (error) => {
- handleFirestoreError(error, OperationType.LIST, 'trainingPrograms');
-});
+  useEffect(() => {
+    if (!isFirebaseReady || !user) {
+      setLoading(false);
+      return;
+    }
 
- return () => unsubscribe();
-}, []);
+    let q;
+    if (user.role === 'superadmin') {
+      q = query(collection(db, 'trainingPrograms'));
+    } else {
+      q = query(collection(db, 'trainingPrograms'), where('companyId', '==', user.companyId));
+    }
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const programsData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as TrainingProgram));
+      setAllPrograms(programsData);
+      setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'trainingPrograms');
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user?.id, user?.companyId, isFirebaseReady]);
 
  const programs = allPrograms.filter(p => p.companyId === user?.companyId);
 

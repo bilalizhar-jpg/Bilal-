@@ -56,7 +56,7 @@ export default function EmployeeLoginPage() {
  const employee = validateEmployee(username, password);
 
  if (employee) {
- login({
+ await login({
  id: employee.id,
  name: employee.name,
  role: 'employee',

@@ -81,18 +81,18 @@ export const useChat = () => {
  return context;
 };
 
-export const ChatProvider = ({ children}: { children: ReactNode}) => {
- const { user} = useAuth();
- const { employees} = useEmployees();
- const [chats, setChats] = useState<Chat[]>([]);
- const [messages, setMessages] = useState<Message[]>([]);
- const [invitations, setInvitations] = useState<Invitation[]>([]);
- const [activeChat, setActiveChat] = useState<Chat | null>(null);
- const [loading, setLoading] = useState(true);
+export const ChatProvider = ({ children }: { children: ReactNode }) => {
+  const { user, isFirebaseReady } = useAuth();
+  const { employees } = useEmployees();
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [activeChat, setActiveChat] = useState<Chat | null>(null);
+  const [loading, setLoading] = useState(true);
 
- // Fetch Chats
- useEffect(() => {
- if (!user?.companyId || !user?.id) return;
+  // Fetch Chats
+  useEffect(() => {
+    if (!isFirebaseReady || !user?.companyId || !user?.id) return;
 
  // We need to query chats where the user is a participant.
  // Firestore array-contains query.
@@ -116,10 +116,10 @@ export const ChatProvider = ({ children}: { children: ReactNode}) => {
  handleFirestoreError(error, OperationType.LIST, 'chats');
 });
 
- return () => unsubscribe();
-}, [user?.companyId, user?.id]);
+  return () => unsubscribe();
+}, [user?.companyId, user?.id, isFirebaseReady]);
 
- // Fetch Messages for Active Chat
+  // Fetch Messages for Active Chat
  useEffect(() => {
  if (!activeChat?.id) {
  setMessages([]);
@@ -141,9 +141,9 @@ export const ChatProvider = ({ children}: { children: ReactNode}) => {
  return () => unsubscribe();
 }, [activeChat?.id]);
 
- // Fetch Invitations
- useEffect(() => {
- if (!user?.companyId || !user?.id) return;
+  // Fetch Invitations
+  useEffect(() => {
+    if (!isFirebaseReady || !user?.companyId || !user?.id) return;
 
  const q = query(
  collection(db, 'invitations'),
@@ -159,10 +159,10 @@ export const ChatProvider = ({ children}: { children: ReactNode}) => {
  handleFirestoreError(error, OperationType.LIST, 'invitations');
 });
 
- return () => unsubscribe();
-}, [user?.companyId, user?.id]);
+  return () => unsubscribe();
+}, [user?.companyId, user?.id, isFirebaseReady]);
 
- const sendMessage = async (text: string) => {
+  const sendMessage = async (text: string) => {
  if (!activeChat || !user) return;
 
  try {

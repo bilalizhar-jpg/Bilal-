@@ -50,7 +50,7 @@ export default function EmployeeDashboard() {
  await updateEmployee(currentEmployee.id, { notifications: updatedNotifications});
 };
 
- const currentEmployee = employees.find(emp => emp.id === user?.id);
+ const currentEmployee = employees.find(emp => emp.id === (user?.employeeId || user?.id));
  const myLeaves = user ? getEmployeeLeaves(user.employeeId || user.id) : [];
  const latestLeave = myLeaves[0];
 

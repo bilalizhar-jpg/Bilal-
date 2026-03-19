@@ -17,7 +17,7 @@ export const TimeTrackerWidget = () => {
 
  const handleConsent = () => {
  setConsented(true);
- setCaptureInterval(user.id, interval);
+ setCaptureInterval(user.employeeId || user.id, interval);
 };
 
  const formatTime = (seconds: number) => {

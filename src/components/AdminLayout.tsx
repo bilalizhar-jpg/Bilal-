@@ -75,7 +75,7 @@ const SidebarItem = ({ item, depth = 0, isSidebarOpen, location, openMenus, togg
  className={`w-full flex items-center ${isSidebarOpen ? 'justify-between px-4' : 'justify-center px-0'} py-2.5 rounded-md transition-colors duration-200 group ${
  isActive 
  ? 'bg-gray-100 text-gray-900 font-medium' 
- : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+ : 'text-gray-900 hover:bg-gray-50 hover:text-gray-900'
 } ${isSidebarOpen ? (depth === 1 ? 'pl-8' : depth === 2 ? 'pl-12' : depth === 3 ? 'pl-16' : '') : ''}`}
  >
  <div className={`flex items-center ${isSidebarOpen ? 'gap-3' : 'justify-center'}`}>
@@ -123,7 +123,7 @@ const SidebarItem = ({ item, depth = 0, isSidebarOpen, location, openMenus, togg
  className={`flex items-center ${isSidebarOpen ? 'gap-3 px-4' : 'justify-center px-0'} py-2.5 rounded-md transition-colors duration-200 group ${
  location.pathname === item.path
  ? 'bg-gray-100 text-gray-900 font-medium' 
- : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+ : 'text-gray-900 hover:bg-gray-50 hover:text-gray-900'
 } ${isSidebarOpen ? (depth === 1 ? 'pl-10' : depth === 2 ? 'pl-14' : depth === 3 ? 'pl-18' : '') : ''}`}
  >
  {Icon && <Icon className={`w-5 h-5 ${location.pathname === item.path ? 'text-gray-900' : 'text-gray-500 group-hover:text-gray-700'}`} />}
@@ -174,7 +174,7 @@ export default function AdminLayout({ children}: AdminLayoutProps) {
  const filteredMenuItems = ADMIN_MENU_ITEMS.filter(item => !blockedMenus.includes(item.name));
 
  return (
- <div className={`min-h-screen flex relative overflow-hidden print:overflow-visible bg-[#f5f7fb] text-gray-900`}>
+ <div className={`min-h-screen flex relative overflow-hidden print:overflow-visible bg-white text-gray-900`}>
  {/* Sidebar */}
  <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} relative z-30 flex flex-col transition-all duration-300 shrink-0 border-r border-gray-200 bg-white print:hidden`}>
  <div className={`p-4 flex items-center gap-3 border-b border-gray-200 h-16`}>
@@ -186,7 +186,7 @@ export default function AdminLayout({ children}: AdminLayoutProps) {
  )}
  </div>
  {isSidebarOpen && (
- <span className="font-semibold text-gray-900 truncate">
+ <span className="font-semibold text-black truncate">
  {company?.name || 'Employer Portal'}
  </span>
  )}
@@ -222,7 +222,7 @@ export default function AdminLayout({ children}: AdminLayoutProps) {
  <div className="p-4 border-t border-gray-200">
  <button 
  onClick={handleLogout}
- className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+ className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-gray-900 hover:bg-gray-50 hover:text-gray-900"
  >
  <LogOut className="w-5 h-5"/>
  {isSidebarOpen && <span className="text-sm font-medium">Logout</span>}
@@ -295,7 +295,7 @@ export default function AdminLayout({ children}: AdminLayoutProps) {
  </div>
  </header>
 
- <div className="flex-1 overflow-auto print:overflow-visible p-6 custom-scrollbar bg-[#f5f7fb]">
+ <div className="flex-1 overflow-auto print:overflow-visible p-6 custom-scrollbar bg-white">
  <div className="max-w-[1600px] mx-auto">
  {!isDashboard && (
  <div className="mb-6 flex items-center gap-3 no-print">

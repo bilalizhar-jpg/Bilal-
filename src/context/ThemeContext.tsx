@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useEffect, useState} from 'react';
 
-type Theme = 'light' | 'dark';
-
 export interface ColorPalette {
  id: string;
  name: string;

@@ -7,7 +7,9 @@ export class IdleAlertService {
     console.log('[IdleAlert] Initializing cron job...');
     // Run every minute
     cron.schedule('* * * * *', () => {
-      this.checkAndSendIdleAlerts();
+      this.checkAndSendIdleAlerts().catch(err => {
+        console.error('[IdleAlert] Unhandled error in cron job:', err);
+      });
     });
   }
 
@@ -20,7 +22,11 @@ export class IdleAlertService {
       for (const setting of activeSettings) {
         await this.processCompanyIdleAlerts(setting);
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message?.includes('PERMISSION_DENIED')) {
+        // Silent failure for permission issues to avoid log spam when DB is not provisioned
+        return;
+      }
       console.error('[IdleAlert] Error in cron job:', error);
     }
   }

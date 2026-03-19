@@ -80,22 +80,34 @@ const generateCredentials = (name: string, employeeId: string) => {
 };
 
 export const EmployeeProvider = ({ children}: { children: ReactNode}) => {
- const { user} = useAuth();
- const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
- const [loading, setLoading] = useState(true);
+  const { user, isFirebaseReady } = useAuth();
+  const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState(true);
 
- useEffect(() => {
- const q = query(collection(db, 'employees'));
- const unsubscribe = onSnapshot(q, (snapshot) => {
- const employeesData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id} as Employee));
- setAllEmployees(employeesData);
- setLoading(false);
-}, (error) => {
- handleFirestoreError(error, OperationType.LIST, 'employees');
-});
+  useEffect(() => {
+    if (!isFirebaseReady || !user) {
+      setLoading(false);
+      return;
+    }
 
- return () => unsubscribe();
-}, []);
+    let q;
+    if (user.role === 'superadmin') {
+      q = query(collection(db, 'employees'));
+    } else {
+      q = query(collection(db, 'employees'), where('companyId', '==', user.companyId));
+    }
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const employeesData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Employee));
+      setAllEmployees(employeesData);
+      setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'employees');
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user?.id, user?.companyId, isFirebaseReady]);
 
  // Filter employees by companyId
  const employees = allEmployees.filter(emp => emp.companyId === user?.companyId);

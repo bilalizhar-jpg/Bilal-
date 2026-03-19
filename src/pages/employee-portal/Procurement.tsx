@@ -28,7 +28,7 @@ export default function EmployeeProcurement() {
  const { user} = useAuth();
  const navigate = useNavigate();
 
- const currentEmployee = employees.find(emp => emp.id === user?.id);
+ const currentEmployee = employees.find(emp => emp.id === (user?.employeeId || user?.id));
  const hasNewRequestPermission = currentEmployee?.allowedMenus?.includes('New Request');
 
  const [isEditing, setIsEditing] = useState(true);

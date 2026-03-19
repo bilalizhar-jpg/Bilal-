@@ -1,120 +1,236 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Fields: id, name, email, role, companyId, currentCompanyId, avatar, lastLogin
+    //
+    // Collection: employees
+    // Fields: id, companyId, employeeId, name, email, mobile, dob, designation, joiningDate, status, ...
+    //
+    // Collection: auditLogs
+    // Fields: companyId, userId, userName, action, module, recordId, description, timestamp
+    //
+    // Collection: timeTracking
+    // Fields: companyId, employeeId, date, status, lastActive
+    //
+    // Collection: attendance
+    // Fields: companyId, employeeId, date, loginTime, currentState
+    //
+    // Generic Collections (awards, departments, designations, etc.):
+    // Fields: id, companyId, name, status, ...
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
     
-    // Helper functions
     function isAuthenticated() {
       return request.auth != null;
     }
-    
-    // PUBLIC READ COLLECTIONS
-    // These collections must be publicly readable because the application uses 
-    // a custom authentication system (client-side check) for Company Admins and Employees,
-    // meaning they are NOT authenticated in Firebase Auth when accessing this data.
-    
-    match /companies/{companyId} {
-      allow read: if true;
-      allow write: if true;
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin' ||
+          (request.auth.token.email == "bilal.izhar@algorepublic.com" && request.auth.token.email_verified == true));
+    }
+
+    function isSuperAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin' ||
+          (request.auth.token.email == "bilal.izhar@algorepublic.com" && request.auth.token.email_verified == true));
+    }
+
+    function belongsToCompany(companyId) {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.currentCompanyId == companyId ||
+         isSuperAdmin());
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['id', 'name', 'role']) &&
+             data.id is string &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.role in ['admin', 'employee', 'superadmin'];
+    }
+
+    function isValidEmployee(data) {
+      return data.keys().hasAll(['id', 'companyId', 'employeeId', 'name', 'status']) &&
+             data.id is string &&
+             data.companyId is string &&
+             data.employeeId is string &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.status in ['Active', 'Inactive', 'Terminated', 'Resigned'];
+    }
+
+    function isValidAuditLog(data) {
+      return data.keys().hasAll(['companyId', 'userId', 'userName', 'action', 'module', 'description', 'timestamp']) &&
+             data.companyId is string &&
+             data.userId is string &&
+             data.userName is string &&
+             data.action is string &&
+             data.module is string &&
+             data.description is string &&
+             data.timestamp is string;
+    }
+
+    function isValidGeneric(data) {
+      return data.keys().hasAll(['id', 'companyId', 'name']) &&
+             data.id is string &&
+             data.companyId is string &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 200;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && isValidUser(request.resource.data) && 
+                    (isOwner(userId) || isSuperAdmin());
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && 
+                    (isOwner(userId) || isSuperAdmin()) &&
+                    (request.resource.data.role == resource.data.role || isSuperAdmin());
     }
 
     match /employees/{employeeId} {
-      allow read: if true;
-      allow write: if true;
+      allow read: if belongsToCompany(resource.data.companyId);
+      allow create: if isAuthenticated() && isValidEmployee(request.resource.data) && 
+                    belongsToCompany(request.resource.data.companyId) && isAdmin();
+      allow update: if isAuthenticated() && isValidEmployee(request.resource.data) && 
+                    belongsToCompany(resource.data.companyId) && isAdmin();
+      allow delete: if isAuthenticated() && belongsToCompany(resource.data.companyId) && isAdmin();
+    }
+
+    match /auditLogs/{logId} {
+      allow read: if belongsToCompany(resource.data.companyId) && isAdmin();
+      allow create: if isAuthenticated() && isValidAuditLog(request.resource.data) && 
+                    belongsToCompany(request.resource.data.companyId);
+    }
+
+    match /timeTracking/{trackingId} {
+      allow read: if belongsToCompany(resource.data.companyId);
+      allow write: if isAuthenticated() && belongsToCompany(request.resource.data.companyId);
+    }
+
+    match /attendance/{attendanceId} {
+      allow read: if belongsToCompany(resource.data.companyId);
+      allow write: if isAuthenticated() && belongsToCompany(request.resource.data.companyId);
+    }
+
+    match /test/connection {
+      allow get: if isAuthenticated();
+    }
+
+    match /companies/{companyId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isSuperAdmin();
     }
 
     match /invoices/{invoiceId} {
-      allow read: if true;
-      allow write: if true;
+      allow read: if belongsToCompany(resource.data.companyId);
+      allow create, update, delete: if belongsToCompany(request.resource.data.companyId) && isAdmin();
     }
 
-    // Collections used by Company Admin/Employee (Custom Auth)
-    match /letters/{document=**} { allow read: if true; allow write: if true; }
-    match /letterTemplates/{document=**} { allow read: if true; allow write: if true; }
-    match /leaves/{document=**} { allow read: if true; allow write: if true; }
-    match /attendance/{document=**} { allow read: if true; allow write: if true; }
-    match /policies/{document=**} { allow read: if true; allow write: if true; }
-    match /timeTracking/{document=**} { allow read: if true; allow write: if true; }
-    match /company_invoices/{document=**} { allow read: if true; allow write: if true; }
-    match /leave_types/{document=**} { allow read: if true; allow write: if true; }
-    match /holidays/{document=**} { allow read: if true; allow write: if true; }
-    match /weekly_holidays/{document=**} { allow read: if true; allow write: if true; }
-    match /orgChartTemplates/{document=**} { allow read: if true; allow write: if true; }
-    
-    // Company Data Collections
-    match /awards/{document=**} { allow read: if true; allow write: if true; }
-    match /departments/{document=**} { allow read: if true; allow write: if true; }
-    match /designations/{document=**} { allow read: if true; allow write: if true; }
-    match /subDepartments/{document=**} { allow read: if true; allow write: if true; }
-    match /notices/{document=**} { allow read: if true; allow write: if true; }
-    match /projects/{document=**} { allow read: if true; allow write: if true; }
-    match /assets/{document=**} { allow read: if true; allow write: if true; }
-    match /tasks/{document=**} { allow read: if true; allow write: if true; }
-    match /hr_jobs/{document=**} { allow read: if true; allow write: if true; }
-    match /hr_applications/{document=**} { allow read: if true; allow write: if true; }
-    match /candidates/{document=**} { allow read: if true; allow write: if true; }
-    match /milestones/{document=**} { allow read: if true; allow write: if true; }
-    match /sales/{document=**} { allow read: if true; allow write: if true; }
-    match /payrollBatches/{document=**} { allow read: if true; allow write: if true; }
-    match /salaryRecords/{document=**} { allow read: if true; allow write: if true; }
-    match /payrolls/{document=**} { allow read: if true; allow write: if true; }
-    match /loans/{document=**} { allow read: if true; allow write: if true; }
-    match /chats/{document=**} { allow read: if true; allow write: if true; }
-    match /invitations/{document=**} { allow read: if true; allow write: if true; }
-    match /marketing_campaigns/{document=**} { allow read: if true; allow write: if true; }
-    match /marketing_logs/{document=**} { allow read: if true; allow write: if true; }
-    match /marketing_lists/{document=**} { allow read: if true; allow write: if true; }
-    match /settings/{document=**} { allow read: if true; allow write: if true; }
-    match /trainingPrograms/{document=**} { allow read: if true; allow write: if true; }
-    match /procurementRequests/{document=**} { allow read: if true; allow write: if true; }
-    match /procurementSettings/{document=**} { allow read: if true; allow write: if true; }
-    match /appraisals/{document=**} { allow read: if true; allow write: if true; }
-
-    // Accounts Collections
-    match /bankAccounts/{document=**} { allow read: if true; allow write: if true; }
-    match /bankTransfers/{document=**} { allow read: if true; allow write: if true; }
-    match /accountPayments/{document=**} { allow read: if true; allow write: if true; }
-    match /vouchers/{document=**} { allow read: if true; allow write: if true; }
-    match /ledgerGroups/{document=**} { allow read: if true; allow write: if true; }
-    match /ledgers/{document=**} { allow read: if true; allow write: if true; }
-    match /accountBills/{document=**} { allow read: if true; allow write: if true; }
-    match /accountPeople/{document=**} { allow read: if true; allow write: if true; }
-    match /salesOrders/{document=**} { allow read: if true; allow write: if true; }
-    match /quotations/{document=**} { allow read: if true; allow write: if true; }
-    match /journalEntries/{document=**} { allow read: if true; allow write: if true; }
-    match /journalLines/{document=**} { allow read: if true; allow write: if true; }
-    match /customers/{document=**} { allow read: if true; allow write: if true; }
-    match /invoices/{document=**} { allow read: if true; allow write: if true; }
-    match /invoiceItems/{document=**} { allow read: if true; allow write: if true; }
-    match /payments/{document=**} { allow read: if true; allow write: if true; }
-    match /vendors/{document=**} { allow read: if true; allow write: if true; }
-    match /expenses/{document=**} { allow read: if true; allow write: if true; }
-    match /bills/{document=**} { allow read: if true; allow write: if true; }
-    match /billItems/{document=**} { allow read: if true; allow write: if true; }
-    match /bankAccounts/{document=**} { allow read: if true; allow write: if true; }
-    match /transactions/{document=**} { allow read: if true; allow write: if true; }
-    match /accountInvoices/{document=**} { allow read: if true; allow write: if true; }
-    match /taxes/{document=**} { allow read: if true; allow write: if true; }
-    match /creditNotes/{document=**} { allow read: if true; allow write: if true; }
-    match /products/{document=**} { allow read: if true; allow write: if true; }
-    match /callLogs/{document=**} { allow read: if true; allow write: if true; }
-    match /bids/{document=**} { allow read: if true; allow write: if true; }
-    match /accounting_accounts/{document=**} { allow read: if true; allow write: if true; }
-    match /financialSettings/{document=**} { allow read: if true; allow write: if true; }
-    match /taxSettings/{document=**} { allow read: if true; allow write: if true; }
-    match /numberSequences/{document=**} { allow read: if true; allow write: if true; }
-    match /auditLogs/{document=**} { allow read: if true; allow write: if true; }
-    match /tickets/{ticketId} {
-      allow read, write: if true;
+    match /invoiceItems/{itemId} {
+      allow read: if belongsToCompany(resource.data.companyId);
+      allow create, update, delete: if belongsToCompany(request.resource.data.companyId) && isAdmin();
     }
 
-    // Users (Super Admin) - Keep restricted
-    match /users/{userId} {
-      allow read, write: if isAuthenticated();
+    match /weekly_holidays/{holidayId} {
+      allow read: if belongsToCompany(resource.data.companyId);
+      allow create, update, delete: if belongsToCompany(request.resource.data.companyId) && isAdmin();
     }
-    
-    // Default deny
-    match /{document=**} {
-      allow read, write: if true;
+
+    // Generic collections
+    match /{collectionName}/{entityId} {
+      allow read: if collectionName in [
+        'awards', 'departments', 'designations', 'subDepartments', 'notices', 
+        'projects', 'assets', 'tasks', 'sales', 'milestones', 'loans', 
+        'payrolls', 'payrollBatches', 'salaryRecords', 'orgChartTemplates', 
+        'procurementRequests', 'procurementSettings', 'crm_companies', 
+        'products', 'salesOrders', 'quotations', 'bids', 'callLogs', 'tickets',
+        'idle_alert_settings', 'idle_alert_logs', 'attendance_alert_settings',
+        'attendance_alert_logs', 'employee_welcome_settings', 'vendors', 'expenses',
+        'bills', 'billItems', 'bankAccounts', 'bankTransactions', 'fiscalYears',
+        'journalEntries', 'journalLines', 'accounts', 'customers', 'marketingLists',
+        'campaigns', 'campaignLogs', 'trainingPrograms', 'policies', 'letters',
+        'letterTemplates', 'invitations', 'chats'
+      ] && (
+        (collectionName == 'crm_companies' && isSuperAdmin()) ||
+        belongsToCompany(resource.data.companyId)
+      );
+      
+      allow create: if collectionName in [
+        'awards', 'departments', 'designations', 'subDepartments', 'notices', 
+        'projects', 'assets', 'tasks', 'sales', 'milestones', 'loans', 
+        'payrolls', 'payrollBatches', 'salaryRecords', 'orgChartTemplates', 
+        'procurementRequests', 'procurementSettings', 'crm_companies', 
+        'products', 'salesOrders', 'quotations', 'bids', 'callLogs', 'tickets',
+        'idle_alert_settings', 'idle_alert_logs', 'attendance_alert_settings',
+        'attendance_alert_logs', 'employee_welcome_settings', 'vendors', 'expenses',
+        'bills', 'billItems', 'bankAccounts', 'bankTransactions', 'fiscalYears',
+        'journalEntries', 'journalLines', 'accounts', 'customers', 'marketingLists',
+        'campaigns', 'campaignLogs', 'trainingPrograms', 'policies', 'letters',
+        'letterTemplates', 'invitations', 'chats'
+      ] && isValidGeneric(request.resource.data) && (
+        (collectionName == 'crm_companies' && isSuperAdmin()) ||
+        (belongsToCompany(request.resource.data.companyId) && isAdmin())
+      );
+
+      allow update: if collectionName in [
+        'awards', 'departments', 'designations', 'subDepartments', 'notices', 
+        'projects', 'assets', 'tasks', 'sales', 'milestones', 'loans', 
+        'payrolls', 'payrollBatches', 'salaryRecords', 'orgChartTemplates', 
+        'procurementRequests', 'procurementSettings', 'crm_companies', 
+        'products', 'salesOrders', 'quotations', 'bids', 'callLogs', 'tickets',
+        'idle_alert_settings', 'idle_alert_logs', 'attendance_alert_settings',
+        'attendance_alert_logs', 'employee_welcome_settings', 'vendors', 'expenses',
+        'bills', 'billItems', 'bankAccounts', 'bankTransactions', 'fiscalYears',
+        'journalEntries', 'journalLines', 'accounts', 'customers', 'marketingLists',
+        'campaigns', 'campaignLogs', 'trainingPrograms', 'policies', 'letters',
+        'letterTemplates', 'invitations', 'chats'
+      ] && isValidGeneric(request.resource.data) && (
+        (collectionName == 'crm_companies' && isSuperAdmin()) ||
+        (belongsToCompany(resource.data.companyId) && isAdmin())
+      );
+
+      allow delete: if collectionName in [
+        'awards', 'departments', 'designations', 'subDepartments', 'notices', 
+        'projects', 'assets', 'tasks', 'sales', 'milestones', 'loans', 
+        'payrolls', 'payrollBatches', 'salaryRecords', 'orgChartTemplates', 
+        'procurementRequests', 'procurementSettings', 'crm_companies', 
+        'products', 'salesOrders', 'quotations', 'bids', 'callLogs', 'tickets',
+        'idle_alert_settings', 'idle_alert_logs', 'attendance_alert_settings',
+        'attendance_alert_logs', 'employee_welcome_settings', 'vendors', 'expenses',
+        'bills', 'billItems', 'bankAccounts', 'bankTransactions', 'fiscalYears',
+        'journalEntries', 'journalLines', 'accounts', 'customers', 'marketingLists',
+        'campaigns', 'campaignLogs', 'trainingPrograms', 'policies', 'letters',
+        'letterTemplates', 'invitations', 'chats'
+      ] && (
+        (collectionName == 'crm_companies' && isSuperAdmin()) ||
+        (belongsToCompany(resource.data.companyId) && isAdmin())
+      );
     }
   }
 }

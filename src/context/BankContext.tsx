@@ -48,22 +48,22 @@ interface BankContextType {
 
 const BankContext = createContext<BankContextType | undefined>(undefined);
 
-export function BankProvider({ children}: { children: React.ReactNode}) {
- const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
- const [bankTransactions, setBankTransactions] = useState<BankTransaction[]>([]);
- const [loading, setLoading] = useState(true);
- const [error, setError] = useState<string | null>(null);
- const { user} = useAuth();
- const activeCompanyId = user?.currentCompanyId || user?.companyId;
- const { addJournalEntry, accounts} = useAccounting();
+export function BankProvider({ children }: { children: React.ReactNode }) {
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
+  const [bankTransactions, setBankTransactions] = useState<BankTransaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { user, isFirebaseReady } = useAuth();
+  const activeCompanyId = user?.currentCompanyId || user?.companyId;
+  const { addJournalEntry, accounts } = useAccounting();
 
- useEffect(() => {
- if (!activeCompanyId) {
- setBankAccounts([]);
- setBankTransactions([]);
- setLoading(false);
- return;
-}
+  useEffect(() => {
+    if (!isFirebaseReady || !activeCompanyId) {
+      setBankAccounts([]);
+      setBankTransactions([]);
+      setLoading(false);
+      return;
+    }
 
  const qAccounts = query(
  collection(db, 'bankAccounts'),
@@ -87,11 +87,11 @@ export function BankProvider({ children}: { children: React.ReactNode}) {
  setLoading(false);
 });
 
- return () => {
- unsubscribeAccounts();
- unsubscribeTransactions();
-};
-}, [activeCompanyId]);
+  return () => {
+    unsubscribeAccounts();
+    unsubscribeTransactions();
+  };
+}, [activeCompanyId, isFirebaseReady]);
 
  const addBankAccount = async (data: Omit<BankAccount, 'id' | 'companyId' | 'currentBalance' | 'createdAt' | 'updatedAt'>) => {
  if (!activeCompanyId) throw new Error('No company ID found');

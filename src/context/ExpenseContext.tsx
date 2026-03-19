@@ -36,15 +36,15 @@ export function ExpenseProvider({ children}: { children: React.ReactNode}) {
  const [expenses, setExpenses] = useState<Expense[]>([]);
  const [loading, setLoading] = useState(true);
  const [error, setError] = useState<string | null>(null);
- const { user} = useAuth();
- const activeCompanyId = user?.currentCompanyId || user?.companyId;
+  const { user, isFirebaseReady } = useAuth();
+  const activeCompanyId = user?.currentCompanyId || user?.companyId;
 
- useEffect(() => {
- if (!activeCompanyId) {
- setExpenses([]);
- setLoading(false);
- return;
-}
+  useEffect(() => {
+    if (!isFirebaseReady || !activeCompanyId) {
+      setExpenses([]);
+      setLoading(false);
+      return;
+    }
 
  const q = query(
  collection(db, 'expenses'),
@@ -67,8 +67,8 @@ export function ExpenseProvider({ children}: { children: React.ReactNode}) {
  setLoading(false);
 });
 
- return () => unsubscribe();
-}, [activeCompanyId]);
+  return () => unsubscribe();
+}, [activeCompanyId, isFirebaseReady]);
 
  const addExpense = async (data: Omit<Expense, 'id' | 'companyId' | 'createdAt' | 'updatedAt'>) => {
  if (!activeCompanyId) throw new Error('No company ID found');

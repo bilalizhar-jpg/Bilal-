@@ -105,7 +105,7 @@ export function SettingsProvider({ children}: { children: React.ReactNode}) {
  const [taxSettings, setTaxSettings] = useState<TaxSetting[]>([]);
  const [numberSequences, setNumberSequences] = useState<NumberSequence[]>([]);
  const [loading, setLoading] = useState(true);
- const { user} = useAuth();
+  const { user, isFirebaseReady } = useAuth();
  const activeCompanyId = user?.currentCompanyId || user?.companyId;
 
  // Compatibility states
@@ -139,14 +139,14 @@ export function SettingsProvider({ children}: { children: React.ReactNode}) {
  const updateCurrency = (code: string, curr: Currency) => setCurrencies(currencies.map(c => c.code === code ? curr : c));
  const deleteCurrency = (code: string) => setCurrencies(currencies.filter(c => c.code !== code));
 
- useEffect(() => {
- if (!activeCompanyId) {
- setFinancialSettings(null);
- setTaxSettings([]);
- setNumberSequences([]);
- setLoading(false);
- return;
-}
+  useEffect(() => {
+    if (!isFirebaseReady || !activeCompanyId) {
+      setFinancialSettings(null);
+      setTaxSettings([]);
+      setNumberSequences([]);
+      setLoading(false);
+      return;
+    }
 
  const unsubFinancial = onSnapshot(doc(db, 'financialSettings', activeCompanyId), (docSnap) => {
  if (docSnap.exists()) {
@@ -199,12 +199,12 @@ export function SettingsProvider({ children}: { children: React.ReactNode}) {
  setLoading(false);
 });
 
- return () => {
- unsubFinancial();
- unsubTax();
- unsubSeq();
-};
-}, [activeCompanyId]);
+  return () => {
+    unsubFinancial();
+    unsubTax();
+    unsubSeq();
+  };
+}, [activeCompanyId, isFirebaseReady]);
 
  const updateFinancialSettings = async (data: Partial<FinancialSettings>) => {
  if (!activeCompanyId) return;

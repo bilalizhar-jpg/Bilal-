@@ -41,17 +41,17 @@ import { useAuth} from './AuthContext';
 
 // ... imports
 
-export const PolicyProvider = ({ children}: { children: ReactNode}) => {
- const { user} = useAuth();
- const [policies, setPolicies] = useState<CompanyPolicy[]>([]);
- const [loading, setLoading] = useState(true);
+export const PolicyProvider = ({ children }: { children: ReactNode }) => {
+  const { user, isFirebaseReady } = useAuth();
+  const [policies, setPolicies] = useState<CompanyPolicy[]>([]);
+  const [loading, setLoading] = useState(true);
 
- useEffect(() => {
- if (!user) {
- setPolicies([]);
- setLoading(false);
- return;
-}
+  useEffect(() => {
+    if (!isFirebaseReady || !user) {
+      setPolicies([]);
+      setLoading(false);
+      return;
+    }
 
  const q = query(collection(db, 'policies'));
  const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -62,8 +62,8 @@ export const PolicyProvider = ({ children}: { children: ReactNode}) => {
  handleFirestoreError(error, OperationType.LIST, 'policies');
 });
 
- return () => unsubscribe();
-}, [user]);
+  return () => unsubscribe();
+}, [user?.id, isFirebaseReady]);
 
  const addPolicy = async (policy: Omit<CompanyPolicy, 'id' | 'dateAdded'>) => {
  const id = Math.random().toString(36).substr(2, 9);

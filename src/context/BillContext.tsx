@@ -46,16 +46,16 @@ export function BillProvider({ children}: { children: React.ReactNode}) {
  const [billItems, setBillItems] = useState<BillItem[]>([]);
  const [loading, setLoading] = useState(true);
  const [error, setError] = useState<string | null>(null);
- const { user} = useAuth();
- const activeCompanyId = user?.currentCompanyId || user?.companyId;
+  const { user, isFirebaseReady } = useAuth();
+  const activeCompanyId = user?.currentCompanyId || user?.companyId;
 
- useEffect(() => {
- if (!activeCompanyId) {
- setBills([]);
- setBillItems([]);
- setLoading(false);
- return;
-}
+  useEffect(() => {
+    if (!isFirebaseReady || !activeCompanyId) {
+      setBills([]);
+      setBillItems([]);
+      setLoading(false);
+      return;
+    }
 
  const billsQuery = query(collection(db, 'bills'), where('companyId', '==', activeCompanyId));
  const itemsQuery = query(collection(db, 'billItems'), where('companyId', '==', activeCompanyId));
@@ -72,11 +72,11 @@ export function BillProvider({ children}: { children: React.ReactNode}) {
  setLoading(false);
 });
 
- return () => {
- unsubscribeBills();
- unsubscribeItems();
-};
-}, [activeCompanyId]);
+  return () => {
+    unsubscribeBills();
+    unsubscribeItems();
+  };
+}, [activeCompanyId, isFirebaseReady]);
 
  const addBill = async (billData: Omit<Bill, 'id' | 'companyId' | 'createdAt' | 'updatedAt'>, items: Omit<BillItem, 'id' | 'companyId' | 'billId'>[]) => {
  if (!activeCompanyId) throw new Error('No company ID found');

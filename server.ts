@@ -44,20 +44,6 @@ async function startServer() {
   AttendanceAlertService.init();
   IdleAlertService.init();
 
-  // Auto-reconnect existing sessions on startup
-  try {
-    const snapshot = await db.collection('whatsapp_accounts').where('status', '==', 'connected').get();
-    for (const doc of snapshot.docs) {
-      const account = doc.data();
-      console.log(`Auto-reconnecting WhatsApp for company: ${account.companyId}`);
-      WhatsAppService.connect(account.companyId, () => {}, () => {}).catch(err => {
-        console.error(`Failed to auto-reconnect for ${account.companyId}:`, err);
-      });
-    }
-  } catch (err) {
-    console.error('Failed to initialize auto-reconnection:', err);
-  }
-
   // Vite middleware for development
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
@@ -75,6 +61,22 @@ async function startServer() {
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://localhost:${PORT}`);
+    
+    // Auto-reconnect existing sessions after startup
+    (async () => {
+      try {
+        const snapshot = await db.collection('whatsapp_accounts').where('status', '==', 'connected').get();
+        for (const doc of snapshot.docs) {
+          const account = doc.data();
+          console.log(`Auto-reconnecting WhatsApp for company: ${account.companyId}`);
+          WhatsAppService.connect(account.companyId, () => {}, () => {}).catch(err => {
+            console.error(`Failed to auto-reconnect for ${account.companyId}:`, err);
+          });
+        }
+      } catch (err) {
+        console.error('Failed to initialize auto-reconnection:', err);
+      }
+    })();
   });
 }
 

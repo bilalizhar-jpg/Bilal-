@@ -96,17 +96,26 @@ export const useSuperAdmin = () => {
  return context;
 };
 
-export const SuperAdminProvider = ({ children}: { children: ReactNode}) => {
- const { user} = useAuth(); // Import useAuth
- const [companies, setCompanies] = useState<Company[]>([]);
- const [invoices, setInvoices] = useState<Invoice[]>([]);
- const [loading, setLoading] = useState(true);
- const [error, setError] = useState<string | null>(null);
+export const SuperAdminProvider = ({ children }: { children: ReactNode }) => {
+  const { user, isFirebaseReady } = useAuth(); // Import useAuth
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
- useEffect(() => {
- // Companies are needed for login, so fetch them always (assuming public read rule)
- const qCompanies = query(collection(db, 'companies'));
- const unsubscribeCompanies = onSnapshot(qCompanies, (snapshot) => {
+  useEffect(() => {
+    if (!isFirebaseReady) return;
+    
+    // Only fetch if authenticated
+    if (!user) {
+      setCompanies([]);
+      setInvoices([]);
+      setLoading(false);
+      return;
+    }
+
+    const qCompanies = query(collection(db, 'companies'));
+    const unsubscribeCompanies = onSnapshot(qCompanies, (snapshot) => {
  if (snapshot.empty) {
  // Migration from localStorage if Firestore is empty
  const migrate = async () => {
@@ -169,11 +178,11 @@ export const SuperAdminProvider = ({ children}: { children: ReactNode}) => {
  setInvoices([]);
 }
 
- return () => {
- unsubscribeCompanies();
- unsubscribeInvoices();
-};
-}, [user]); // Re-run when user changes
+  return () => {
+    unsubscribeCompanies();
+    unsubscribeInvoices();
+  };
+}, [user?.id, user?.role, isFirebaseReady]); // Re-run when user or readiness changes
 
  const addCompany = async (company: Omit<Company, 'id' | 'status' | 'blockedMenus' | 'isActive'>) => {
  const companyId = Date.now().toString();

@@ -1,179 +1,32 @@
 {
   "entities": {
-    "WhatsappAccount": {
-      "title": "Whatsapp Account",
-      "description": "A whatsapp account for a company",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "sessionData": { "type": "string" },
-        "status": { "type": "string" },
-        "createdAt": { "type": "string" }
-      },
-      "required": ["id", "companyId"]
-    },
-    "WhatsappMessage": {
-      "title": "Whatsapp Message",
-      "description": "A whatsapp message",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "toNumber": { "type": "string" },
-        "message": { "type": "string" },
-        "status": { "type": "string" },
-        "responseLog": { "type": "string" },
-        "retryCount": { "type": "number" },
-        "createdAt": { "type": "string" }
-      },
-      "required": ["id", "companyId", "toNumber", "message"]
-    },
-    "AttendanceAlertSettings": {
-      "title": "Attendance Alert Settings",
-      "description": "Settings for attendance alerts",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "officeTime": { "type": "string" },
-        "graceTime": { "type": "string" },
-        "triggerTime": { "type": "string" },
-        "messageTemplate": { "type": "string" },
-        "isActive": { "type": "boolean" },
-        "updatedAt": { "type": "string" }
-      },
-      "required": ["id", "companyId"]
-    },
-    "AttendanceAlertLog": {
-      "title": "Attendance Alert Log",
-      "description": "Log of attendance alerts",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "employeeId": { "type": "string" },
-        "date": { "type": "string" },
-        "status": { "type": "string" },
-        "createdAt": { "type": "string" }
-      },
-      "required": ["id", "companyId", "employeeId", "date"]
-    },
-    "IdleAlertSettings": {
-      "title": "Idle Alert Settings",
-      "description": "Settings for idle alerts",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "idleMinutes": { "type": "number" },
-        "messageTemplate": { "type": "string" },
-        "isActive": { "type": "boolean" },
-        "updatedAt": { "type": "string" }
-      },
-      "required": ["id", "companyId"]
-    },
-    "IdleAlertLog": {
-      "title": "Idle Alert Log",
-      "description": "Log of idle alerts",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "employeeId": { "type": "string" },
-        "lastAlertTime": { "type": "string" },
-        "idleSessionStart": { "type": "string" },
-        "status": { "type": "string" }
-      },
-      "required": ["id", "companyId", "employeeId"]
-    },
-    "EmployeeWelcomeSettings": {
-      "title": "Employee Welcome Settings",
-      "description": "Settings for employee welcome messages",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "isActive": { "type": "boolean" },
-        "messageTemplate": { "type": "string" },
-        "updatedAt": { "type": "string" }
-      },
-      "required": ["id", "companyId"]
-    },
-    "Letter": {
-      "title": "Letter",
-      "description": "A letter (onboarding or offboarding)",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "category": { "type": "string" },
-        "type": { "type": "string" },
-        "userId": { "type": "string" },
-        "customName": { "type": "string" },
-        "customEmail": { "type": "string" },
-        "title": { "type": "string" },
-        "date": { "type": "string" },
-        "description": { "type": "string" },
-        "status": { "type": "string", "enum": ["Saved", "Sent"] },
-        "address": { "type": "string" },
-        "mobile": { "type": "string" },
-        "subject": { "type": "string" },
-        "itClearance": { "type": "boolean" },
-        "hrClearance": { "type": "boolean" },
-        "financeClearance": { "type": "boolean" },
-        "adminClearance": { "type": "boolean" },
-        "reasonForLeaving": { "type": "string" },
-        "feedbackOnManagement": { "type": "string" },
-        "workEnvironmentReview": { "type": "string" }
-      },
-      "required": ["id", "category", "type", "title", "date", "description", "status"]
-    },
     "User": {
       "title": "User",
-      "description": "A system user (admin, superadmin, or employee)",
+      "description": "A user of the system, can be an admin, superadmin, or employee.",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "email": { "type": "string" },
         "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
         "role": { "type": "string", "enum": ["admin", "employee", "superadmin"] },
+        "employeeId": { "type": "string" },
+        "companyId": { "type": "string" },
+        "currentCompanyId": { "type": "string" },
         "avatar": { "type": "string" },
-        "createdAt": { "type": "string" },
-        "lastLogin": { "type": "string" }
+        "lastLogin": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "email", "role"]
-    },
-    "Company": {
-      "title": "Company",
-      "description": "A registered company in the system",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "email": { "type": "string" },
-        "website": { "type": "string" },
-        "phone": { "type": "string" },
-        "address": { "type": "string" },
-        "logo": { "type": "string" },
-        "adminUsername": { "type": "string" },
-        "adminPassword": { "type": "string" },
-        "isActive": { "type": "boolean" },
-        "blockedMenus": { "type": "array", "items": { "type": "string" } },
-        "subscriptionPlan": { "type": "string", "enum": ["Basic", "Pro", "Enterprise"] },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "name", "adminUsername", "adminPassword"]
+      "required": ["id", "name", "role"]
     },
     "Employee": {
       "title": "Employee",
-      "description": "An employee belonging to a company",
+      "description": "An employee record within a company.",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
         "companyId": { "type": "string" },
         "employeeId": { "type": "string" },
         "name": { "type": "string" },
-        "email": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
         "mobile": { "type": "string" },
         "dob": { "type": "string" },
         "designation": { "type": "string" },
@@ -183,1175 +36,122 @@
         "nationalId": { "type": "string" },
         "department": { "type": "string" },
         "employeeType": { "type": "string" },
-        "country": { "type": "string" },
-        "gender": { "type": "string" },
-        "maritalStatus": { "type": "string" },
-        "avatar": { "type": "string" },
+        "location": { "type": "string" },
+        "city": { "type": "string" },
+        "username": { "type": "string" },
+        "password": { "type": "string" },
         "salary": { "type": "number" },
         "taxDeduction": { "type": "number" },
         "bankName": { "type": "string" },
         "bankAccountNo": { "type": "string" },
-        "modeOfPayment": { "type": "string" },
-        "username": { "type": "string" },
-        "password": { "type": "string" }
+        "modeOfPayment": { "type": "string" }
       },
-      "required": ["id", "companyId", "employeeId", "name"]
+      "required": ["id", "companyId", "employeeId", "name", "status"]
     },
-    "Holiday": {
-      "title": "Holiday",
-      "description": "A public or company holiday",
+    "AuditLog": {
+      "title": "Audit Log",
+      "description": "A log of an action performed in the system.",
       "type": "object",
       "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "fromDate": { "type": "string" },
-        "toDate": { "type": "string" },
-        "totalDays": { "type": "number" }
-      },
-      "required": ["id", "name", "fromDate", "toDate"]
-    },
-    "WeeklyHoliday": {
-      "title": "Weekly Holiday",
-      "description": "Weekly recurring holidays",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "days": { "type": "array", "items": { "type": "string" } }
-      },
-      "required": ["id", "days"]
-    },
-    "LeaveType": {
-      "title": "Leave Type",
-      "description": "Type of leave available to employees",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "days": { "type": "number" },
-        "customFields": { 
-          "type": "array", 
-          "items": { 
-            "type": "object",
-            "properties": {
-              "key": { "type": "string" },
-              "value": { "type": "string" }
-            }
-          } 
-        }
-      },
-      "required": ["id", "name", "days"]
-    },
-    "Invoice": {
-      "title": "Invoice",
-      "description": "An invoice generated for a company",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
         "companyId": { "type": "string" },
-        "invoiceNumber": { "type": "string" },
-        "date": { "type": "string" },
-        "dueDate": { "type": "string" },
-        "status": { "type": "string", "enum": ["Paid", "Unpaid", "Overdue"] },
-        "totalAmount": { "type": "number" },
-        "items": { "type": "array" },
-        "notes": { "type": "string" },
-        "terms": { "type": "string" }
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "action": { "type": "string" },
+        "module": { "type": "string" },
+        "recordId": { "type": "string" },
+        "description": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "companyId", "invoiceNumber"]
+      "required": ["companyId", "userId", "userName", "action", "module", "description", "timestamp"]
     },
-    "AttendanceRecord": {
-      "title": "AttendanceRecord",
-      "description": "Daily attendance log for an employee",
+    "TimeTracking": {
+      "title": "Time Tracking",
+      "description": "A record of an employee's time tracking for a specific day.",
       "type": "object",
       "properties": {
-        "id": { "type": "string" },
         "companyId": { "type": "string" },
         "employeeId": { "type": "string" },
-        "employeeName": { "type": "string" },
+        "date": { "type": "string" },
+        "status": { "type": "string" },
+        "lastActive": { "type": "number" }
+      },
+      "required": ["companyId", "employeeId", "date", "status"]
+    },
+    "Attendance": {
+      "title": "Attendance",
+      "description": "An attendance record for an employee.",
+      "type": "object",
+      "properties": {
+        "companyId": { "type": "string" },
+        "employeeId": { "type": "string" },
         "date": { "type": "string" },
         "loginTime": { "type": "string" },
-        "logoutTime": { "type": "string" },
-        "workingHours": { "type": "string" },
-        "totalMinutes": { "type": "number" },
-        "status": { "type": "string" },
-        "logs": { "type": "array" },
         "currentState": { "type": "string" }
       },
-      "required": ["id", "companyId", "employeeId", "date"]
+      "required": ["companyId", "employeeId", "date"]
     },
-    "LeaveRequest": {
-      "title": "LeaveRequest",
-      "description": "A leave request submitted by an employee",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "employeeId": { "type": "string" },
-        "employeeName": { "type": "string" },
-        "type": { "type": "string" },
-        "startDate": { "type": "string" },
-        "endDate": { "type": "string" },
-        "days": { "type": "number" },
-        "reason": { "type": "string" },
-        "status": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] },
-        "appliedDate": { "type": "string" }
-      },
-      "required": ["id", "companyId", "employeeId", "status"]
-    },
-    "Award": {
-      "title": "Award",
-      "description": "An award given to an employee",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "awardName": { "type": "string" },
-        "description": { "type": "string" },
-        "giftItem": { "type": "string" },
-        "date": { "type": "string" },
-        "employeeName": { "type": "string" },
-        "awardBy": { "type": "string" }
-      },
-      "required": ["id", "companyId", "awardName", "employeeName"]
-    },
-    "Department": {
-      "title": "Department",
-      "description": "A department within a company",
+    "GenericEntity": {
+      "title": "Generic Entity",
+      "description": "A generic entity used for various lists like departments, designations, etc.",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
         "companyId": { "type": "string" },
         "name": { "type": "string" },
-        "head": { "type": "string" }
-      },
-      "required": ["id", "companyId", "name"]
-    },
-    "Designation": {
-      "title": "Designation",
-      "description": "A job designation within a company",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "name": { "type": "string" },
-        "status": { "type": "string", "enum": ["Active", "Inactive"] },
-        "isDeleted": { "type": "boolean" },
-        "deletedAt": { "type": "number" }
-      },
-      "required": ["id", "companyId", "name"]
-    },
-    "SubDepartment": {
-      "title": "SubDepartment",
-      "description": "A sub-department within a department",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "name": { "type": "string" },
-        "parentDept": { "type": "string" },
-        "status": { "type": "string", "enum": ["Active", "Inactive"] }
-      },
-      "required": ["id", "companyId", "name", "parentDept"]
-    },
-    "Notice": {
-      "title": "Notice",
-      "description": "A notice posted on the board",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "title": { "type": "string" },
-        "description": { "type": "string" },
-        "date": { "type": "string" },
-        "postedBy": { "type": "string" }
-      },
-      "required": ["id", "companyId", "title"]
-    },
-    "Project": {
-      "title": "Project",
-      "description": "A project managed by the company",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "name": { "type": "string" },
-        "description": { "type": "string" },
-        "status": { "type": "string" },
-        "deadline": { "type": "string" },
-        "team": { "type": "array" }
-      },
-      "required": ["id", "companyId", "name"]
-    },
-    "Asset": {
-      "title": "Asset",
-      "description": "A company asset",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "name": { "type": "string" },
-        "type": { "type": "string" },
-        "serialNumber": { "type": "string" },
         "status": { "type": "string" }
       },
       "required": ["id", "companyId", "name"]
-    },
-    "Task": {
-      "title": "Task",
-      "description": "A task within a project",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "projectId": { "type": "string" },
-        "title": { "type": "string" },
-        "description": { "type": "string" },
-        "assignee": { "type": "string" },
-        "priority": { "type": "string", "enum": ["Low", "Medium", "High"] },
-        "status": { "type": "string", "enum": ["To Do", "In Progress", "Review", "Done"] }
-      },
-      "required": ["id", "companyId", "projectId", "title"]
-    },
-    "Milestone": {
-      "title": "Milestone",
-      "description": "A milestone within a project",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "projectId": { "type": "string" },
-        "title": { "type": "string" },
-        "description": { "type": "string" },
-        "dueDate": { "type": "string" },
-        "status": { "type": "string", "enum": ["Pending", "Completed"] },
-        "cost": { "type": "number" },
-        "progress": { "type": "number" }
-      },
-      "required": ["id", "companyId", "projectId", "title"]
-    },
-    "Sale": {
-      "title": "Sale",
-      "description": "A sale record for commission tracking",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "sellerName": { "type": "string" },
-        "productName": { "type": "string" },
-        "saleAmount": { "type": "number" },
-        "commissionPercentage": { "type": "number" },
-        "commissionAmount": { "type": "number" },
-        "payViaPayroll": { "type": "boolean" },
-        "date": { "type": "string" }
-      },
-      "required": ["id", "companyId", "sellerName", "saleAmount"]
-    },
-    "Chat": {
-      "title": "Chat",
-      "description": "A chat conversation (direct or group)",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "type": { "type": "string", "enum": ["direct", "group"] },
-        "name": { "type": "string" },
-        "participants": { "type": "array", "items": { "type": "string" } },
-        "adminIds": { "type": "array", "items": { "type": "string" } },
-        "lastMessage": { "type": "object" },
-        "createdAt": { "type": "string" }
-      },
-      "required": ["id", "companyId", "type", "participants"]
-    },
-    "Message": {
-      "title": "Message",
-      "description": "A message within a chat",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "chatId": { "type": "string" },
-        "senderId": { "type": "string" },
-        "text": { "type": "string" },
-        "timestamp": { "type": "string" },
-        "type": { "type": "string", "enum": ["text", "image", "file"] }
-      },
-      "required": ["id", "chatId", "senderId", "text"]
-    },
-    "Invitation": {
-      "title": "Invitation",
-      "description": "A chat invitation",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "fromUserId": { "type": "string" },
-        "toUserId": { "type": "string" },
-        "type": { "type": "string", "enum": ["direct", "group"] },
-        "chatId": { "type": "string" },
-        "groupName": { "type": "string" },
-        "status": { "type": "string", "enum": ["pending", "accepted", "rejected"] },
-        "timestamp": { "type": "string" }
-      },
-      "required": ["id", "companyId", "fromUserId", "toUserId", "status"]
-    },
-    "PayrollBatch": {
-      "title": "Payroll Batch",
-      "description": "A batch of salaries generated for a specific month",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "salaryName": { "type": "string" },
-        "generateDate": { "type": "string" },
-        "generateBy": { "type": "string" },
-        "status": { "type": "string", "enum": ["Pending", "Approved"] },
-        "approvedDate": { "type": "string" },
-        "approvedBy": { "type": "string" }
-      },
-      "required": ["id", "companyId", "salaryName"]
-    },
-    "SalaryRecord": {
-      "title": "Salary Record",
-      "description": "Individual salary record for an employee",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "employeeId": { "type": "string" },
-        "employeeName": { "type": "string" },
-        "batchId": { "type": "string" },
-        "month": { "type": "string" },
-        "basicSalary": { "type": "number" },
-        "totalAllowance": { "type": "number" },
-        "totalDeduction": { "type": "number" },
-        "netSalary": { "type": "number" },
-        "status": { "type": "string", "enum": ["Paid", "Unpaid"] },
-        "payslipData": { "type": "string" }
-      },
-      "required": ["id", "companyId", "employeeId", "batchId"]
-    },
-    "Loan": {
-      "title": "Loan",
-      "description": "Employee loan record",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "employeeId": { "type": "string" },
-        "amount": { "type": "number" },
-        "status": { "type": "string" }
-      },
-      "required": ["id", "companyId", "employeeId", "amount"]
-    },
-    "Payroll": {
-      "title": "Payroll",
-      "description": "Payroll record",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" }
-      },
-      "required": ["id", "companyId"]
-    },
-    "Job": {
-      "title": "Job",
-      "description": "A job posting",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "title": { "type": "string" },
-        "location": { "type": "string" },
-        "type": { "type": "string" },
-        "workplace": { "type": "string" },
-        "salary": { "type": "string" },
-        "description": { "type": "string" },
-        "gender": { "type": "string" },
-        "nationality": { "type": "string" },
-        "experience": { "type": "string" },
-        "customQuestions": { "type": "array" },
-        "status": { "type": "string", "enum": ["draft", "published"] },
-        "createdAt": { "type": "string" }
-      },
-      "required": ["id", "companyId", "title", "status"]
-    },
-    "Candidate": {
-      "title": "Candidate",
-      "description": "A job candidate (applied, uploaded, or added)",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "jobId": { "type": "string" },
-        "jobTitle": { "type": "string" },
-        "candidateName": { "type": "string" },
-        "email": { "type": "string" },
-        "phone": { "type": "string" },
-        "cvFileName": { "type": "string" },
-        "cvUrl": { "type": "string" },
-        "cvText": { "type": "string" },
-        "stage": { "type": "string" },
-        "appliedAt": { "type": "string" },
-        "matchPercentage": { "type": "number" },
-        "skills": { "type": "array", "items": { "type": "string" } },
-        "education": { "type": "string" },
-        "university": { "type": "string" },
-        "country": { "type": "string" },
-        "currentJobTitle": { "type": "string" },
-        "expectedSalary": { "type": "string" },
-        "location": { "type": "string" },
-        "industry": { "type": "string" },
-        "gender": { "type": "string" },
-        "category": { "type": "string" }
-      },
-      "required": ["id", "companyId", "candidateName", "email", "stage"]
-    },
-    "Application": {
-      "title": "Application",
-      "description": "A job application",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "jobId": { "type": "string" },
-        "jobTitle": { "type": "string" },
-        "candidateName": { "type": "string" },
-        "email": { "type": "string" },
-        "phone": { "type": "string" },
-        "cvFileName": { "type": "string" },
-        "cvText": { "type": "string" },
-        "appliedAt": { "type": "string" },
-        "stage": { "type": "string" },
-        "customQuestionAnswers": { "type": "array" },
-        "matchPercentage": { "type": "number" }
-      },
-      "required": ["id", "jobId", "candidateName", "email", "stage"]
-    },
-    "BankAccount": {
-      "title": "Bank Account",
-      "description": "A bank account record",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "bankName": { "type": "string" },
-        "branch": { "type": "string" },
-        "accountName": { "type": "string" },
-        "accountHolder": { "type": "string" },
-        "accountNo": { "type": "string" },
-        "phone": { "type": "string" },
-        "initialBalance": { "type": "number" },
-        "internetBankingUrl": { "type": "string" },
-        "status": { "type": "string", "enum": ["Option 1", "Option 2"] }
-      },
-      "required": ["id", "companyId", "bankName", "accountNo"]
-    },
-    "BankTransfer": {
-      "title": "Bank Transfer",
-      "description": "A transfer between bank accounts",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "fromAccountId": { "type": "string" },
-        "toAccountId": { "type": "string" },
-        "amount": { "type": "number" },
-        "date": { "type": "string" },
-        "reference": { "type": "string" },
-        "description": { "type": "string" }
-      },
-      "required": ["id", "companyId", "fromAccountId", "toAccountId", "amount", "date"]
-    },
-    "AccountPayment": {
-      "title": "Account Payment",
-      "description": "A payment record (Voucher or Invoice)",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "type": { "type": "string", "enum": ["Voucher", "Invoice"] },
-        "category": { "type": "string" },
-        "amount": { "type": "number" },
-        "date": { "type": "string" },
-        "paymentMethod": { "type": "string" },
-        "reference": { "type": "string" },
-        "description": { "type": "string" },
-        "status": { "type": "string" }
-      },
-      "required": ["id", "companyId", "type", "amount", "date"]
-    },
-    "Voucher": {
-      "title": "Voucher",
-      "description": "A financial voucher (Debit, Credit, Journal)",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "voucherType": { "type": "string", "enum": ["Debit", "Credit", "Journal"] },
-        "voucherNumber": { "type": "string" },
-        "date": { "type": "string" },
-        "amount": { "type": "number" },
-        "description": { "type": "string" },
-        "items": { "type": "array" }
-      },
-      "required": ["id", "companyId", "voucherType", "date", "amount"]
-    },
-    "LedgerGroup": {
-      "title": "Ledger Group",
-      "description": "A group for organizing ledgers",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "name": { "type": "string" },
-        "type": { "type": "string", "enum": ["Asset", "Liability", "Equity", "Income", "Expense"] }
-      },
-      "required": ["id", "companyId", "name", "type"]
-    },
-    "Ledger": {
-      "title": "Ledger",
-      "description": "A general ledger account",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "groupId": { "type": "string" },
-        "name": { "type": "string" },
-        "openingBalance": { "type": "number" },
-        "currentBalance": { "type": "number" }
-      },
-      "required": ["id", "companyId", "groupId", "name"]
-    },
-    "AccountBill": {
-      "title": "Account Bill",
-      "description": "A bill for a vendor or customer",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "billType": { "type": "string", "enum": ["Vendor", "Customer"] },
-        "billNumber": { "type": "string" },
-        "personId": { "type": "string" },
-        "date": { "type": "string" },
-        "dueDate": { "type": "string" },
-        "amount": { "type": "number" },
-        "status": { "type": "string", "enum": ["Pending", "Paid", "Partial", "Overdue"] },
-        "items": { "type": "array" }
-      },
-      "required": ["id", "companyId", "billType", "billNumber", "personId", "amount"]
-    },
-    "AccountPerson": {
-      "title": "Account Person",
-      "description": "A person involved in accounts (Vendor, Supplier, Biller, Customer)",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "type": { "type": "string", "enum": ["Vendor", "Supplier", "Biller", "Customer"] },
-        "name": { "type": "string" },
-        "email": { "type": "string" },
-        "phone": { "type": "string" },
-        "address": { "type": "string" },
-        "openingBalance": { "type": "number" }
-      },
-      "required": ["id", "companyId", "type", "name"]
-    },
-    "SalesOrder": {
-      "title": "Sales Order",
-      "description": "A sales order record",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "orderId": { "type": "string" },
-        "customerId": { "type": "string" },
-        "date": { "type": "string" },
-        "orderValue": { "type": "number" },
-        "currency": { "type": "string" },
-        "netAmount": { "type": "number" },
-        "paymentStatus": { "type": "string" },
-        "orderStatus": { "type": "string" },
-        "description": { "type": "string" },
-        "products": { "type": "array" },
-        "notes": { "type": "string" },
-        "terms": { "type": "string" },
-        "customFields": { "type": "array" }
-      },
-      "required": ["id", "companyId", "orderId", "customerId"]
-    },
-    "Quotation": {
-      "title": "Quotation",
-      "description": "A quotation record",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "quoteId": { "type": "string" },
-        "customerId": { "type": "string" },
-        "date": { "type": "string" },
-        "validTill": { "type": "string" },
-        "amount": { "type": "number" },
-        "currency": { "type": "string" },
-        "status": { "type": "string" },
-        "description": { "type": "string" },
-        "products": { "type": "array" },
-        "notes": { "type": "string" },
-        "terms": { "type": "string" },
-        "customFields": { "type": "array" }
-      },
-      "required": ["id", "companyId", "quoteId", "customerId"]
-    },
-    "AccountingAccount": {
-      "title": "Accounting Account",
-      "description": "Chart of Accounts entry",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "code": { "type": "string" },
-        "name": { "type": "string" },
-        "type": { "type": "string", "enum": ["Asset", "Liability", "Equity", "Revenue", "Expense"] },
-        "parentAccountId": { "type": "string" },
-        "openingBalance": { "type": "number" },
-        "currentBalance": { "type": "number" },
-        "description": { "type": "string" },
-        "isActive": { "type": "boolean" },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "companyId", "code", "name", "type", "openingBalance", "currentBalance", "isActive", "createdAt", "updatedAt"]
-    },
-    "JournalEntry": {
-      "title": "Journal Entry",
-      "description": "A double-entry accounting journal entry",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "date": { "type": "string", "format": "date" },
-        "reference": { "type": "string" },
-        "description": { "type": "string" },
-        "totalDebit": { "type": "number" },
-        "totalCredit": { "type": "number" },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "createdBy": { "type": "string" }
-      },
-      "required": ["id", "companyId", "date", "reference", "description", "totalDebit", "totalCredit", "createdAt", "createdBy"]
-    },
-    "JournalLine": {
-      "title": "Journal Line",
-      "description": "A single line item in a journal entry",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "journalEntryId": { "type": "string" },
-        "accountId": { "type": "string" },
-        "description": { "type": "string" },
-        "debit": { "type": "number" },
-        "credit": { "type": "number" }
-      },
-      "required": ["id", "companyId", "journalEntryId", "accountId", "debit", "credit"]
-    },
-    "Customer": {
-      "title": "Customer",
-      "description": "A customer record",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "name": { "type": "string" },
-        "email": { "type": "string", "format": "email" },
-        "phone": { "type": "string" },
-        "address": { "type": "string" },
-        "taxNumber": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "companyId", "name", "createdAt", "updatedAt"]
-    },
-    "Invoice": {
-      "title": "Invoice",
-      "description": "A sales invoice",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "customerId": { "type": "string" },
-        "date": { "type": "string", "format": "date" },
-        "dueDate": { "type": "string", "format": "date" },
-        "totalAmount": { "type": "number" },
-        "status": { "type": "string" },
-        "journalEntryId": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "companyId", "customerId", "date", "dueDate", "totalAmount", "status", "createdAt", "updatedAt"]
-    },
-    "InvoiceItem": {
-      "title": "Invoice Item",
-      "description": "A line item on a sales invoice",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "invoiceId": { "type": "string" },
-        "product": { "type": "string" },
-        "quantity": { "type": "number" },
-        "price": { "type": "number" },
-        "tax": { "type": "number" },
-        "total": { "type": "number" }
-      },
-      "required": ["id", "companyId", "invoiceId", "product", "quantity", "price", "tax", "total"]
-    },
-    "Payment": {
-      "title": "Payment",
-      "description": "A customer payment",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "customerId": { "type": "string" },
-        "amount": { "type": "number" },
-        "paymentMethod": { "type": "string" },
-        "date": { "type": "string", "format": "date" },
-        "reference": { "type": "string" },
-        "journalEntryId": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "companyId", "customerId", "amount", "paymentMethod", "date", "createdAt", "updatedAt"]
-    },
-    "Vendor": {
-      "title": "Vendor",
-      "description": "A supplier or vendor",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "name": { "type": "string" },
-        "companyName": { "type": "string" },
-        "email": { "type": "string", "format": "email" },
-        "phone": { "type": "string" },
-        "address": { "type": "string" },
-        "taxNumber": { "type": "string" },
-        "paymentTerms": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "companyId", "name", "createdAt", "updatedAt"]
-    },
-    "Bill": {
-      "title": "Purchase Bill",
-      "description": "A bill from a vendor",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "vendorId": { "type": "string" },
-        "billNumber": { "type": "string" },
-        "date": { "type": "string", "format": "date" },
-        "dueDate": { "type": "string", "format": "date" },
-        "totalAmount": { "type": "number" },
-        "taxAmount": { "type": "number" },
-        "status": { "type": "string", "enum": ["draft", "open", "paid", "overdue"] },
-        "journalEntryId": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "companyId", "vendorId", "date", "dueDate", "totalAmount", "status", "createdAt", "updatedAt"]
-    },
-    "BillItem": {
-      "title": "Bill Item",
-      "description": "A line item in a purchase bill",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "billId": { "type": "string" },
-        "item": { "type": "string" },
-        "quantity": { "type": "number" },
-        "price": { "type": "number" },
-        "tax": { "type": "number" },
-        "total": { "type": "number" }
-      },
-      "required": ["id", "companyId", "billId", "item", "quantity", "price", "tax", "total"]
-    },
-    "Expense": {
-      "title": "Expense",
-      "description": "A company expense",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "vendorId": { "type": "string" },
-        "accountId": { "type": "string" },
-        "amount": { "type": "number" },
-        "date": { "type": "string", "format": "date" },
-        "reference": { "type": "string" },
-        "description": { "type": "string" },
-        "journalEntryId": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "companyId", "accountId", "amount", "date", "createdAt", "updatedAt"]
-    },
-    "BankAccount": {
-      "title": "Bank Account",
-      "description": "A company bank account",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "bankName": { "type": "string" },
-        "accountName": { "type": "string" },
-        "accountNumber": { "type": "string" },
-        "currency": { "type": "string" },
-        "openingBalance": { "type": "number" },
-        "currentBalance": { "type": "number" },
-        "accountId": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "companyId", "bankName", "accountName", "accountNumber", "currentBalance", "accountId", "createdAt", "updatedAt"]
-    },
-    "Transaction": {
-      "title": "Bank Transaction",
-      "description": "A transaction in a bank account",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "bankAccountId": { "type": "string" },
-        "type": { "type": "string", "enum": ["Debit", "Credit"] },
-        "amount": { "type": "number" },
-        "date": { "type": "string", "format": "date" },
-        "description": { "type": "string" },
-        "reference": { "type": "string" },
-        "isReconciled": { "type": "boolean" },
-        "linkedJournalEntryId": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "companyId", "bankAccountId", "type", "amount", "date", "isReconciled", "createdAt", "updatedAt"]
-    },
-    "FinancialSettings": {
-      "title": "Financial Settings",
-      "description": "General financial configuration for a company",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "currency": {
-          "type": "object",
-          "properties": {
-            "code": { "type": "string" },
-            "symbol": { "type": "string" },
-            "name": { "type": "string" }
-          }
-        },
-        "defaultAccounts": {
-          "type": "object",
-          "properties": {
-            "retainedEarningsId": { "type": "string" },
-            "accountsReceivableId": { "type": "string" },
-            "accountsPayableId": { "type": "string" },
-            "salesTaxPayableId": { "type": "string" },
-            "bankAccountId": { "type": "string" }
-          }
-        },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "companyId", "currency", "defaultAccounts"]
-    },
-    "TaxSetting": {
-      "title": "Tax Setting",
-      "description": "A tax rate configuration",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "name": { "type": "string" },
-        "rate": { "type": "number" },
-        "type": { "type": "string", "enum": ["Sales", "Purchase", "Both"] },
-        "accountId": { "type": "string" },
-        "isActive": { "type": "boolean" },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "companyId", "name", "rate", "type", "isActive"]
-    },
-    "NumberSequence": {
-      "title": "Number Sequence",
-      "description": "Configuration for sequential numbering of documents",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "companyId": { "type": "string" },
-        "module": { "type": "string", "enum": ["Invoice", "Bill", "Journal", "Payment", "Expense"] },
-        "prefix": { "type": "string" },
-        "suffix": { "type": "string" },
-        "nextNumber": { "type": "number" },
-        "padding": { "type": "number" },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "companyId", "module", "prefix", "nextNumber", "padding"]
     }
   },
   "firestore": {
-    "/whatsapp_accounts/{accountId}": {
-      "schema": "WhatsappAccount",
-      "description": "Whatsapp accounts"
-    },
-    "/whatsapp_messages/{messageId}": {
-      "schema": "WhatsappMessage",
-      "description": "Whatsapp messages"
-    },
-    "/attendance_alert_settings/{settingId}": {
-      "schema": "AttendanceAlertSettings",
-      "description": "Attendance alert settings"
-    },
-    "/attendance_alert_logs/{logId}": {
-      "schema": "AttendanceAlertLog",
-      "description": "Attendance alert logs"
-    },
-    "/idle_alert_settings/{settingId}": {
-      "schema": "IdleAlertSettings",
-      "description": "Idle alert settings"
-    },
-    "/idle_alert_logs/{logId}": {
-      "schema": "IdleAlertLog",
-      "description": "Idle alert logs"
-    },
-    "/employee_welcome_settings/{settingId}": {
-      "schema": "EmployeeWelcomeSettings",
-      "description": "Employee welcome settings"
-    },
-    "/accounting_accounts/{accountId}": {
-      "schema": "AccountingAccount",
-      "description": "Chart of Accounts for companies"
-    },
-    "/journalEntries/{entryId}": {
-      "schema": "JournalEntry",
-      "description": "Journal entries for double-entry accounting"
-    },
-    "/journalLines/{lineId}": {
-      "schema": "JournalLine",
-      "description": "Line items for journal entries"
-    },
-    "/customers/{customerId}": {
-      "schema": "Customer",
-      "description": "Customer records"
-    },
-    "/invoices/{invoiceId}": {
-      "schema": "Invoice",
-      "description": "Sales invoices"
-    },
-    "/invoiceItems/{itemId}": {
-      "schema": "InvoiceItem",
-      "description": "Line items for sales invoices"
-    },
-    "/payments/{paymentId}": {
-      "schema": "Payment",
-      "description": "Customer payments"
-    },
-    "/vendors/{vendorId}": {
-      "schema": "Vendor",
-      "description": "Vendor records"
-    },
-    "/expenses/{expenseId}": {
-      "schema": "Expense",
-      "description": "Company expenses"
-    },
-    "/bills/{billId}": {
-      "schema": "Bill",
-      "description": "Purchase bills"
-    },
-    "/billItems/{billItemId}": {
-      "schema": "BillItem",
-      "description": "Line items for purchase bills"
-    },
-    "/bankAccounts/{bankAccountId}": {
-      "schema": "BankAccount",
-      "description": "Company bank accounts"
-    },
-    "/transactions/{transactionId}": {
-      "schema": "Transaction",
-      "description": "Bank account transactions"
-    },
     "/users/{userId}": {
       "schema": "User",
-      "description": "Collection of system users"
-    },
-    "/companies/{companyId}": {
-      "schema": "Company",
-      "description": "Collection of registered companies"
+      "description": "User profiles."
     },
     "/employees/{employeeId}": {
       "schema": "Employee",
-      "description": "Collection of all employees across all companies"
+      "description": "Employee records."
     },
-    "/holidays/{holidayId}": {
-      "schema": "Holiday",
-      "description": "Collection of holidays"
+    "/auditLogs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Audit logs for system actions."
     },
-    "/weeklyHolidays/{configId}": {
-      "schema": "WeeklyHoliday",
-      "description": "Configuration for weekly holidays"
+    "/timeTracking/{trackingId}": {
+      "schema": "TimeTracking",
+      "description": "Time tracking records."
     },
-    "/leaveTypes/{typeId}": {
-      "schema": "LeaveType",
-      "description": "Collection of leave types"
+    "/attendance/{attendanceId}": {
+      "schema": "Attendance",
+      "description": "Attendance records."
     },
-    "/invoices/{invoiceId}": {
-      "schema": "Invoice",
-      "description": "Collection of all invoices"
-    },
-    "/attendance/{recordId}": {
-      "schema": "AttendanceRecord",
-      "description": "Collection of attendance records"
-    },
-    "/leaves/{requestId}": {
-      "schema": "LeaveRequest",
-      "description": "Collection of leave requests"
-    },
-    "/awards/{awardId}": {
-      "schema": "Award",
-      "description": "Collection of awards"
-    },
-    "/departments/{deptId}": {
-      "schema": "Department",
-      "description": "Collection of departments"
-    },
-    "/designations/{designationId}": {
-      "schema": "Designation",
-      "description": "Collection of designations"
-    },
-    "/subDepartments/{subDeptId}": {
-      "schema": "SubDepartment",
-      "description": "Collection of sub-departments"
-    },
-    "/notices/{noticeId}": {
-      "schema": "Notice",
-      "description": "Collection of notices"
-    },
-    "/projects/{projectId}": {
-      "schema": "Project",
-      "description": "Collection of projects"
-    },
-    "/assets/{assetId}": {
-      "schema": "Asset",
-      "description": "Collection of assets"
-    },
-    "/tasks/{taskId}": {
-      "schema": "Task",
-      "description": "Collection of tasks"
-    },
-    "/milestones/{milestoneId}": {
-      "schema": "Milestone",
-      "description": "Collection of milestones"
-    },
-    "/sales/{saleId}": {
-      "schema": "Sale",
-      "description": "Collection of sales"
-    },
-    "/chats/{chatId}": {
-      "schema": "Chat",
-      "description": "Collection of chats"
-    },
-    "/chats/{chatId}/messages/{messageId}": {
-      "schema": "Message",
-      "description": "Subcollection of messages within a chat"
-    },
-    "/invitations/{invitationId}": {
-      "schema": "Invitation",
-      "description": "Collection of chat invitations"
-    },
-    "/payrollBatches/{batchId}": {
-      "schema": "PayrollBatch",
-      "description": "Collection of payroll batches"
-    },
-    "/salaryRecords/{recordId}": {
-      "schema": "SalaryRecord",
-      "description": "Collection of individual salary records"
-    },
-    "/loans/{loanId}": {
-      "schema": "Loan",
-      "description": "Collection of loans"
-    },
-    "/payrolls/{payrollId}": {
-      "schema": "Payroll",
-      "description": "Collection of payrolls"
-    },
-    "/hr_jobs/{jobId}": {
-      "schema": "Job",
-      "description": "Collection of job postings"
-    },
-    "/hr_applications/{applicationId}": {
-      "schema": "Application",
-      "description": "Collection of job applications"
-    },
-    "/candidates/{candidateId}": {
-      "schema": "Candidate",
-      "description": "Collection of all job candidates"
-    },
-    "/bankAccounts/{accountId}": {
-      "schema": "BankAccount",
-      "description": "Collection of bank accounts"
-    },
-    "/bankTransfers/{transferId}": {
-      "schema": "BankTransfer",
-      "description": "Collection of bank transfers"
-    },
-    "/accountPayments/{paymentId}": {
-      "schema": "AccountPayment",
-      "description": "Collection of account payments"
-    },
-    "/vouchers/{voucherId}": {
-      "schema": "Voucher",
-      "description": "Collection of vouchers"
-    },
-    "/ledgerGroups/{groupId}": {
-      "schema": "LedgerGroup",
-      "description": "Collection of ledger groups"
-    },
-    "/ledgers/{ledgerId}": {
-      "schema": "Ledger",
-      "description": "Collection of ledgers"
-    },
-    "/accountBills/{billId}": {
-      "schema": "AccountBill",
-      "description": "Collection of account bills"
-    },
-    "/accountPeople/{personId}": {
-      "schema": "AccountPerson",
-      "description": "Collection of account people"
-    },
-    "/salesOrders/{orderId}": {
-      "schema": "SalesOrder",
-      "description": "Collection of sales orders"
-    },
-    "/quotations/{quoteId}": {
-      "schema": "Quotation",
-      "description": "Collection of quotations"
-    },
-    "/callLogs/{logId}": {
-      "schema": "CallLog",
-      "description": "Collection of call logs"
-    },
-    "/bids/{bidId}": {
-      "schema": "Bid",
-      "description": "Collection of bids"
-    },
-    "/financialSettings/{settingId}": {
-      "schema": "FinancialSettings",
-      "description": "General financial configuration for companies"
-    },
-    "/taxSettings/{taxId}": {
-      "schema": "TaxSetting",
-      "description": "Tax rate configurations for companies"
-    },
-    "/numberSequences/{sequenceId}": {
-      "schema": "NumberSequence",
-      "description": "Numbering sequences for company documents"
-    }
+    "/awards/{awardId}": { "schema": "GenericEntity", "description": "Awards." },
+    "/departments/{deptId}": { "schema": "GenericEntity", "description": "Departments." },
+    "/designations/{desigId}": { "schema": "GenericEntity", "description": "Designations." },
+    "/subDepartments/{subDeptId}": { "schema": "GenericEntity", "description": "Sub-departments." },
+    "/notices/{noticeId}": { "schema": "GenericEntity", "description": "Notices." },
+    "/projects/{projectId}": { "schema": "GenericEntity", "description": "Projects." },
+    "/assets/{assetId}": { "schema": "GenericEntity", "description": "Assets." },
+    "/tasks/{taskId}": { "schema": "GenericEntity", "description": "Tasks." },
+    "/sales/{saleId}": { "schema": "GenericEntity", "description": "Sales." },
+    "/milestones/{milestoneId}": { "schema": "GenericEntity", "description": "Milestones." },
+    "/loans/{loanId}": { "schema": "GenericEntity", "description": "Loans." },
+    "/payrolls/{payrollId}": { "schema": "GenericEntity", "description": "Payrolls." },
+    "/payrollBatches/{batchId}": { "schema": "GenericEntity", "description": "Payroll batches." },
+    "/salaryRecords/{recordId}": { "schema": "GenericEntity", "description": "Salary records." },
+    "/orgChartTemplates/{templateId}": { "schema": "GenericEntity", "description": "Org chart templates." },
+    "/procurementRequests/{requestId}": { "schema": "GenericEntity", "description": "Procurement requests." },
+    "/procurementSettings/{settingId}": { "schema": "GenericEntity", "description": "Procurement settings." },
+    "/crm_companies/{companyId}": { "schema": "GenericEntity", "description": "CRM companies." },
+    "/products/{productId}": { "schema": "GenericEntity", "description": "Products." },
+    "/salesOrders/{orderId}": { "schema": "GenericEntity", "description": "Sales orders." },
+    "/quotations/{quotationId}": { "schema": "GenericEntity", "description": "Quotations." },
+    "/bids/{bidId}": { "schema": "GenericEntity", "description": "Bids." },
+    "/callLogs/{logId}": { "schema": "GenericEntity", "description": "Call logs." },
+    "/tickets/{ticketId}": { "schema": "GenericEntity", "description": "Tickets." },
+    "/idle_alert_settings/{settingId}": { "schema": "GenericEntity", "description": "Idle alert settings." },
+    "/idle_alert_logs/{logId}": { "schema": "GenericEntity", "description": "Idle alert logs." },
+    "/attendance_alert_settings/{settingId}": { "schema": "GenericEntity", "description": "Attendance alert settings." },
+    "/attendance_alert_logs/{logId}": { "schema": "GenericEntity", "description": "Attendance alert logs." },
+    "/employee_welcome_settings/{settingId}": { "schema": "GenericEntity", "description": "Employee welcome settings." }
   }
 }

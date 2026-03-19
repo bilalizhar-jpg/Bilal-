@@ -45,7 +45,7 @@ export default function EmployeePayroll() {
  const [payslipRows, setPayslipRows] = useState<PayslipRow[]>([]);
  const [editableEmployeeInfo, setEditableEmployeeInfo] = useState<{label: string, value: string}[]>([]);
 
- const currentEmployee = employees.find(emp => emp.id === user?.id);
+ const currentEmployee = employees.find(emp => emp.id === (user?.employeeId || user?.id));
  const company = companies.find(c => c.id === currentEmployee?.companyId);
 
  const salarySlips = salaryRecords

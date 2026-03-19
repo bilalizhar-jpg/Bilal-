@@ -8,27 +8,37 @@ export class AttendanceAlertService {
     console.log('[AttendanceAlert] Initializing cron job...');
     // Run every minute
     cron.schedule('* * * * *', () => {
-      this.checkAndSendAlerts();
+      this.checkAndSendAlerts().catch(err => {
+        console.error('[AttendanceAlert] Unhandled error in cron job:', err);
+      });
     });
   }
 
   private static async checkAndSendAlerts() {
-    const now = new Date();
-    const currentTime = now.toLocaleTimeString('en-US', { 
-      hour12: true, 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    }); // e.g. "09:16 AM"
+    try {
+      const now = new Date();
+      const currentTime = now.toLocaleTimeString('en-US', { 
+        hour12: true, 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }); // e.g. "09:16 AM"
 
-    // Get all active settings
-    const snapshot = await db.collection('attendance_alert_settings').where('isActive', '==', true).get();
-    const activeSettings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+      // Get all active settings
+      const snapshot = await db.collection('attendance_alert_settings').where('isActive', '==', true).get();
+      const activeSettings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
 
-    for (const setting of activeSettings) {
-      if (setting.triggerTime === currentTime) {
-        console.log(`[AttendanceAlert] Trigger time reached for company: ${setting.companyId}`);
-        await this.processCompanyAlerts(setting);
+      for (const setting of activeSettings) {
+        if (setting.triggerTime === currentTime) {
+          console.log(`[AttendanceAlert] Trigger time reached for company: ${setting.companyId}`);
+          await this.processCompanyAlerts(setting);
+        }
       }
+    } catch (error: any) {
+      if (error.message?.includes('PERMISSION_DENIED')) {
+        // Silent failure for permission issues to avoid log spam when DB is not provisioned
+        return;
+      }
+      console.error('[AttendanceAlert] Error in cron job:', error);
     }
   }
 

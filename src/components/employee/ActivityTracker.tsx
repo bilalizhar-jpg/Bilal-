@@ -17,7 +17,7 @@ export const ActivityTracker = () => {
  if (!user || user.role !== 'employee') return;
 
  const todayDate = new Date().toISOString().split('T')[0];
- const docId =`${user.id}_${todayDate}`;
+ const docId =`${user.employeeId || user.id}_${todayDate}`;
 
  const handleActivity = () => {
  const currentData = trackingDataRef.current[docId];
@@ -25,7 +25,7 @@ export const ActivityTracker = () => {
  
  // If they were idle, mark them as online
  if (currentData.status === 'Idle') {
- updateTracking(user.id, { status: 'Online'});
+ updateTracking(user.employeeId || user.id, { status: 'Online'});
 }
 };
 
@@ -58,7 +58,7 @@ export const ActivityTracker = () => {
  if (!currentData || currentData.status === 'Offline') return;
  
  if (activityRef.current.mouseMoves > 0 || activityRef.current.keyboardClicks > 0) {
- updateTracking(user.id, {
+ updateTracking(user.employeeId || user.id, {
  mouseMoves: (currentData.mouseMoves || 0) + activityRef.current.mouseMoves,
  keyboardClicks: (currentData.keyboardClicks || 0) + activityRef.current.keyboardClicks,
  lastActive: Date.now()

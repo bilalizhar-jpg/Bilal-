@@ -53,7 +53,7 @@ export default function EmployeeLayout({ children}: EmployeeLayoutProps) {
 };
 
  // Find the full employee details based on the logged-in user
- const currentEmployee = employees.find(emp => emp.id === user?.id);
+ const currentEmployee = employees.find(emp => emp.id === (user?.employeeId || user?.id));
  
  // Find the company to check for blocked menus
  const company = companies.find(c => c.id === user?.companyId);
@@ -204,7 +204,7 @@ export default function EmployeeLayout({ children}: EmployeeLayoutProps) {
  const filteredMenuItems = filterMenu(menuItems);
 
  return (
- <div className={`min-h-screen flex relative overflow-hidden print:overflow-visible bg-slate-50 text-slate-900`} style={layoutStyle}>
+ <div className={`min-h-screen flex relative overflow-hidden print:overflow-visible bg-white text-slate-900`} style={layoutStyle}>
  {/* Sidebar */}
  <aside className={`${isSidebarOpen ? 'w-72 md:w-80' : 'w-24'} relative z-30 flex flex-col transition-all duration-500 shrink-0 border-r print:hidden bg-white border-slate-200 shadow-sm`}>
  <div className={`p-6 flex items-center gap-4 border-b border-slate-100 h-20`}>
@@ -219,7 +219,7 @@ export default function EmployeeLayout({ children}: EmployeeLayoutProps) {
  <motion.span 
  initial={{ opacity: 0, x: -10}}
  animate={{ opacity: 1, x: 0}}
- className="font-bold text-lg tracking-tight truncate"
+ className="font-bold text-lg tracking-tight truncate text-black"
  >
  {company?.name || 'Employee Portal'}
  </motion.span>
@@ -253,7 +253,7 @@ export default function EmployeeLayout({ children}: EmployeeLayoutProps) {
  className={`w-full flex items-center ${isSidebarOpen ? 'justify-between px-4' : 'justify-center px-0'} py-2.5 rounded-xl transition-all duration-200 group ${
  isActive 
  ? ('bg-indigo-50 text-indigo-700') 
- : ('text-slate-600 hover:bg-slate-100 hover:text-slate-900')
+ : ('text-slate-900 hover:bg-slate-100 hover:text-slate-900')
 }`}
  >
  <div className={`flex items-center ${isSidebarOpen ? 'gap-3' : 'justify-center'}`}>
@@ -296,7 +296,7 @@ export default function EmployeeLayout({ children}: EmployeeLayoutProps) {
  className={`flex items-center ${isSidebarOpen ? 'gap-3 px-4' : 'justify-center px-0'} py-2.5 rounded-xl transition-all duration-200 group ${
  isActive 
  ? ('bg-indigo-50 text-indigo-700') 
- : ('text-slate-600 hover:bg-slate-100 hover:text-slate-900')
+ : ('text-slate-900 hover:bg-slate-100 hover:text-slate-900')
 }`}
  >
  <Icon className={`w-4 h-4 ${isActive ? ('text-indigo-600') : ''}`} />

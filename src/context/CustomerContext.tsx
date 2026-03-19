@@ -30,15 +30,15 @@ export function CustomerProvider({ children}: { children: React.ReactNode}) {
  const [customers, setCustomers] = useState<Customer[]>([]);
  const [loading, setLoading] = useState(true);
  const [error, setError] = useState<string | null>(null);
- const { user} = useAuth();
- const activeCompanyId = user?.currentCompanyId || user?.companyId;
+  const { user, isFirebaseReady } = useAuth();
+  const activeCompanyId = user?.currentCompanyId || user?.companyId;
 
- useEffect(() => {
- if (!activeCompanyId) {
- setCustomers([]);
- setLoading(false);
- return;
-}
+  useEffect(() => {
+    if (!isFirebaseReady || !activeCompanyId) {
+      setCustomers([]);
+      setLoading(false);
+      return;
+    }
 
  const q = query(
  collection(db, 'customers'),
@@ -62,8 +62,8 @@ export function CustomerProvider({ children}: { children: React.ReactNode}) {
  setLoading(false);
 });
 
- return () => unsubscribe();
-}, [activeCompanyId]);
+  return () => unsubscribe();
+}, [activeCompanyId, isFirebaseReady]);
 
  const addCustomer = async (data: Omit<Customer, 'id' | 'companyId' | 'createdAt' | 'updatedAt'>) => {
  if (!activeCompanyId) throw new Error('No company ID found');

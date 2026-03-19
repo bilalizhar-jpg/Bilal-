@@ -47,16 +47,16 @@ export function InvoiceProvider({ children}: { children: React.ReactNode}) {
  const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
  const [loading, setLoading] = useState(true);
  const [error, setError] = useState<string | null>(null);
- const { user} = useAuth();
- const activeCompanyId = user?.currentCompanyId || user?.companyId;
+  const { user, isFirebaseReady } = useAuth();
+  const activeCompanyId = user?.currentCompanyId || user?.companyId;
 
- useEffect(() => {
- if (!activeCompanyId) {
- setInvoices([]);
- setInvoiceItems([]);
- setLoading(false);
- return;
-}
+  useEffect(() => {
+    if (!isFirebaseReady || !activeCompanyId) {
+      setInvoices([]);
+      setInvoiceItems([]);
+      setLoading(false);
+      return;
+    }
 
  const qInvoices = query(
  collection(db, 'invoices'),
@@ -95,11 +95,11 @@ export function InvoiceProvider({ children}: { children: React.ReactNode}) {
  setLoading(false);
 });
 
- return () => {
- unsubscribeInvoices();
- unsubscribeItems();
-};
-}, [activeCompanyId]);
+  return () => {
+    unsubscribeInvoices();
+    unsubscribeItems();
+  };
+}, [activeCompanyId, isFirebaseReady]);
 
  const addInvoice = async (
  invoiceData: Omit<Invoice, 'id' | 'companyId' | 'createdAt' | 'updatedAt'>,

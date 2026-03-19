@@ -46,16 +46,16 @@ export const useAttendance = () => {
 };
 
 export const AttendanceProvider = ({ children}: { children: ReactNode}) => {
- const { user} = useAuth();
- const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
- const [loading, setLoading] = useState(true);
+  const { user, isFirebaseReady } = useAuth();
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
+  const [loading, setLoading] = useState(true);
 
- useEffect(() => {
- if (!user?.companyId) {
- setAttendanceRecords([]);
- setLoading(false);
- return;
-}
+  useEffect(() => {
+    if (!isFirebaseReady || !user?.companyId) {
+      setAttendanceRecords([]);
+      setLoading(false);
+      return;
+    }
 
  const q = query(collection(db, 'attendance'), where('companyId', '==', user.companyId));
  const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -66,8 +66,8 @@ export const AttendanceProvider = ({ children}: { children: ReactNode}) => {
  handleFirestoreError(error, OperationType.LIST, 'attendance');
 });
 
- return () => unsubscribe();
-}, [user]);
+  return () => unsubscribe();
+}, [user?.companyId, isFirebaseReady]);
 
  const addLog = async (companyId: string, employeeId: string, employeeName: string, action: string, location: string, time: string, date: string, newState: 'not_checked_in' | 'checked_in' | 'on_break' | 'checked_out', selfie?: string) => {
  const parseTime = (t: string) => {

@@ -19,7 +19,7 @@ interface User {
 
 interface AuthContextType {
  user: User | null;
- login: (user: User) => void;
+ login: (user: User) => Promise<void>;
  logout: () => void;
  isAuthenticated: boolean;
  signInWithGoogle: () => Promise<void>;
@@ -53,6 +53,10 @@ export const AuthProvider = ({ children}: { children: ReactNode}) => {
 
  useEffect(() => {
  const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+ if (!firebaseUser) {
+ setUser(null);
+ localStorage.removeItem('currentUser');
+ }
  setIsFirebaseReady(true);
 });
 
@@ -67,7 +71,23 @@ export const AuthProvider = ({ children}: { children: ReactNode}) => {
 }
 }, [user]);
 
- const login = (userData: User) => {
+ const login = async (userData: User) => {
+ try {
+ let firebaseUser = auth.currentUser;
+ if (!firebaseUser) {
+ const userCredential = await signInAnonymously(auth);
+ firebaseUser = userCredential.user;
+ }
+ userData.id = firebaseUser.uid;
+ 
+ await setDoc(doc(db, 'users', userData.id), {
+ ...userData,
+ lastLogin: new Date().toISOString()
+ }, { merge: true });
+ } catch (error) {
+ console.error("Error signing in anonymously:", error);
+ }
+
  setUser(userData);
  logAuditAction({
  companyId: userData.companyId || 'system',
@@ -95,34 +115,45 @@ export const AuthProvider = ({ children}: { children: ReactNode}) => {
 };
 
  const signInWithGoogle = async () => {
- const provider = new GoogleAuthProvider();
- try {
- const result = await signInWithPopup(auth, provider);
- const firebaseUser = result.user;
- 
- // If the email matches superadmin, log them in as superadmin
- if (firebaseUser.email === 'bilal.izhar@algorepublic.com') {
- const userData: User = {
- id: firebaseUser.uid,
- name: firebaseUser.displayName || 'Super Admin',
- email: firebaseUser.email || '',
- role: 'superadmin',
- avatar: firebaseUser.photoURL || undefined
-};
+  const provider = new GoogleAuthProvider();
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const firebaseUser = result.user;
+    
+    let userData: User;
 
- try {
- // Create/Update user document in Firestore
- await setDoc(doc(db, 'users', firebaseUser.uid), {
- ...userData,
- lastLogin: new Date().toISOString()
-}, { merge: true});
-} catch (error) {
- console.error("Error saving user to Firestore:", error);
-}
+    // If the email matches superadmin, log them in as superadmin
+    if (firebaseUser.email === 'bilal.izhar@algorepublic.com') {
+      userData = {
+        id: firebaseUser.uid,
+        name: firebaseUser.displayName || 'Super Admin',
+        email: firebaseUser.email || '',
+        role: 'superadmin',
+        avatar: firebaseUser.photoURL || undefined
+      };
+    } else {
+      // Default to admin for now
+      userData = {
+        id: firebaseUser.uid,
+        name: firebaseUser.displayName || 'User',
+        email: firebaseUser.email || '',
+        role: 'admin',
+        avatar: firebaseUser.photoURL || undefined
+      };
+    }
 
- login(userData);
-}
-} catch (error: any) {
+    try {
+      // Create/Update user document in Firestore
+      await setDoc(doc(db, 'users', firebaseUser.uid), {
+        ...userData,
+        lastLogin: new Date().toISOString()
+      }, { merge: true });
+    } catch (error) {
+      console.error("Error saving user to Firestore:", error);
+    }
+
+    await login(userData);
+  } catch (error: any) {
  if (error.code === 'auth/popup-closed-by-user') {
  // User intentionally closed the popup, ignore the error
  console.log('Sign-in popup was closed by the user.');

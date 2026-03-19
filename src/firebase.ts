@@ -23,14 +23,17 @@ async function testConnection() {
  await getDocFromServer(doc(db, '_connection_test_', 'ping'));
  console.log("Firestore connection verified.");
 } catch (error) {
- console.error("Firestore connection test error:", error);
  if (error instanceof Error) {
  if (error.message.includes('the client is offline')) {
  console.error("Firestore connection failed: The client is offline. This usually means the network is blocking the connection or the Firebase configuration is incorrect.");
-} else if (error.message.includes('permission-denied') || error.message.includes('Missing or insufficient permissions')) {
+ } else if (error.message.includes('permission-denied') || error.message.includes('Missing or insufficient permissions')) {
  console.log("Firestore connection reached backend, but permission was denied (this is normal for a ping test).");
-}
-}
+ } else {
+ console.error("Firestore connection test error:", error);
+ }
+ } else {
+ console.error("Firestore connection test error:", error);
+ }
 }
 }
 

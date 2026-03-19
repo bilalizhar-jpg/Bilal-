@@ -26,15 +26,15 @@ const AuditContext = createContext<AuditContextType | undefined>(undefined);
 export function AuditProvider({ children}: { children: React.ReactNode}) {
  const [logs, setLogs] = useState<AuditLog[]>([]);
  const [loading, setLoading] = useState(true);
- const { user} = useAuth();
- const activeCompanyId = user?.currentCompanyId || user?.companyId;
+  const { user, isFirebaseReady } = useAuth();
+  const activeCompanyId = user?.currentCompanyId || user?.companyId;
 
- useEffect(() => {
- if (!activeCompanyId) {
- setLogs([]);
- setLoading(false);
- return;
-}
+  useEffect(() => {
+    if (!isFirebaseReady || !activeCompanyId) {
+      setLogs([]);
+      setLoading(false);
+      return;
+    }
 
  const q = query(
  collection(db, 'auditLogs'),
@@ -55,8 +55,8 @@ export function AuditProvider({ children}: { children: React.ReactNode}) {
  setLoading(false);
 });
 
- return () => unsubscribe();
-}, [activeCompanyId]);
+  return () => unsubscribe();
+}, [activeCompanyId, isFirebaseReady]);
 
  const logAction = async (action: string, module: string, description: string, recordId?: string) => {
  if (!user) return;

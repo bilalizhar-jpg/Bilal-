@@ -32,15 +32,15 @@ export function VendorProvider({ children}: { children: React.ReactNode}) {
  const [vendors, setVendors] = useState<Vendor[]>([]);
  const [loading, setLoading] = useState(true);
  const [error, setError] = useState<string | null>(null);
- const { user} = useAuth();
- const activeCompanyId = user?.currentCompanyId || user?.companyId;
+  const { user, isFirebaseReady } = useAuth();
+  const activeCompanyId = user?.currentCompanyId || user?.companyId;
 
- useEffect(() => {
- if (!activeCompanyId) {
- setVendors([]);
- setLoading(false);
- return;
-}
+  useEffect(() => {
+    if (!isFirebaseReady || !activeCompanyId) {
+      setVendors([]);
+      setLoading(false);
+      return;
+    }
 
  const q = query(
  collection(db, 'vendors'),
@@ -63,8 +63,8 @@ export function VendorProvider({ children}: { children: React.ReactNode}) {
  setLoading(false);
 });
 
- return () => unsubscribe();
-}, [activeCompanyId]);
+  return () => unsubscribe();
+}, [activeCompanyId, isFirebaseReady]);
 
  const addVendor = async (data: Omit<Vendor, 'id' | 'companyId' | 'createdAt' | 'updatedAt'>) => {
  if (!activeCompanyId) throw new Error('No company ID found');

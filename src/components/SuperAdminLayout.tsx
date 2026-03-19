@@ -56,7 +56,7 @@ export default function SuperAdminLayout({ children}: SuperAdminLayoutProps) {
  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 group ${
  isActive 
  ? 'bg-indigo-50 text-indigo-700' 
- : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+ : 'text-gray-900 hover:bg-slate-100 hover:text-slate-900'
 } ${depth === 1 ? 'pl-8' : depth === 2 ? 'pl-12' : depth === 3 ? 'pl-16' : ''}`}
  >
  <div className="flex items-center gap-4">
@@ -98,7 +98,7 @@ export default function SuperAdminLayout({ children}: SuperAdminLayoutProps) {
  className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group ${
  location.pathname === item.path
  ? 'bg-indigo-50 text-indigo-700' 
- : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+ : 'text-gray-900 hover:bg-slate-100 hover:text-slate-900'
 } ${depth === 1 ? 'pl-10' : depth === 2 ? 'pl-14' : depth === 3 ? 'pl-18' : ''}`}
  >
  {Icon && <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${location.pathname === item.path ? 'text-indigo-600' : ''}`} />}
@@ -115,29 +115,27 @@ export default function SuperAdminLayout({ children}: SuperAdminLayoutProps) {
  ];
 
  return (
- <div className="min-h-screen flex relative overflow-hidden print:overflow-visible bg-[#1E1E2F] text-white">
- {/* Background Atmosphere - Simplified for performance */}
+ <div className="min-h-screen flex relative overflow-hidden print:overflow-visible bg-[#f5f7fb] text-gray-900">
+ {/* Background Atmosphere */}
  <div className="fixed inset-0 pointer-events-none overflow-hidden print:hidden z-0">
- <div className="absolute top-[-10%] left-[-5%] w-[50%] h-[50%] rounded-full bg-[#00FFCC]/5 blur-[120px]"/>
- <div className="absolute bottom-[-10%] right-[-5%] w-[50%] h-[50%] rounded-full bg-[#00D1FF]/5 blur-[120px]"/>
+ <div className="absolute top-[-10%] left-[-5%] w-[50%] h-[50%] rounded-full bg-indigo-500/5 blur-[120px]"/>
+ <div className="absolute bottom-[-10%] right-[-5%] w-[50%] h-[50%] rounded-full bg-emerald-500/5 blur-[120px]"/>
  </div>
 
- <aside className={`${isSidebarOpen ? 'w-72' : 'w-24'} relative z-30 flex flex-col transition-all duration-500 shrink-0 border-r print:hidden bg-[#1B1B2F] border-white/5`}>
- <div className="p-6 flex items-center gap-4 border-b border-white/5 h-20">
- <div className="bg-gradient-to-tr from-[#00FFCC] to-[#00D1FF] p-0.5 rounded-xl shrink-0 overflow-hidden w-10 h-10 flex items-center justify-center shadow-lg">
- <div className="w-full h-full rounded-[10px] bg-[#1E1E2F] flex items-center justify-center overflow-hidden">
- <Shield className="w-6 h-6 text-[#00FFCC]"/>
- </div>
+ <aside className={`${isSidebarOpen ? 'w-72' : 'w-24'} relative z-30 flex flex-col transition-all duration-500 shrink-0 border-r print:hidden bg-white border-gray-200`}>
+ <div className="p-6 flex items-center gap-4 border-b border-gray-100 h-20">
+ <div className="bg-black p-1.5 rounded-xl shrink-0 overflow-hidden w-10 h-10 flex items-center justify-center shadow-md">
+ <Shield className="w-6 h-6 text-white"/>
  </div>
  {isSidebarOpen && (
- <span className="font-display font-black text-xl tracking-tighter truncate uppercase text-white">
+ <span className="font-display font-bold text-xl tracking-tight truncate uppercase text-black">
  Super Admin
  </span>
  )}
  </div>
  
  <nav className="flex-1 overflow-y-auto py-4 custom-scrollbar px-4">
- <div className="px-4 mb-6 text-[10px] font-black text-[#B0B0C3] uppercase tracking-[0.3em]">
+ <div className="px-4 mb-6 text-[10px] font-bold text-gray-400 uppercase tracking-[0.3em]">
  {isSidebarOpen ?"Core Protocol":"CP"}
  </div>
  <ul className="space-y-2">
@@ -150,53 +148,53 @@ export default function SuperAdminLayout({ children}: SuperAdminLayoutProps) {
  to={item.path}
  className={`relative flex items-center ${isSidebarOpen ? 'gap-4 px-4' : 'justify-center px-0'} py-3.5 rounded-lg transition-all duration-200 group ${
  isActive 
- ? 'bg-[#2A2A3D] text-[#00FFCC] border border-[#00FFCC]/20' 
- : 'text-[#B0B0C3] hover:bg-[#2A2A3D] hover:text-white'
+ ? 'bg-gray-100 text-gray-900' 
+ : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
 }`}
  >
  {isActive && (
  <motion.div 
  layoutId="activeIndicator"
- className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-[#00FFCC]"
+ className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-black"
  />
  )}
- <Icon className={`w-5 h-5 transition-transform duration-200 group-hover:scale-110 ${isActive ? 'text-[#00FFCC]' : ''}`} />
- {isSidebarOpen && <span className="font-black text-xs uppercase tracking-[0.2em]">{item.name}</span>}
+ <Icon className={`w-5 h-5 transition-transform duration-200 group-hover:scale-110 ${isActive ? 'text-gray-900' : ''}`} />
+ {isSidebarOpen && <span className="font-bold text-xs uppercase tracking-[0.2em]">{item.name}</span>}
  </Link>
  </li>
  );
 })}
  </ul>
 
- <div className="mt-10 px-4 mb-6 text-[10px] font-black text-[#B0B0C3] uppercase tracking-[0.3em]">
+ <div className="mt-10 px-4 mb-6 text-[10px] font-bold text-gray-400 uppercase tracking-[0.3em]">
  {isSidebarOpen ?"Employer Modules":"EM"}
  </div>
 
- <div className="space-y-2">
+ <div className="space-y-2 text-gray-900">
  {ADMIN_MENU_ITEMS.map((item) => (
  <SidebarItem key={item.name} item={item} />
  ))}
  </div>
  </nav>
 
- <div className="p-6 border-t border-white/5">
+ <div className="p-6 border-t border-gray-100">
  <button 
  onClick={handleLogout}
- className="w-full flex items-center gap-4 px-4 py-3.5 rounded-lg transition-all duration-300 group text-[#B0B0C3] hover:bg-[#2A2A3D] hover:text-white"
+ className="w-full flex items-center gap-4 px-4 py-3.5 rounded-lg transition-all duration-300 group text-gray-600 hover:bg-gray-50 hover:text-gray-900"
  >
  <LogOut className="w-5 h-5 transition-transform group-hover:-translate-x-1"/>
- {isSidebarOpen && <span className="font-black text-xs uppercase tracking-[0.2em]">Logout</span>}
+ {isSidebarOpen && <span className="font-bold text-xs uppercase tracking-[0.2em]">Logout</span>}
  </button>
  </div>
  </aside>
 
  <main className="flex-1 flex flex-col min-w-0 overflow-hidden print:overflow-visible relative z-10">
- <header className="h-20 relative z-20 flex items-center justify-between px-8 border-b print:hidden bg-[#1E1E2F] border-white/5">
+ <header className="h-20 relative z-20 flex items-center justify-between px-8 border-b print:hidden bg-white border-gray-200">
  <div className="flex items-center gap-6">
  <motion.button 
  whileTap={{ scale: 0.9}}
  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
- className="p-2.5 rounded-lg transition-all hover:bg-[#2A2A3D] text-[#B0B0C3] hover:text-white"
+ className="p-2.5 rounded-lg transition-all hover:bg-gray-100 text-gray-500 hover:text-gray-900"
  >
  <Menu className="w-5 h-5"/>
  </motion.button>
@@ -205,15 +203,15 @@ export default function SuperAdminLayout({ children}: SuperAdminLayoutProps) {
  <motion.div 
  initial={{ opacity: 0, y: -10}}
  animate={{ opacity: 1, y: 0}}
- className="flex items-center gap-3 px-4 py-2 bg-[#00FFCC]/10 border border-[#00FFCC]/20 rounded-lg"
+ className="flex items-center gap-3 px-4 py-2 bg-gray-100 border border-gray-200 rounded-lg"
  >
- <Shield className="w-4 h-4 text-[#00FFCC]"/>
- <span className="text-[10px] font-black uppercase tracking-widest text-[#00FFCC]">
+ <Shield className="w-4 h-4 text-gray-900"/>
+ <span className="text-[10px] font-bold uppercase tracking-widest text-gray-900">
  Impersonating: {companies.find(c => c.id === user.companyId)?.name}
  </span>
  <button 
  onClick={() => impersonateCompany(null)}
- className="ml-2 text-[9px] font-black uppercase tracking-widest bg-[#00FFCC] text-[#1E1E2F] px-3 py-1 rounded-lg hover:opacity-80 transition-opacity"
+ className="ml-2 text-[9px] font-bold uppercase tracking-widest bg-black text-white px-3 py-1 rounded-lg hover:opacity-80 transition-opacity"
  >
  Terminate
  </button>
@@ -224,18 +222,18 @@ export default function SuperAdminLayout({ children}: SuperAdminLayoutProps) {
  <div className="flex items-center gap-6">
  <motion.button 
  whileTap={{ scale: 0.9}}
- className="p-2.5 rounded-lg transition-all hover:bg-[#2A2A3D] text-[#B0B0C3] hover:text-white"
+ className="p-2.5 rounded-lg transition-all hover:bg-gray-100 text-gray-500 hover:text-gray-900"
  >
  <Maximize2 className="w-5 h-5"/>
  </motion.button>
  
- <div className="flex items-center gap-4 pl-6 border-l border-white/5">
+ <div className="flex items-center gap-4 pl-6 border-l border-gray-200">
  <div className="text-right hidden sm:block">
- <p className="text-[10px] font-black uppercase tracking-widest text-white">{user?.name || 'Super Admin'}</p>
- <p className="text-[9px] font-mono uppercase tracking-widest text-[#B0B0C3]">System Architect</p>
+ <p className="text-[10px] font-bold uppercase tracking-widest text-gray-900">{user?.name || 'Super Admin'}</p>
+ <p className="text-[9px] uppercase tracking-widest text-gray-500">System Architect</p>
  </div>
- <div className="relative w-10 h-10 rounded-full p-0.5 bg-gradient-to-tr from-[#00FFCC] to-[#00D1FF]">
- <div className="w-full h-full rounded-full bg-[#1E1E2F] flex items-center justify-center overflow-hidden">
+ <div className="relative w-10 h-10 rounded-full p-0.5 bg-gray-200">
+ <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
  {user?.avatar ? (
  <img 
  src={user.avatar} 
@@ -244,7 +242,7 @@ export default function SuperAdminLayout({ children}: SuperAdminLayoutProps) {
  referrerPolicy="no-referrer"
  />
  ) : (
- <User className="w-5 h-5 text-[#B0B0C3]"/>
+ <User className="w-5 h-5 text-gray-400"/>
  )}
  </div>
  </div>
@@ -252,7 +250,7 @@ export default function SuperAdminLayout({ children}: SuperAdminLayoutProps) {
  </div>
  </header>
 
- <div className="flex-1 overflow-auto print:overflow-visible p-8 custom-scrollbar">
+ <div className="flex-1 overflow-auto print:overflow-visible p-8 custom-scrollbar bg-white">
  <div className="max-w-[1600px] mx-auto">
  <AnimatePresence mode="wait">
  <motion.div

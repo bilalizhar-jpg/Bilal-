@@ -75,18 +75,18 @@ export const useMarketing = () => {
 };
 
 export const MarketingProvider = ({ children}: { children: ReactNode}) => {
- const { user} = useAuth();
- const [emailLists, setEmailLists] = useState<EmailList[]>([]);
- const [campaigns, setCampaigns] = useState<Campaign[]>([]);
- const [campaignLogs, setCampaignLogs] = useState<CampaignLog[]>([]);
+  const { user, isFirebaseReady } = useAuth();
+  const [emailLists, setEmailLists] = useState<EmailList[]>([]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [campaignLogs, setCampaignLogs] = useState<CampaignLog[]>([]);
 
- useEffect(() => {
- if (!user?.companyId) {
- setEmailLists([]);
- setCampaigns([]);
- setCampaignLogs([]);
- return;
-}
+  useEffect(() => {
+    if (!isFirebaseReady || !user?.companyId) {
+      setEmailLists([]);
+      setCampaigns([]);
+      setCampaignLogs([]);
+      return;
+    }
 
  const companyId = user.companyId;
 
@@ -117,12 +117,12 @@ export const MarketingProvider = ({ children}: { children: ReactNode}) => {
  handleFirestoreError(error, OperationType.LIST, 'marketing_logs');
 });
 
- return () => {
- unsubscribeLists();
- unsubscribeCampaigns();
- unsubscribeLogs();
-};
-}, [user?.companyId]);
+  return () => {
+    unsubscribeLists();
+    unsubscribeCampaigns();
+    unsubscribeLogs();
+  };
+}, [user?.companyId, isFirebaseReady]);
 
  const addEmailList = async (list: Omit<EmailList, 'id' | 'companyId'>) => {
  if (!user?.companyId) return;

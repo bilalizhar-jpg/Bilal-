@@ -80,17 +80,17 @@ export function AccountingProvider({ children}: { children: React.ReactNode}) {
  const [fiscalYears, setFiscalYears] = useState<FiscalYear[]>([]);
  const [loading, setLoading] = useState(true);
  const [error, setError] = useState<string | null>(null);
- const { user} = useAuth();
+  const { user, isFirebaseReady } = useAuth();
 
- const activeCompanyId = user?.currentCompanyId || user?.companyId;
+  const activeCompanyId = user?.currentCompanyId || user?.companyId;
 
- useEffect(() => {
- if (!activeCompanyId) {
- setAccounts([]);
- setFiscalYears([]);
- setLoading(false);
- return;
-}
+  useEffect(() => {
+    if (!isFirebaseReady || !activeCompanyId) {
+      setAccounts([]);
+      setFiscalYears([]);
+      setLoading(false);
+      return;
+    }
 
  const q = query(
  collection(db, 'accounting_accounts'),
@@ -161,13 +161,13 @@ export function AccountingProvider({ children}: { children: React.ReactNode}) {
  setLoading(false);
 });
 
- return () => {
- unsubscribeAccounts();
- unsubscribeEntries();
- unsubscribeLines();
- unsubscribeFiscal();
-};
-}, [activeCompanyId]);
+  return () => {
+    unsubscribeAccounts();
+    unsubscribeEntries();
+    unsubscribeLines();
+    unsubscribeFiscal();
+  };
+}, [activeCompanyId, isFirebaseReady]);
 
  const isPeriodClosed = (date: string) => {
  return fiscalYears.some(fy => 

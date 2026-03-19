@@ -91,7 +91,7 @@ export default function AccountingSidebar({ isSidebarOpen}: AccountingSidebarPro
  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-300 group ${
  isActive 
  ? 'bg-indigo-50 text-indigo-700' 
- : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+ : 'text-slate-900 hover:bg-slate-100 hover:text-slate-900'
 } ${depth === 1 ? 'pl-8' : depth === 2 ? 'pl-12' : ''}`}
  >
  <div className="flex items-center gap-4">
@@ -130,7 +130,7 @@ export default function AccountingSidebar({ isSidebarOpen}: AccountingSidebarPro
  className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group ${
  location.pathname === item.path
  ? 'bg-indigo-50 text-indigo-700' 
- : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+ : 'text-slate-900 hover:bg-slate-100 hover:text-slate-900'
 } ${depth === 1 ? 'pl-10' : depth === 2 ? 'pl-14' : ''}`}
  >
  {Icon && <Icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${location.pathname === item.path ? 'text-indigo-600' : ''}`} />}
@@ -142,13 +142,11 @@ export default function AccountingSidebar({ isSidebarOpen}: AccountingSidebarPro
  return (
  <aside className={`${isSidebarOpen ? 'w-72' : 'w-24'} relative z-30 flex flex-col transition-all duration-500 shrink-0 border-r print:hidden bg-white border-slate-200`}>
  <div className={`p-6 flex items-center gap-4 border-b h-20 border-slate-200`}>
- <div className={`p-0.5 rounded-xl shrink-0 overflow-hidden w-10 h-10 flex items-center justify-center shadow-lg bg-gradient-to-tr from-indigo-500 to-purple-500`}>
- <div className={`w-full h-full rounded-[10px] flex items-center justify-center overflow-hidden bg-white`}>
- <Calculator className={`w-6 h-6 text-indigo-600`} />
- </div>
+ <div className="bg-black p-1.5 rounded-xl shrink-0 overflow-hidden w-10 h-10 flex items-center justify-center shadow-md">
+ <Calculator className="w-6 h-6 text-white"/>
  </div>
  {isSidebarOpen && (
- <span className={`font-display font-black text-xl tracking-tighter truncate uppercase text-slate-900`}>
+ <span className={`font-display font-black text-xl tracking-tighter truncate uppercase text-black`}>
  Accounting
  </span>
  )}
@@ -168,14 +166,14 @@ export default function AccountingSidebar({ isSidebarOpen}: AccountingSidebarPro
  <div className={`p-6 border-t border-slate-200`}>
  <Link 
  to="/dashboard"
- className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-lg transition-all duration-300 group mb-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900`}
+ className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-lg transition-all duration-300 group mb-2 text-slate-900 hover:bg-slate-100 hover:text-slate-900`}
  >
  <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1"/>
  {isSidebarOpen && <span className="font-black text-xs uppercase tracking-[0.2em]">Back to Main</span>}
  </Link>
  <button 
  onClick={handleLogout}
- className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-lg transition-all duration-300 group text-slate-600 hover:bg-slate-100 hover:text-slate-900`}
+ className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-lg transition-all duration-300 group text-slate-900 hover:bg-slate-100 hover:text-slate-900`}
  >
  <LogOut className="w-5 h-5 transition-transform group-hover:-translate-x-1"/>
  {isSidebarOpen && <span className="font-black text-xs uppercase tracking-[0.2em]">Logout</span>}

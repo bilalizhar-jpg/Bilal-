@@ -64,7 +64,7 @@ export default function LoginPage() {
 
  // 1. Check Super Admin Credentials
  if (username === 'Bilal.izhar' && password === 'KKjdu&&6e99') {
- login({
+ await login({
  id: 'superadmin',
  name: 'Super Admin',
  role: 'superadmin',
@@ -88,7 +88,7 @@ export default function LoginPage() {
  setIsLoading(false);
  return;
 }
- login({
+ await login({
  id: company.id,
  name: company.name,
  role: 'admin',
@@ -105,7 +105,7 @@ export default function LoginPage() {
  );
 
  if (employee) {
- login({
+ await login({
  id: employee.id,
  name: employee.name,
  role: 'employee',

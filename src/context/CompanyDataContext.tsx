@@ -62,38 +62,38 @@ export const useCompanyData = () => {
 };
 
 export const CompanyDataProvider = ({ children}: { children: ReactNode}) => {
- const { user} = useAuth();
- const [awards, setAwards] = useState<DataEntity[]>([]);
- const [departments, setDepartments] = useState<DataEntity[]>([]);
- const [designations, setDesignations] = useState<DataEntity[]>([]);
- const [subDepartments, setSubDepartments] = useState<DataEntity[]>([]);
- const [notices, setNotices] = useState<DataEntity[]>([]);
- const [projects, setProjects] = useState<DataEntity[]>([]);
- const [assets, setAssets] = useState<DataEntity[]>([]);
- const [tasks, setTasks] = useState<DataEntity[]>([]);
- const [sales, setSales] = useState<DataEntity[]>([]);
- const [milestones, setMilestones] = useState<DataEntity[]>([]);
- const [loans, setLoans] = useState<DataEntity[]>([]);
- const [payrolls, setPayrolls] = useState<DataEntity[]>([]);
- const [payrollBatches, setPayrollBatches] = useState<DataEntity[]>([]);
- const [salaryRecords, setSalaryRecords] = useState<DataEntity[]>([]);
- const [orgChartTemplates, setOrgChartTemplates] = useState<DataEntity[]>([]);
- const [procurementRequests, setProcurementRequests] = useState<DataEntity[]>([]);
- const [procurementSettings, setProcurementSettings] = useState<DataEntity[]>([]);
- const [companies, setCompanies] = useState<DataEntity[]>([]);
- const [products, setProducts] = useState<DataEntity[]>([]);
- const [salesOrders, setSalesOrders] = useState<DataEntity[]>([]);
- const [quotations, setQuotations] = useState<DataEntity[]>([]);
- const [bids, setBids] = useState<DataEntity[]>([]);
- const [callLogs, setCallLogs] = useState<DataEntity[]>([]);
- const [tickets, setTickets] = useState<DataEntity[]>([]);
- const [loading, setLoading] = useState(true);
+  const { user, isFirebaseReady } = useAuth();
+  const [awards, setAwards] = useState<DataEntity[]>([]);
+  const [departments, setDepartments] = useState<DataEntity[]>([]);
+  const [designations, setDesignations] = useState<DataEntity[]>([]);
+  const [subDepartments, setSubDepartments] = useState<DataEntity[]>([]);
+  const [notices, setNotices] = useState<DataEntity[]>([]);
+  const [projects, setProjects] = useState<DataEntity[]>([]);
+  const [assets, setAssets] = useState<DataEntity[]>([]);
+  const [tasks, setTasks] = useState<DataEntity[]>([]);
+  const [sales, setSales] = useState<DataEntity[]>([]);
+  const [milestones, setMilestones] = useState<DataEntity[]>([]);
+  const [loans, setLoans] = useState<DataEntity[]>([]);
+  const [payrolls, setPayrolls] = useState<DataEntity[]>([]);
+  const [payrollBatches, setPayrollBatches] = useState<DataEntity[]>([]);
+  const [salaryRecords, setSalaryRecords] = useState<DataEntity[]>([]);
+  const [orgChartTemplates, setOrgChartTemplates] = useState<DataEntity[]>([]);
+  const [procurementRequests, setProcurementRequests] = useState<DataEntity[]>([]);
+  const [procurementSettings, setProcurementSettings] = useState<DataEntity[]>([]);
+  const [companies, setCompanies] = useState<DataEntity[]>([]);
+  const [products, setProducts] = useState<DataEntity[]>([]);
+  const [salesOrders, setSalesOrders] = useState<DataEntity[]>([]);
+  const [quotations, setQuotations] = useState<DataEntity[]>([]);
+  const [bids, setBids] = useState<DataEntity[]>([]);
+  const [callLogs, setCallLogs] = useState<DataEntity[]>([]);
+  const [tickets, setTickets] = useState<DataEntity[]>([]);
+  const [loading, setLoading] = useState(true);
 
- useEffect(() => {
- if (!user?.companyId) {
- setLoading(false);
- return;
-}
+  useEffect(() => {
+    if (!isFirebaseReady || !user?.companyId) {
+      setLoading(false);
+      return;
+    }
 
  const collections = [
  { name: 'awards', setter: setAwards},
@@ -127,7 +127,7 @@ export const CompanyDataProvider = ({ children}: { children: ReactNode}) => {
  if (name === 'crm_companies' && user.role === 'superadmin') {
  q = query(collection(db, name));
 } else {
- q = query(collection(db, name), where('companyId', '==', user.companyId));
+ q = query(collection(db, name), where('companyId', '==', user?.currentCompanyId || user?.companyId || 'nonexistent'));
 }
  return onSnapshot(q, (snapshot) => {
  const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id} as DataEntity));
@@ -137,9 +137,9 @@ export const CompanyDataProvider = ({ children}: { children: ReactNode}) => {
 });
 });
 
- setLoading(false);
- return () => unsubscribes.forEach(unsub => unsub());
-}, [user?.companyId, user?.currentCompanyId]);
+  setLoading(false);
+  return () => unsubscribes.forEach(unsub => unsub());
+}, [user?.companyId, user?.currentCompanyId, isFirebaseReady]);
 
  const addEntity = async (collectionName: string, data: any) => {
  const activeCompanyId = user?.currentCompanyId || user?.companyId;

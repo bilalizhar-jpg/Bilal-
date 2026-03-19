@@ -47,19 +47,19 @@ export const useTimeTracking = () => {
 };
 
 export const TimeTrackingProvider = ({ children}: { children: ReactNode}) => {
- const { user} = useAuth();
- const [trackingData, setTrackingData] = useState<Record<string, TrackingData>>({});
- const lastUpdateRef = useRef<Record<string, number>>({});
+  const { user, isFirebaseReady } = useAuth();
+  const [trackingData, setTrackingData] = useState<Record<string, TrackingData>>({});
+  const lastUpdateRef = useRef<Record<string, number>>({});
 
- const todayDate = React.useMemo(() => new Date().toISOString().split('T')[0], []);
- const trackingDataRef = useRef<Record<string, TrackingData>>({});
+  const todayDate = React.useMemo(() => new Date().toISOString().split('T')[0], []);
+  const trackingDataRef = useRef<Record<string, TrackingData>>({});
 
- useEffect(() => {
- if (!user) {
- setTrackingData({});
- trackingDataRef.current = {};
- return;
-}
+  useEffect(() => {
+    if (!isFirebaseReady || !user) {
+      setTrackingData({});
+      trackingDataRef.current = {};
+      return;
+    }
 
  const q = query(collection(db, 'timeTracking'), where('date', '==', todayDate));
  const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -73,8 +73,8 @@ export const TimeTrackingProvider = ({ children}: { children: ReactNode}) => {
  handleFirestoreError(error, OperationType.LIST, 'timeTracking');
 });
 
- return () => unsubscribe();
-}, [user, todayDate]);
+  return () => unsubscribe();
+}, [user, todayDate, isFirebaseReady]);
 
  const updateTracking = React.useCallback(async (employeeId: string, data: Partial<TrackingData>) => {
  const docId =`${employeeId}_${todayDate}`;
@@ -163,7 +163,7 @@ export const TimeTrackingProvider = ({ children}: { children: ReactNode}) => {
  if (!user || user.role !== 'employee') return;
 
  const interval = setInterval(() => {
- const docId =`${user.id}_${todayDate}`;
+ const docId =`${user.employeeId || user.id}_${todayDate}`;
  setTrackingData(prev => {
  const current = prev[docId];
  if (!current || current.status === 'Offline') return prev;
@@ -191,7 +191,7 @@ export const TimeTrackingProvider = ({ children}: { children: ReactNode}) => {
 
  // Periodically sync to Firestore (every 10 seconds) to ensure working/idle time is saved
  const syncInterval = setInterval(() => {
- const docId =`${user.id}_${todayDate}`;
+ const docId =`${user.employeeId || user.id}_${todayDate}`;
  const current = trackingDataRef.current[docId];
  if (current && current.status !== 'Offline') {
  setDoc(doc(db, 'timeTracking', docId), current).catch(err => 

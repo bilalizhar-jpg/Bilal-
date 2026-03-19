@@ -6,7 +6,8 @@ import {
  setDoc, 
  updateDoc,
  deleteDoc,
- query
+ query,
+ where
 } from 'firebase/firestore';
 import { db} from '../firebase';
 import { handleFirestoreError, OperationType} from '../utils/firestoreErrorHandler';
@@ -68,41 +69,43 @@ import { useAuth} from './AuthContext'; // Import useAuth
 // ... imports
 
 export const LetterProvider = ({ children}: { children: ReactNode}) => {
- const { user} = useAuth(); // Get user
- const [letters, setLetters] = useState<Letter[]>([]);
- const [templates, setTemplates] = useState<LetterTemplate[]>([]);
- const [loading, setLoading] = useState(true);
+  const { user, isFirebaseReady } = useAuth(); // Get user
+  const [letters, setLetters] = useState<Letter[]>([]);
+  const [templates, setTemplates] = useState<LetterTemplate[]>([]);
+  const [loading, setLoading] = useState(true);
 
- useEffect(() => {
- if (!user) {
- setLetters([]);
- setTemplates([]);
- setLoading(false);
- return;
-}
+  useEffect(() => {
+    if (!isFirebaseReady || !user) {
+      setLetters([]);
+      setTemplates([]);
+      setLoading(false);
+      return;
+    }
 
- const qLetters = query(collection(db, 'letters'));
- const unsubscribeLetters = onSnapshot(qLetters, (snapshot) => {
- const lettersData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id} as Letter));
- setLetters(lettersData);
-}, (error) => {
- handleFirestoreError(error, OperationType.LIST, 'letters');
-});
+    const companyId = user.companyId;
 
- const qTemplates = query(collection(db, 'letterTemplates'));
- const unsubscribeTemplates = onSnapshot(qTemplates, (snapshot) => {
- const templatesData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id} as LetterTemplate));
- setTemplates(templatesData);
- setLoading(false);
-}, (error) => {
- handleFirestoreError(error, OperationType.LIST, 'letterTemplates');
-});
+    const qLetters = query(collection(db, 'letters'), where('companyId', '==', companyId));
+    const unsubscribeLetters = onSnapshot(qLetters, (snapshot) => {
+      const lettersData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Letter));
+      setLetters(lettersData);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'letters');
+    });
 
- return () => {
- unsubscribeLetters();
- unsubscribeTemplates();
-};
-}, [user]); // Depend on user
+    const qTemplates = query(collection(db, 'letterTemplates'), where('companyId', '==', companyId));
+    const unsubscribeTemplates = onSnapshot(qTemplates, (snapshot) => {
+      const templatesData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as LetterTemplate));
+      setTemplates(templatesData);
+      setLoading(false);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'letterTemplates');
+    });
+
+    return () => {
+      unsubscribeLetters();
+      unsubscribeTemplates();
+    };
+  }, [user?.id, user?.companyId, isFirebaseReady]); // Depend on user and readiness
 
  const addLetter = async (letter: Omit<Letter, 'id'>) => {
  const id = Math.random().toString(36).substr(2, 9);
